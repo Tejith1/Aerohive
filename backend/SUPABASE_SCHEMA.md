@@ -19,7 +19,7 @@ CREATE TABLE categories (
     name VARCHAR(100) NOT NULL,
     description TEXT,
     slug VARCHAR(100) UNIQUE NOT NULL,
-    image_url VARCHAR(500),
+    image_url TEXT,  -- Changed from VARCHAR(500) to TEXT to support data URLs
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -50,7 +50,7 @@ CREATE TABLE products (
     sku VARCHAR(100) UNIQUE,
     stock_quantity INTEGER DEFAULT 0,
     category_id UUID REFERENCES categories(id),
-    image_url VARCHAR(500),
+    image_url TEXT,  -- Changed from VARCHAR(500) to TEXT to support data URLs
     images JSONB DEFAULT '[]'::jsonb,
     is_active BOOLEAN DEFAULT true,
     is_featured BOOLEAN DEFAULT false,

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
-import { Filter, Grid, List, SlidersHorizontal, Plane, Camera, Zap, Wind, MapPin, Star, Badge, Clock, Wifi, Battery, Settings } from "lucide-react"
+import { Filter, Grid, List, SlidersHorizontal, Plane, Star, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -12,98 +12,58 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProductCard } from "@/components/product/product-card"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { getAllProducts } from "@/lib/products-data"
-
-// Get products from shared data
-const products = getAllProducts()
-
-// Categories for filtering
-const categories = [
-  "Racing Drones",
-  "Photography Drones", 
-  "Surveillance Drones",
-  "Agricultural Drones",
-  "Delivery Drones",
-  "Mapping Drones",
-  "Search & Rescue",
-  "Beginner Drones",
-  "Military Drones"
-]
-
-// Features for filtering
-const features = [
-  "GPS Auto-Return",
-  "Obstacle Avoidance",
-  "4K Camera",
-  "Thermal Imaging",
-  "Night Vision",
-  "Live Streaming",
-  "Follow Me Mode",
-  "Weather Resistant"
-]
+import { getProducts, Product, getCategories, Category } from "@/lib/supabase"
+import { toast } from "@/hooks/use-toast"
 
 export default function ProductsPage() {
   const searchParams = useSearchParams()
+  const [products, setProducts] = useState<Product[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [sortBy, setSortBy] = useState("created_desc")
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
-  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([])
+  const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [priceRange, setPriceRange] = useState({ min: "", max: "" })
-  const [showFilters, setShowFilters] = useState(false)
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
+  const [showFilters, setShowFilters] = useState(false)
 
-  // Handle URL parameters on component mount
   useEffect(() => {
-    const categoryParam = searchParams.get('category')
-    if (categoryParam) {
-      setSelectedCategories([decodeURIComponent(categoryParam)])
-      setShowFilters(true) // Show filters when coming from category page
-    }
-  }, [searchParams])
+    loadData()
+  }, [])
 
-  const handleCategoryChange = (category: string, checked: boolean) => {
-    if (checked) {
-      setSelectedCategories([...selectedCategories, category])
-    } else {
-      setSelectedCategories(selectedCategories.filter(c => c !== category))
+  const loadData = async () => {
+    try {
+      setIsLoading(true)
+      const [productsData, categoriesData] = await Promise.all([
+        getProducts({ active: true }),
+        getCategories()
+      ])
+      setProducts(productsData)
+      setCategories(categoriesData)
+    } catch (error) {
+      console.error('Error loading products:', error)
+      toast({
+        title: "Error",
+        description: "Failed to load products",
+        variant: "destructive"
+      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const handleFeatureChange = (feature: string, checked: boolean) => {
-    if (checked) {
-      setSelectedFeatures([...selectedFeatures, feature])
-    } else {
-      setSelectedFeatures(selectedFeatures.filter(f => f !== feature))
-    }
-  }
-
-  const clearFilters = () => {
-    setSelectedCategories([])
-    setSelectedFeatures([])
-    setPriceRange({ min: "", max: "" })
-    setSearchQuery("")
-  }
-
-  // Filter products based on current filters
+  // Filter and sort products
   const filteredProducts = products.filter(product => {
-    // Search query filter
-    const matchesSearch = !searchQuery || 
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchQuery.toLowerCase())
-
-    // Category filter
-    const matchesCategory = selectedCategories.length === 0 || 
-      selectedCategories.includes(product.category)
-
-    // Feature filter  
-    const matchesFeatures = selectedFeatures.length === 0 ||
-      selectedFeatures.some(feature => product.features.includes(feature))
-
-    // Price range filter
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         product.category?.name.toLowerCase().includes(searchQuery.toLowerCase())
+    
+    const matchesCategory = selectedCategory === "all" || product.category?.id === selectedCategory
+    
     const matchesPrice = (!priceRange.min || product.price >= parseFloat(priceRange.min)) &&
-      (!priceRange.max || product.price <= parseFloat(priceRange.max))
-
-    return matchesSearch && matchesCategory && matchesFeatures && matchesPrice
+                        (!priceRange.max || product.price <= parseFloat(priceRange.max))
+    
+    return matchesSearch && matchesCategory && matchesPrice
   })
 
   // Sort products
@@ -113,79 +73,163 @@ export default function ProductsPage() {
         return a.price - b.price
       case "price_desc":
         return b.price - a.price
-      case "rating_desc":
-        return (b.averageRating || 0) - (a.averageRating || 0)
       case "name_asc":
         return a.name.localeCompare(b.name)
+      case "name_desc":
+        return b.name.localeCompare(a.name)
+      case "created_desc":
       default:
-        return 0
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     }
   })
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
       <Header />
-      
-      <main className="flex-1">
-        {/* Hero Section */}
-        <section className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white">
-          <div className="absolute inset-0 bg-black/20" />
-          <div className="relative container mx-auto px-4 py-24">
-            <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-5xl font-bold mb-6">
-                Professional Drone Solutions
+
+      <main className="flex-1 container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary via-blue-500 to-secondary flex items-center justify-center shadow-lg">
+              <Plane className="text-white h-6 w-6" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Drone Collection
               </h1>
-              <p className="text-xl mb-8 text-blue-100">
-                Discover our comprehensive range of drones for every application - from racing and photography to commercial and industrial use.
+              <p className="text-muted-foreground">
+                Discover our premium selection of professional drones
               </p>
-              <div className="flex flex-wrap justify-center gap-4 text-sm">
-                <div className="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2">
-                  <Plane className="h-4 w-4" />
-                  <span>Racing Drones</span>
-                </div>
-                <div className="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2">
-                  <Camera className="h-4 w-4" />
-                  <span>Photography</span>
-                </div>
-                <div className="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2">
-                  <Zap className="h-4 w-4" />
-                  <span>Commercial</span>
-                </div>
-                <div className="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2">
-                  <Wind className="h-4 w-4" />
-                  <span>Industrial</span>
-                </div>
-              </div>
             </div>
           </div>
-        </section>
+        </div>
 
         {/* Filters and Search */}
-        <section className="container mx-auto px-4 py-8">
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-            <div className="flex flex-col lg:flex-row gap-4 items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Explore Our Drones</h2>
-              <div className="flex items-center gap-4">
+        <div className="grid gap-6 lg:grid-cols-4 mb-8">
+          {/* Filters Sidebar */}
+          <div className={`lg:block ${showFilters ? 'block' : 'hidden'} lg:col-span-1`}>
+            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm sticky top-24">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Filter className="h-5 w-5" />
+                  <span>Filters</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Search */}
+                <div>
+                  <Label htmlFor="search">Search Products</Label>
+                  <Input
+                    id="search"
+                    placeholder="Search drones..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+
+                {/* Category Filter */}
+                <div>
+                  <Label>Category</Label>
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="All Categories" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Price Range */}
+                <div>
+                  <Label>Price Range (₹)</Label>
+                  <div className="grid grid-cols-2 gap-2 mt-1">
+                    <Input
+                      placeholder="Min"
+                      type="number"
+                      value={priceRange.min}
+                      onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
+                    />
+                    <Input
+                      placeholder="Max"
+                      type="number"
+                      value={priceRange.max}
+                      onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                {/* Clear Filters */}
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSearchQuery("")
+                    setSelectedCategory("all")
+                    setPriceRange({ min: "", max: "" })
+                  }}
+                  className="w-full"
+                >
+                  Clear Filters
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Products Grid */}
+          <div className="lg:col-span-3">
+            {/* Toolbar */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div className="flex items-center space-x-4">
                 <Button
                   variant="outline"
                   onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2"
+                  className="lg:hidden"
                 >
-                  <SlidersHorizontal className="h-4 w-4" />
+                  <SlidersHorizontal className="h-4 w-4 mr-2" />
                   Filters
                 </Button>
-                <div className="flex items-center gap-2">
+                
+                <p className="text-sm text-muted-foreground">
+                  {isLoading ? "Loading..." : `${sortedProducts.length} products found`}
+                </p>
+              </div>
+
+              <div className="flex items-center space-x-4">
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="created_desc">Newest First</SelectItem>
+                    <SelectItem value="created_asc">Oldest First</SelectItem>
+                    <SelectItem value="price_asc">Price: Low to High</SelectItem>
+                    <SelectItem value="price_desc">Price: High to Low</SelectItem>
+                    <SelectItem value="name_asc">Name: A to Z</SelectItem>
+                    <SelectItem value="name_desc">Name: Z to A</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <div className="flex border rounded-md">
                   <Button
-                    variant={viewMode === "grid" ? "default" : "outline"}
+                    variant={viewMode === "grid" ? "default" : "ghost"}
                     size="sm"
                     onClick={() => setViewMode("grid")}
+                    className="rounded-r-none"
                   >
                     <Grid className="h-4 w-4" />
                   </Button>
                   <Button
-                    variant={viewMode === "list" ? "default" : "outline"}
+                    variant={viewMode === "list" ? "default" : "ghost"}
                     size="sm"
                     onClick={() => setViewMode("list")}
+                    className="rounded-l-none"
                   >
                     <List className="h-4 w-4" />
                   </Button>
@@ -193,172 +237,66 @@ export default function ProductsPage() {
               </div>
             </div>
 
-            {/* Search and Sort */}
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-              <div className="flex-1">
-                <Input
-                  placeholder="Search drones by name or category..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full"
-                />
+            {/* Products */}
+            {isLoading ? (
+              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <Card key={i} className="border-0 shadow-lg bg-white/80 backdrop-blur-sm animate-pulse">
+                    <div className="aspect-square bg-gray-200 rounded-t-lg"></div>
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                        <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-full md:w-48">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="created_desc">Newest First</SelectItem>
-                  <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                  <SelectItem value="price_desc">Price: High to Low</SelectItem>
-                  <SelectItem value="rating_desc">Highest Rated</SelectItem>
-                  <SelectItem value="name_asc">Name: A to Z</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Advanced Filters */}
-            {showFilters && (
-              <div className="border-t pt-6">
-                <div className="grid md:grid-cols-3 gap-6">
-                  {/* Category Filter */}
-                  <div>
-                    <h3 className="font-semibold mb-3">Categories</h3>
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {categories.map(category => (
-                        <div key={category} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={category}
-                            checked={selectedCategories.includes(category)}
-                            onCheckedChange={(checked) => 
-                              handleCategoryChange(category, checked as boolean)
-                            }
-                          />
-                          <Label htmlFor={category} className="text-sm">
-                            {category}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Features Filter */}
-                  <div>
-                    <h3 className="font-semibold mb-3">Features</h3>
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {features.map(feature => (
-                        <div key={feature} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={feature}
-                            checked={selectedFeatures.includes(feature)}
-                            onCheckedChange={(checked) => 
-                              handleFeatureChange(feature, checked as boolean)
-                            }
-                          />
-                          <Label htmlFor={feature} className="text-sm">
-                            {feature}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Price Filter */}
-                  <div>
-                    <h3 className="font-semibold mb-3">Price Range</h3>
-                    <div className="space-y-3">
-                      <div>
-                        <Label htmlFor="minPrice" className="text-sm">Min Price (₹)</Label>
-                        <Input
-                          id="minPrice"
-                          type="number"
-                          placeholder="0"
-                          value={priceRange.min}
-                          onChange={(e) => setPriceRange({...priceRange, min: e.target.value})}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="maxPrice" className="text-sm">Max Price (₹)</Label>
-                        <Input
-                          id="maxPrice"
-                          type="number"
-                          placeholder="10000"
-                          value={priceRange.max}
-                          onChange={(e) => setPriceRange({...priceRange, max: e.target.value})}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center mt-6 pt-4 border-t">
-                  <span className="text-sm text-gray-600">
-                    {filteredProducts.length} products found
-                  </span>
-                  <Button variant="outline" onClick={clearFilters}>
+            ) : sortedProducts.length === 0 ? (
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <CardContent className="p-12 text-center">
+                  <Package className="h-16 w-16 mx-auto text-muted-foreground mb-6" />
+                  <h3 className="text-xl font-semibold mb-2">No products found</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Try adjusting your search criteria or browse our categories.
+                  </p>
+                  <Button onClick={() => {
+                    setSearchQuery("")
+                    setSelectedCategory("all")
+                    setPriceRange({ min: "", max: "" })
+                  }}>
                     Clear All Filters
                   </Button>
-                </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className={`grid gap-6 ${
+                viewMode === "grid" 
+                  ? "md:grid-cols-2 xl:grid-cols-3" 
+                  : "grid-cols-1"
+              }`}>
+                {sortedProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={{
+                      id: parseInt(product.id),
+                      name: product.name,
+                      price: product.price,
+                      comparePrice: product.compare_price || undefined,
+                      imageUrl: product.image_url || "/placeholder.svg",
+                      slug: product.slug,
+                      averageRating: product.average_rating || 4.5,
+                      reviewCount: 0, // TODO: Add review count from database
+                      isFeatured: product.is_featured,
+                      stockQuantity: product.stock_quantity,
+                    }}
+                  />
+                ))}
               </div>
             )}
           </div>
-
-          {/* Products Grid */}
-          <div className={`${
-            viewMode === "grid" 
-              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
-              : "space-y-4"
-          }`}>
-            {sortedProducts.map(product => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-
-          {/* No Results */}
-          {filteredProducts.length === 0 && (
-            <div className="text-center py-12">
-              <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <Filter className="h-12 w-12 text-gray-400" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">No drones found</h3>
-              <p className="text-gray-600 mb-4">
-                Try adjusting your search criteria or clearing some filters.
-              </p>
-              <Button onClick={clearFilters}>Clear All Filters</Button>
-            </div>
-          )}
-
-          {/* Promotional Banner */}
-          <section className="bg-gradient-to-r from-green-500 to-blue-600 rounded-xl text-white p-8 mt-12">
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div>
-                <h3 className="text-2xl font-bold mb-4">Need Help Choosing?</h3>
-                <p className="mb-6">
-                  Our drone experts are here to help you find the perfect drone for your specific needs and budget.
-                </p>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    <span>Free consultation available</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Star className="h-4 w-4" />
-                    <span>Expert recommendations</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    <span>Same-day shipping</span>
-                  </div>
-                </div>
-              </div>
-              <div className="text-center">
-                <Button size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-gray-100">
-                  Contact Our Experts
-                </Button>
-              </div>
-            </div>
-          </section>
-        </section>
+        </div>
       </main>
 
       <Footer />

@@ -58,7 +58,7 @@ class CategoryBase(BaseModelConfig):
     name: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = None
     slug: str = Field(..., min_length=1, max_length=100)
-    image_url: Optional[str] = Field(None, max_length=500)
+    image_url: Optional[str] = None  # Removed max_length to support data URLs
     is_active: bool = True
 
 class CategoryCreate(CategoryBase):
@@ -67,7 +67,7 @@ class CategoryCreate(CategoryBase):
 class CategoryUpdate(BaseModelConfig):
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     description: Optional[str] = None
-    image_url: Optional[str] = Field(None, max_length=500)
+    image_url: Optional[str] = None  # Removed max_length to support data URLs
     is_active: Optional[bool] = None
 
 class Category(CategoryBase):
@@ -89,7 +89,7 @@ class ProductBase(BaseModelConfig):
     sku: Optional[str] = Field(None, max_length=100)
     stock_quantity: int = Field(default=0, ge=0)
     category_id: UUID
-    image_url: Optional[str] = Field(None, max_length=500)
+    image_url: Optional[str] = None  # Removed max_length to support data URLs
     images: List[str] = Field(default=[])
     is_active: bool = True
     is_featured: bool = False
@@ -127,7 +127,7 @@ class ProductUpdate(BaseModelConfig):
     compare_price: Optional[Decimal] = Field(None, gt=0)
     stock_quantity: Optional[int] = Field(None, ge=0)
     category_id: Optional[UUID] = None
-    image_url: Optional[str] = Field(None, max_length=500)
+    image_url: Optional[str] = None  # Removed max_length to support data URLs
     images: Optional[List[str]] = None
     is_active: Optional[bool] = None
     is_featured: Optional[bool] = None

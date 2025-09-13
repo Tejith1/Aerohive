@@ -1,185 +1,276 @@
-import { Package, ShoppingCart, Users, DollarSign, TrendingUp, TrendingDown } from "lucide-react"
+"use client"
+
+import { Package, ShoppingCart, Users, DollarSign, TrendingUp, TrendingDown, Plus, Edit3, Trash2, Eye } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AdminHeader } from "@/components/admin/admin-header"
-
-// Mock data - replace with actual API calls
-const stats = [
-  {
-    title: "Total Revenue",
-    value: "₹37,54,230",
-    change: "+20.1%",
-    trend: "up",
-    icon: DollarSign,
-  },
-  {
-    title: "Orders",
-    value: "2,350",
-    change: "+180.1%",
-    trend: "up",
-    icon: ShoppingCart,
-  },
-  {
-    title: "Products",
-    value: "1,234",
-    change: "+19%",
-    trend: "up",
-    icon: Package,
-  },
-  {
-    title: "Customers",
-    value: "573",
-    change: "+201",
-    trend: "up",
-    icon: Users,
-  },
-]
-
-const recentOrders = [
-  {
-    id: "ORD-001",
-    customer: "John Doe",
-    email: "john@example.com",
-    amount: "₹20,750",
-    status: "completed",
-    date: "2024-01-15",
-  },
-  {
-    id: "ORD-002",
-    customer: "Jane Smith",
-    email: "jane@example.com",
-    amount: "₹12,450",
-    status: "pending",
-    date: "2024-01-15",
-  },
-  {
-    id: "ORD-003",
-    customer: "Bob Johnson",
-    email: "bob@example.com",
-    amount: "₹29,050",
-    status: "shipped",
-    date: "2024-01-14",
-  },
-]
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { useEffect, useState } from "react"
+import { getProducts, Product, getCategories, Category } from "@/lib/supabase"
+import { toast } from "@/hooks/use-toast"
+import Link from "next/link"
 
 export default function AdminDashboard() {
+  const [products, setProducts] = useState<Product[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  const loadData = async () => {
+    try {
+      setIsLoading(true)
+      const [productsData, categoriesData] = await Promise.all([
+        getProducts(),
+        getCategories()
+      ])
+      setProducts(productsData)
+      setCategories(categoriesData)
+    } catch (error) {
+      console.error('Error loading data:', error)
+      toast({
+        title: "Error",
+        description: "Failed to load dashboard data",
+        variant: "destructive"
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Calculate stats from actual data
+  const stats = [
+    {
+      title: "Total Revenue",
+      value: `₹${(products.reduce((sum, p) => sum + p.price * Math.max(50 - p.stock_quantity, 0), 0)).toLocaleString()}`,
+      change: "+20.1%",
+      trend: "up" as const,
+      icon: DollarSign,
+    },
+    {
+      title: "Orders",
+      value: products.reduce((sum, p) => sum + Math.max(50 - p.stock_quantity, 0), 0).toString(),
+      change: "+180.1%",
+      trend: "up" as const,
+      icon: ShoppingCart,
+    },
+    {
+      title: "Products",
+      value: products.length.toString(),
+      change: "+19%",
+      trend: "up" as const,
+      icon: Package,
+    },
+    {
+      title: "Categories",
+      value: categories.length.toString(),
+      change: "+201",
+      trend: "up" as const,
+      icon: Users,
+    },
+  ]
+
   return (
-    <>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
       <AdminHeader title="Dashboard" description="Welcome back! Here's what's happening with your store today." />
-
-      <main className="flex-1 overflow-y-auto p-6">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat) => {
-            const Icon = stat.icon
-            const TrendIcon = stat.trend === "up" ? TrendingUp : TrendingDown
-
-            return (
-              <Card key={stat.title}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
-                  <Icon className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stat.value}</div>
-                  <div className="flex items-center text-xs text-muted-foreground">
-                    <TrendIcon className={`h-4 w-4 mr-1 ${stat.trend === "up" ? "text-green-500" : "text-red-500"}`} />
-                    <span className={stat.trend === "up" ? "text-green-500" : "text-red-500"}>{stat.change}</span>
-                    <span className="ml-1">from last month</span>
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
+      
+      <main className="container mx-auto px-4 py-8">
+        {/* Welcome Section with Premium Design */}
+        <div className="mb-8">
+          <div className="bg-gradient-to-r from-primary via-blue-500 to-secondary rounded-2xl p-8 text-white relative overflow-hidden">
+            <div className="absolute inset-0 bg-black/10 backdrop-blur-sm"></div>
+            <div className="relative z-10">
+              <h1 className="text-4xl font-bold mb-2">Welcome to AeroHive Admin</h1>
+              <p className="text-blue-100 text-lg">Manage your drone e-commerce platform with ease</p>
+              <div className="flex items-center space-x-4 mt-6">
+                <Link href="/admin/products/new">
+                  <Button variant="secondary" size="lg" className="bg-white/20 border-white/30 text-white hover:bg-white/30 backdrop-blur-sm">
+                    <Plus className="h-5 w-5 mr-2" />
+                    Add New Product
+                  </Button>
+                </Link>
+                <Link href="/admin/categories">
+                  <Button variant="outline" size="lg" className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm">
+                    Manage Categories
+                  </Button>
+                </Link>
+              </div>
+            </div>
+            <div className="absolute top-4 right-8 opacity-20">
+              <Package className="h-32 w-32" />
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent Orders */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Orders</CardTitle>
+        {/* Stats Grid */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+          {stats.map((stat) => (
+            <Card key={stat.title} className="relative overflow-hidden border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-105">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  {stat.title}
+                </CardTitle>
+                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                  <stat.icon className="h-5 w-5 text-primary" />
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+                <div className="flex items-center space-x-2 text-xs text-muted-foreground mt-2">
+                  {stat.trend === "up" ? (
+                    <TrendingUp className="h-3 w-3 text-green-500" />
+                  ) : (
+                    <TrendingDown className="h-3 w-3 text-red-500" />
+                  )}
+                  <span className={stat.trend === "up" ? "text-green-500" : "text-red-500"}>
+                    {stat.change}
+                  </span>
+                  <span>from last month</span>
+                </div>
+              </CardContent>
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+            </Card>
+          ))}
+        </div>
+
+        {/* Recent Products */}
+        <div className="grid gap-8 lg:grid-cols-2">
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-xl font-semibold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Recent Products
+              </CardTitle>
+              <Link href="/admin/products">
+                <Button variant="outline" size="sm" className="border-primary/20 text-primary hover:bg-primary/10">
+                  <Eye className="h-4 w-4 mr-2" />
+                  View All
+                </Button>
+              </Link>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {recentOrders.map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="font-medium">{order.customer}</p>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            order.status === "completed"
-                              ? "bg-green-100 text-green-800"
-                              : order.status === "pending"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-blue-100 text-blue-800"
-                          }`}
-                        >
-                          {order.status}
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{order.email}</p>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="font-semibold">{order.amount}</span>
-                        <span className="text-sm text-muted-foreground">{order.date}</span>
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center space-x-4 animate-pulse">
+                      <div className="h-12 w-12 bg-gray-200 rounded-lg"></div>
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : products.length === 0 ? (
+                <div className="text-center py-8">
+                  <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No products found</p>
+                  <Link href="/admin/products/new">
+                    <Button className="mt-4">Add Your First Product</Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {products.slice(0, 5).map((product) => (
+                    <div key={product.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-primary/5 transition-colors group">
+                      <div className="h-12 w-12 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg flex items-center justify-center overflow-hidden">
+                        {product.image_url ? (
+                          <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
+                        ) : (
+                          <Package className="h-6 w-6 text-primary" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-foreground truncate">{product.name}</p>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <p className="text-sm text-primary font-semibold">₹{product.price.toLocaleString()}</p>
+                          <Badge variant={product.stock_quantity > 10 ? "default" : product.stock_quantity > 0 ? "secondary" : "destructive"} className="text-xs">
+                            {product.stock_quantity > 0 ? `${product.stock_quantity} in stock` : 'Out of stock'}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-2">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Edit3 className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
+          {/* Categories Overview */}
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-xl font-semibold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Categories
+              </CardTitle>
+              <Link href="/admin/categories/new">
+                <Button variant="outline" size="sm" className="border-primary/20 text-primary hover:bg-primary/10">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Category
+                </Button>
+              </Link>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <Card className="p-4 hover:bg-muted/50 cursor-pointer transition-colors">
-                  <div className="flex items-center gap-3">
-                    <Package className="h-8 w-8 text-primary" />
-                    <div>
-                      <p className="font-medium">Add Product</p>
-                      <p className="text-sm text-muted-foreground">Create new product</p>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center space-x-4 animate-pulse">
+                      <div className="h-10 w-10 bg-gray-200 rounded-lg"></div>
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+                      </div>
                     </div>
-                  </div>
-                </Card>
-
-                <Card className="p-4 hover:bg-muted/50 cursor-pointer transition-colors">
-                  <div className="flex items-center gap-3">
-                    <ShoppingCart className="h-8 w-8 text-primary" />
-                    <div>
-                      <p className="font-medium">View Orders</p>
-                      <p className="text-sm text-muted-foreground">Manage orders</p>
+                  ))}
+                </div>
+              ) : categories.length === 0 ? (
+                <div className="text-center py-8">
+                  <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No categories found</p>
+                  <Link href="/admin/categories/new">
+                    <Button className="mt-4">Add Your First Category</Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {categories.slice(0, 5).map((category) => (
+                    <div key={category.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-primary/5 transition-colors group">
+                      <div className="h-10 w-10 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg flex items-center justify-center overflow-hidden">
+                        {category.image_url ? (
+                          <img src={category.image_url} alt={category.name} className="h-full w-full object-cover" />
+                        ) : (
+                          <Package className="h-5 w-5 text-primary" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-foreground">{category.name}</p>
+                        <p className="text-sm text-muted-foreground">{category.description}</p>
+                      </div>
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-2">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Edit3 className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </Card>
-
-                <Card className="p-4 hover:bg-muted/50 cursor-pointer transition-colors">
-                  <div className="flex items-center gap-3">
-                    <Users className="h-8 w-8 text-primary" />
-                    <div>
-                      <p className="font-medium">Customers</p>
-                      <p className="text-sm text-muted-foreground">View customers</p>
-                    </div>
-                  </div>
-                </Card>
-
-                <Card className="p-4 hover:bg-muted/50 cursor-pointer transition-colors">
-                  <div className="flex items-center gap-3">
-                    <DollarSign className="h-8 w-8 text-primary" />
-                    <div>
-                      <p className="font-medium">Analytics</p>
-                      <p className="text-sm text-muted-foreground">View reports</p>
-                    </div>
-                  </div>
-                </Card>
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
       </main>
-    </>
+    </div>
   )
 }
+

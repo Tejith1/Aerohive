@@ -40,6 +40,7 @@
     "@remix-run/react": "latest",
     "@stripe/react-stripe-js": "latest",
     "@stripe/stripe-js": "latest",
+    "@supabase/supabase-js": "^2.57.4",
     "@sveltejs/kit": "latest",
     "@vercel/analytics": "latest",
     "autoprefixer": "^10.4.20",

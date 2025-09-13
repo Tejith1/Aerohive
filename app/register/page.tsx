@@ -4,7 +4,8 @@ import type React from "react"
 
 import { useState } from "react"
 import Link from "next/link"
-import { Eye, EyeOff } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Eye, EyeOff, UserPlus, Plane } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,10 +13,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Checkbox } from "@/components/ui/checkbox"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
+import { signUp } from "@/lib/supabase"
+import { toast } from "@/hooks/use-toast"
 
 export default function RegisterPage() {
+  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -27,84 +32,146 @@ export default function RegisterPage() {
     subscribeNewsletter: false,
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords don't match")
+      toast({
+        title: "Error",
+        description: "Passwords don't match",
+        variant: "destructive"
+      })
       return
     }
 
     if (!formData.agreeToTerms) {
-      alert("Please agree to the terms and conditions")
+      toast({
+        title: "Error", 
+        description: "Please agree to the terms and conditions",
+        variant: "destructive"
+      })
       return
     }
 
-    // Handle registration logic here
-    console.log("Registration attempt:", formData)
+    if (formData.password.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive"
+      })
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      const data = await signUp(
+        formData.email,
+        formData.password,
+        formData.firstName,
+        formData.lastName,
+        formData.phone
+      )
+
+      toast({
+        title: "Registration Successful!",
+        description: "Please check your email to verify your account",
+      })
+
+      // Redirect to login page
+      router.push("/login")
+
+    } catch (error: any) {
+      toast({
+        title: "Registration Failed",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive"
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
       <Header />
 
       <main className="flex-1 flex items-center justify-center py-12 px-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
-            <CardDescription>Join EcoShop and start your sustainable shopping journey</CardDescription>
+        <Card className="w-full max-w-md border-0 shadow-2xl bg-white/90 backdrop-blur-sm">
+          <CardHeader className="text-center pb-8">
+            <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-br from-primary via-blue-500 to-secondary flex items-center justify-center shadow-lg">
+              <UserPlus className="text-white h-8 w-8" />
+            </div>
+            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              Create Account
+            </CardTitle>
+            <CardDescription className="text-gray-600">
+              Join Aerohive and start your drone journey
+            </CardDescription>
           </CardHeader>
 
           <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-5">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
+                  <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">
+                    First Name
+                  </Label>
                   <Input
                     id="firstName"
                     placeholder="John"
                     value={formData.firstName}
                     onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    className="bg-white/80 border-gray-200 focus:border-primary/50 focus:ring-primary/20"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
+                  <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
+                    Last Name
+                  </Label>
                   <Input
                     id="lastName"
                     placeholder="Doe"
                     value={formData.lastName}
                     onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    className="bg-white/80 border-gray-200 focus:border-primary/50 focus:ring-primary/20"
                     required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  Email
+                </Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="john@example.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="bg-white/80 border-gray-200 focus:border-primary/50 focus:ring-primary/20"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone (Optional)</Label>
+                <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
+                  Phone (Optional)
+                </Label>
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="+1 (555) 123-4567"
+                  placeholder="+91 98765 43210"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="bg-white/80 border-gray-200 focus:border-primary/50 focus:ring-primary/20"
                 />
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                  Password
+                </Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -112,6 +179,7 @@ export default function RegisterPage() {
                     placeholder="Create a strong password"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="bg-white/80 border-gray-200 focus:border-primary/50 focus:ring-primary/20 pr-10"
                     required
                   />
                   <Button
@@ -131,7 +199,9 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+                  Confirm Password
+                </Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
@@ -139,6 +209,7 @@ export default function RegisterPage() {
                     placeholder="Confirm your password"
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    className="bg-white/80 border-gray-200 focus:border-primary/50 focus:ring-primary/20 pr-10"
                     required
                   />
                   <Button
@@ -165,13 +236,13 @@ export default function RegisterPage() {
                     onCheckedChange={(checked) => setFormData({ ...formData, agreeToTerms: checked as boolean })}
                     required
                   />
-                  <Label htmlFor="terms" className="text-sm">
+                  <Label htmlFor="terms" className="text-sm text-gray-600">
                     I agree to the{" "}
-                    <Link href="/terms" className="text-primary hover:underline">
+                    <Link href="/terms" className="text-primary hover:underline font-medium">
                       Terms of Service
                     </Link>{" "}
                     and{" "}
-                    <Link href="/privacy" className="text-primary hover:underline">
+                    <Link href="/privacy" className="text-primary hover:underline font-medium">
                       Privacy Policy
                     </Link>
                   </Label>
@@ -183,21 +254,25 @@ export default function RegisterPage() {
                     checked={formData.subscribeNewsletter}
                     onCheckedChange={(checked) => setFormData({ ...formData, subscribeNewsletter: checked as boolean })}
                   />
-                  <Label htmlFor="newsletter" className="text-sm">
+                  <Label htmlFor="newsletter" className="text-sm text-gray-600">
                     Subscribe to our newsletter for updates and offers
                   </Label>
                 </div>
               </div>
             </CardContent>
 
-            <CardFooter className="flex flex-col space-y-4">
-              <Button type="submit" className="w-full">
-                Create Account
+            <CardFooter className="flex flex-col space-y-4 pb-8">
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white shadow-lg"
+                disabled={isLoading}
+              >
+                {isLoading ? "Creating Account..." : "Create Account"}
               </Button>
 
-              <div className="text-center text-sm text-muted-foreground">
+              <div className="text-center text-sm text-gray-600">
                 Already have an account?{" "}
-                <Link href="/login" className="text-primary hover:underline">
+                <Link href="/login" className="text-primary hover:underline font-medium">
                   Sign in
                 </Link>
               </div>
