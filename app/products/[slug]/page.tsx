@@ -340,136 +340,209 @@ export default function ProductDetailPage() {
               <CardContent>
                 <div className="grid md:grid-cols-2 gap-8">
                   {/* Flight Performance */}
-                  {(product.specifications?.flight_time || product.specifications?.max_speed || product.specifications?.range || product.specifications?.max_altitude || product.specifications?.wind_resistance) && (
-                    <div>
-                      <h4 className="font-semibold text-lg mb-4 flex items-center">
-                        <Plane className="h-5 w-5 mr-2 text-blue-600" />
-                        Flight Performance
-                      </h4>
-                      <div className="space-y-3">
-                        {product.specifications?.flight_time && (
-                          <div className="flex justify-between py-2 border-b">
-                            <span className="text-gray-600">Flight Time</span>
-                            <span className="font-medium">{product.specifications.flight_time}</span>
-                          </div>
-                        )}
-                        {product.specifications?.max_speed && (
-                          <div className="flex justify-between py-2 border-b">
-                            <span className="text-gray-600">Max Speed</span>
-                            <span className="font-medium">{product.specifications.max_speed}</span>
-                          </div>
-                        )}
-                        {product.specifications?.range && (
-                          <div className="flex justify-between py-2 border-b">
-                            <span className="text-gray-600">Range</span>
-                            <span className="font-medium">{product.specifications.range}</span>
-                          </div>
-                        )}
-                        {product.specifications?.max_altitude && (
-                          <div className="flex justify-between py-2 border-b">
-                            <span className="text-gray-600">Max Altitude</span>
-                            <span className="font-medium">{product.specifications.max_altitude}</span>
-                          </div>
-                        )}
-                        {product.specifications?.wind_resistance && (
-                          <div className="flex justify-between py-2 border-b">
-                            <span className="text-gray-600">Wind Resistance</span>
-                            <span className="font-medium">{product.specifications.wind_resistance}</span>
-                          </div>
-                        )}
+                  <div>
+                    <h4 className="font-semibold text-lg mb-6 flex items-center">
+                      <Plane className="h-5 w-5 mr-2 text-blue-600" />
+                      Flight Performance
+                    </h4>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                        <span className="text-gray-600">Flight Time</span>
+                        <span className="font-semibold text-gray-900">
+                          {product.battery_life ? `${product.battery_life} min` : 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                        <span className="text-gray-600">Max Speed</span>
+                        <span className="font-semibold text-gray-900">
+                          {product.max_speed ? `${product.max_speed} km/h` : 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                        <span className="text-gray-600">Range</span>
+                        <span className="font-semibold text-gray-900">
+                          {product.max_range ? `${product.max_range} m` : 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                        <span className="text-gray-600">Max Altitude</span>
+                        <span className="font-semibold text-gray-900">
+                          {product.specifications?.max_altitude || 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                        <span className="text-gray-600">Wind Resistance</span>
+                        <span className="font-semibold text-gray-900">
+                          {product.specifications?.wind_resistance || 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                        <span className="text-gray-600">GPS Navigation</span>
+                        <span className="font-semibold text-gray-900">
+                          {product.has_gps ? 'Yes' : 'No'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-3">
+                        <span className="text-gray-600">Obstacle Avoidance</span>
+                        <span className="font-semibold text-gray-900">
+                          {product.has_obstacle_avoidance ? 'Yes' : 'No'}
+                        </span>
                       </div>
                     </div>
-                  )}
-
-                  {/* Camera & Gimbal */}
-                  {(product.specifications?.camera_resolution || product.specifications?.video_resolution || product.specifications?.gimbal_type || product.specifications?.photo_modes) && (
-                    <div>
-                      <h4 className="font-semibold text-lg mb-4 flex items-center">
-                        <Camera className="h-5 w-5 mr-2 text-green-600" />
-                        Camera & Gimbal
-                      </h4>
-                      <div className="space-y-3">
-                        {product.specifications?.camera_resolution && (
-                          <div className="flex justify-between py-2 border-b">
-                            <span className="text-gray-600">Camera Resolution</span>
-                            <span className="font-medium">{product.specifications.camera_resolution}</span>
-                          </div>
-                        )}
-                        {product.specifications?.video_resolution && (
-                          <div className="flex justify-between py-2 border-b">
-                            <span className="text-gray-600">Video Resolution</span>
-                            <span className="font-medium">{product.specifications.video_resolution}</span>
-                          </div>
-                        )}
-                        {product.specifications?.gimbal_type && (
-                          <div className="flex justify-between py-2 border-b">
-                            <span className="text-gray-600">Gimbal Type</span>
-                            <span className="font-medium">{product.specifications.gimbal_type}</span>
-                          </div>
-                        )}
-                        {product.specifications?.photo_modes && (
-                          <div className="flex justify-between py-2 border-b">
-                            <span className="text-gray-600">Photo Modes</span>
-                            <span className="font-medium">{product.specifications.photo_modes}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                  </div>
 
                   {/* Power & Physical */}
-                  {(product.specifications?.battery_capacity || product.specifications?.charging_time || product.weight || product.dimensions) && (
-                    <div>
-                      <h4 className="font-semibold text-lg mb-4 flex items-center">
-                        <Battery className="h-5 w-5 mr-2 text-orange-600" />
-                        Power & Physical
-                      </h4>
-                      <div className="space-y-3">
-                        {product.specifications?.battery_capacity && (
-                          <div className="flex justify-between py-2 border-b">
-                            <span className="text-gray-600">Battery Capacity</span>
-                            <span className="font-medium">{product.specifications.battery_capacity}</span>
-                          </div>
-                        )}
-                        {product.specifications?.charging_time && (
-                          <div className="flex justify-between py-2 border-b">
-                            <span className="text-gray-600">Charging Time</span>
-                            <span className="font-medium">{product.specifications.charging_time}</span>
-                          </div>
-                        )}
-                        {product.weight && (
-                          <div className="flex justify-between py-2 border-b">
-                            <span className="text-gray-600">Weight</span>
-                            <span className="font-medium">{product.weight} kg</span>
-                          </div>
-                        )}
-                        {product.dimensions && (product.dimensions.length || product.dimensions.width || product.dimensions.height) && (
-                          <div className="flex justify-between py-2 border-b">
-                            <span className="text-gray-600">Dimensions</span>
-                            <span className="font-medium">
-                              {product.dimensions.length}mm × {product.dimensions.width}mm × {product.dimensions.height}mm
-                            </span>
-                          </div>
-                        )}
+                  <div>
+                    <h4 className="font-semibold text-lg mb-6 flex items-center">
+                      <Battery className="h-5 w-5 mr-2 text-orange-600" />
+                      Power & Physical
+                    </h4>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                        <span className="text-gray-600">Battery Capacity</span>
+                        <span className="font-semibold text-gray-900">
+                          {product.specifications?.battery_capacity || 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                        <span className="text-gray-600">Charging Time</span>
+                        <span className="font-semibold text-gray-900">
+                          {product.specifications?.charging_time || 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                        <span className="text-gray-600">Weight</span>
+                        <span className="font-semibold text-gray-900">
+                          {product.weight ? `${product.weight} kg` : 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                        <span className="text-gray-600">Dimensions</span>
+                        <span className="font-semibold text-gray-900">
+                          {product.dimensions && (product.dimensions.length && product.dimensions.width && product.dimensions.height) 
+                            ? `${product.dimensions.length}mm × ${product.dimensions.width}mm × ${product.dimensions.height}mm`
+                            : product.specifications?.dimensions || 'N/A'
+                          }
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                        <span className="text-gray-600">Warranty</span>
+                        <span className="font-semibold text-gray-900">
+                          {product.warranty_months ? `${product.warranty_months} months` : '12 months'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-3">
+                        <span className="text-gray-600">SKU</span>
+                        <span className="font-semibold text-gray-900 font-mono">
+                          {product.sku || 'N/A'}
+                        </span>
                       </div>
                     </div>
-                  )}
+                  </div>
 
-                  {/* Additional Specifications */}
-                  {Object.keys(product.specifications || {}).length > 0 && (
-                    <div>
-                      <h4 className="font-semibold text-lg mb-4">Additional Specifications</h4>
-                      <div className="space-y-3">
-                        {Object.entries(product.specifications || {}).map(([key, value]) => (
-                          <div key={key} className="flex justify-between py-2 border-b">
-                            <span className="text-gray-600">{key}</span>
-                            <span className="font-medium">{value}</span>
-                          </div>
-                        ))}
+                  {/* Camera & Gimbal */}
+                  <div>
+                    <h4 className="font-semibold text-lg mb-6 flex items-center">
+                      <Camera className="h-5 w-5 mr-2 text-green-600" />
+                      Camera & Gimbal
+                    </h4>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                        <span className="text-gray-600">Camera Resolution</span>
+                        <span className="font-semibold text-gray-900">
+                          {product.camera_resolution || 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                        <span className="text-gray-600">Video Resolution</span>
+                        <span className="font-semibold text-gray-900">
+                          {product.specifications?.video_resolution || 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                        <span className="text-gray-600">Gimbal Type</span>
+                        <span className="font-semibold text-gray-900">
+                          {product.specifications?.gimbal_type || 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-3">
+                        <span className="text-gray-600">Photo Modes</span>
+                        <span className="font-semibold text-gray-900">
+                          {product.specifications?.photo_modes || 'N/A'}
+                        </span>
                       </div>
                     </div>
-                  )}
+                  </div>
+
+                  {/* Additional Features */}
+                  <div>
+                    <h4 className="font-semibold text-lg mb-6 flex items-center">
+                      <Shield className="h-5 w-5 mr-2 text-purple-600" />
+                      Additional Features
+                    </h4>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                        <span className="text-gray-600">Return to Home</span>
+                        <span className="font-semibold text-gray-900">
+                          {product.specifications?.return_to_home ? 'Yes' : 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                        <span className="text-gray-600">Follow Me Mode</span>
+                        <span className="font-semibold text-gray-900">
+                          {product.specifications?.follow_me_mode ? 'Yes' : 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                        <span className="text-gray-600">Intelligent Flight Modes</span>
+                        <span className="font-semibold text-gray-900">
+                          {product.specifications?.intelligent_flight_modes || 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                        <span className="text-gray-600">Remote Controller Range</span>
+                        <span className="font-semibold text-gray-900">
+                          {product.specifications?.controller_range || 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-3">
+                        <span className="text-gray-600">Operating Temperature</span>
+                        <span className="font-semibold text-gray-900">
+                          {product.specifications?.operating_temperature || 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Custom specifications from JSON */}
+                {product.specifications && Object.keys(product.specifications).length > 0 && (
+                  <div className="mt-8 pt-8 border-t">
+                    <h4 className="font-semibold text-lg mb-6">Additional Technical Details</h4>
+                    <div className="grid md:grid-cols-3 gap-4">
+                      {Object.entries(product.specifications).map(([key, value]) => {
+                        // Skip already displayed fields
+                        const skipFields = ['flight_time', 'max_speed', 'range', 'max_altitude', 'wind_resistance', 
+                                          'battery_capacity', 'charging_time', 'dimensions', 'camera_resolution', 
+                                          'video_resolution', 'gimbal_type', 'photo_modes', 'return_to_home', 
+                                          'follow_me_mode', 'intelligent_flight_modes', 'controller_range', 'operating_temperature'];
+                        
+                        if (skipFields.includes(key)) return null;
+                        
+                        return (
+                          <div key={key} className="bg-gray-50 p-4 rounded-lg">
+                            <div className="text-sm text-gray-600 mb-1">
+                              {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            </div>
+                            <div className="font-semibold text-gray-900">
+                              {typeof value === 'string' || typeof value === 'number' ? value.toString() : 'Complex Data'}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

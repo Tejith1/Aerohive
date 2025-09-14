@@ -16,6 +16,8 @@ interface ProductState {
   name: string;
   description: string;
   price: string;
+  compare_price: string;
+  sku: string;
   stock_quantity: string;
   is_featured: boolean;
   is_active: boolean;
@@ -29,6 +31,35 @@ interface ProductState {
   has_gps: boolean;
   has_obstacle_avoidance: boolean;
   warranty_months: string;
+  
+  // Individual specification fields (will be converted to JSON)
+  // Power & Physical
+  battery_capacity: string;
+  charging_time: string;
+  dimensions: string;
+  
+  // Flight Performance
+  max_altitude: string;
+  wind_resistance: string;
+  
+  // Camera & Gimbal
+  video_resolution: string;
+  gimbal_type: string;
+  photo_modes: string;
+  
+  // Additional Features
+  return_to_home: boolean;
+  follow_me_mode: boolean;
+  intelligent_flight_modes: string;
+  controller_range: string;
+  operating_temperature: string;
+  
+  // Extra specifications
+  payload_capacity: string;
+  material: string;
+  certification: string;
+  
+  // Legacy field for backward compatibility
   specifications: string;
 }
 
@@ -37,6 +68,8 @@ export default function NewProductPage() {
     name: '',
     description: '',
     price: '',
+    compare_price: '',
+    sku: '',
     stock_quantity: '',
     is_featured: false,
     is_active: true,
@@ -49,6 +82,24 @@ export default function NewProductPage() {
     has_gps: false,
     has_obstacle_avoidance: false,
     warranty_months: '',
+    
+    // Individual specification fields
+    battery_capacity: '',
+    charging_time: '',
+    dimensions: '',
+    max_altitude: '',
+    wind_resistance: '',
+    video_resolution: '',
+    gimbal_type: '',
+    photo_modes: '',
+    return_to_home: false,
+    follow_me_mode: false,
+    intelligent_flight_modes: '',
+    controller_range: '',
+    operating_temperature: '',
+    payload_capacity: '',
+    material: '',
+    certification: '',
     specifications: ''
   });
 
@@ -123,22 +174,55 @@ export default function NewProductPage() {
         }
       }
 
-      // Parse specifications into JSON if provided
-      let specificationsJson = null;
+      // Build specifications JSON from individual fields
+      const specificationsJson: Record<string, any> = {};
+      
+      // Power & Physical
+      if (product.battery_capacity.trim()) specificationsJson.battery_capacity = product.battery_capacity.trim();
+      if (product.charging_time.trim()) specificationsJson.charging_time = product.charging_time.trim();
+      if (product.dimensions.trim()) specificationsJson.dimensions = product.dimensions.trim();
+      
+      // Flight Performance
+      if (product.max_altitude.trim()) specificationsJson.max_altitude = product.max_altitude.trim();
+      if (product.wind_resistance.trim()) specificationsJson.wind_resistance = product.wind_resistance.trim();
+      
+      // Camera & Gimbal
+      if (product.video_resolution.trim()) specificationsJson.video_resolution = product.video_resolution.trim();
+      if (product.gimbal_type.trim()) specificationsJson.gimbal_type = product.gimbal_type.trim();
+      if (product.photo_modes.trim()) specificationsJson.photo_modes = product.photo_modes.trim();
+      
+      // Additional Features
+      if (product.return_to_home) specificationsJson.return_to_home = product.return_to_home;
+      if (product.follow_me_mode) specificationsJson.follow_me_mode = product.follow_me_mode;
+      if (product.intelligent_flight_modes.trim()) specificationsJson.intelligent_flight_modes = product.intelligent_flight_modes.trim();
+      if (product.controller_range.trim()) specificationsJson.controller_range = product.controller_range.trim();
+      if (product.operating_temperature.trim()) specificationsJson.operating_temperature = product.operating_temperature.trim();
+      
+      // Extra specifications
+      if (product.payload_capacity.trim()) specificationsJson.payload_capacity = product.payload_capacity.trim();
+      if (product.material.trim()) specificationsJson.material = product.material.trim();
+      if (product.certification.trim()) specificationsJson.certification = product.certification.trim();
+      
+      // Handle legacy specifications field (if user wants to add custom JSON)
       if (product.specifications.trim()) {
         try {
-          // Try to parse as JSON, if it fails, create simple object
-          specificationsJson = JSON.parse(product.specifications);
+          const customSpecs = JSON.parse(product.specifications);
+          Object.assign(specificationsJson, customSpecs);
         } catch {
-          // If not valid JSON, create a simple notes object
-          specificationsJson = { notes: product.specifications.trim() };
+          // If not valid JSON, add as notes
+          specificationsJson.notes = product.specifications.trim();
         }
       }
+      
+      // Only include specifications if there are any
+      const finalSpecifications = Object.keys(specificationsJson).length > 0 ? specificationsJson : null;
 
       const productData = {
         name: product.name.trim(),
         description: product.description.trim() || null,
         price: parseFloat(product.price),
+        compare_price: product.compare_price ? parseFloat(product.compare_price) : null,
+        sku: product.sku.trim() || null,
         stock_quantity: product.stock_quantity ? parseInt(product.stock_quantity) : 0,
         is_featured: product.is_featured,
         is_active: product.is_active,
@@ -183,7 +267,7 @@ export default function NewProductPage() {
 
   return (
     <div className="container mx-auto p-4 max-w-4xl">
-      <div className="h-screen overflow-y-auto">
+      <div className="min-h-screen">
         <Card>
           <CardHeader>
             <CardTitle>Add New Product</CardTitle>
@@ -216,6 +300,34 @@ export default function NewProductPage() {
                     placeholder="0.00"
                     required
                   />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="compare_price">Compare Price ($)</Label>
+                  <Input
+                    id="compare_price"
+                    name="compare_price"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={product.compare_price}
+                    onChange={handleInputChange}
+                    placeholder="0.00"
+                  />
+                  <p className="text-sm text-gray-500">Original price for showing discounts (optional)</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sku">SKU (Stock Keeping Unit)</Label>
+                  <Input
+                    id="sku"
+                    name="sku"
+                    value={product.sku}
+                    onChange={handleInputChange}
+                    placeholder="e.g., DRN-001-BLK"
+                  />
+                  <p className="text-sm text-gray-500">Unique product identifier (optional)</p>
                 </div>
               </div>
 
@@ -362,18 +474,223 @@ export default function NewProductPage() {
                 </div>
               </div>
 
-              {/* Additional Specifications */}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="specifications">Additional Specifications</Label>
-                  <Textarea
-                    id="specifications"
-                    name="specifications"
-                    value={product.specifications}
-                    onChange={handleInputChange}
-                    placeholder="Enter any additional specifications or features"
-                    rows={4}
-                  />
+              {/* Product Specifications */}
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold">Product Specifications</h3>
+                
+                {/* Power & Physical */}
+                <div className="space-y-4">
+                  <h4 className="text-base font-medium text-blue-700">Power & Physical</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="battery_capacity">Battery Capacity</Label>
+                      <Input
+                        id="battery_capacity"
+                        name="battery_capacity"
+                        value={product.battery_capacity}
+                        onChange={handleInputChange}
+                        placeholder="e.g., 7000mAh"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="charging_time">Charging Time</Label>
+                      <Input
+                        id="charging_time"
+                        name="charging_time"
+                        value={product.charging_time}
+                        onChange={handleInputChange}
+                        placeholder="e.g., 120 min"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="dimensions">Dimensions</Label>
+                      <Input
+                        id="dimensions"
+                        name="dimensions"
+                        value={product.dimensions}
+                        onChange={handleInputChange}
+                        placeholder="e.g., 245×290×90mm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="payload_capacity">Payload Capacity</Label>
+                      <Input
+                        id="payload_capacity"
+                        name="payload_capacity"
+                        value={product.payload_capacity}
+                        onChange={handleInputChange}
+                        placeholder="e.g., 2.5kg"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Flight Performance */}
+                <div className="space-y-4">
+                  <h4 className="text-base font-medium text-green-700">Flight Performance</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="max_altitude">Max Altitude</Label>
+                      <Input
+                        id="max_altitude"
+                        name="max_altitude"
+                        value={product.max_altitude}
+                        onChange={handleInputChange}
+                        placeholder="e.g., 10000m"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="wind_resistance">Wind Resistance</Label>
+                      <Input
+                        id="wind_resistance"
+                        name="wind_resistance"
+                        value={product.wind_resistance}
+                        onChange={handleInputChange}
+                        placeholder="e.g., Level 7"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="controller_range">Controller Range</Label>
+                      <Input
+                        id="controller_range"
+                        name="controller_range"
+                        value={product.controller_range}
+                        onChange={handleInputChange}
+                        placeholder="e.g., 15km"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="operating_temperature">Operating Temperature</Label>
+                      <Input
+                        id="operating_temperature"
+                        name="operating_temperature"
+                        value={product.operating_temperature}
+                        onChange={handleInputChange}
+                        placeholder="e.g., -10°C to 40°C"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Camera & Gimbal */}
+                <div className="space-y-4">
+                  <h4 className="text-base font-medium text-purple-700">Camera & Gimbal</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="video_resolution">Video Resolution</Label>
+                      <Input
+                        id="video_resolution"
+                        name="video_resolution"
+                        value={product.video_resolution}
+                        onChange={handleInputChange}
+                        placeholder="e.g., 4K UHD"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="gimbal_type">Gimbal Type</Label>
+                      <Input
+                        id="gimbal_type"
+                        name="gimbal_type"
+                        value={product.gimbal_type}
+                        onChange={handleInputChange}
+                        placeholder="e.g., 3-axis mechanical"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="photo_modes">Photo Modes</Label>
+                      <Input
+                        id="photo_modes"
+                        name="photo_modes"
+                        value={product.photo_modes}
+                        onChange={handleInputChange}
+                        placeholder="e.g., HDR, Panorama, Burst"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Features */}
+                <div className="space-y-4">
+                  <h4 className="text-base font-medium text-orange-700">Additional Features</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="intelligent_flight_modes">Intelligent Flight Modes</Label>
+                      <Input
+                        id="intelligent_flight_modes"
+                        name="intelligent_flight_modes"
+                        value={product.intelligent_flight_modes}
+                        onChange={handleInputChange}
+                        placeholder="e.g., ActiveTrack, Waypoint"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="material">Material</Label>
+                      <Input
+                        id="material"
+                        name="material"
+                        value={product.material}
+                        onChange={handleInputChange}
+                        placeholder="e.g., Carbon Fiber"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="certification">Certification</Label>
+                      <Input
+                        id="certification"
+                        name="certification"
+                        value={product.certification}
+                        onChange={handleInputChange}
+                        placeholder="e.g., CE, FCC, SRRC"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Boolean Features */}
+                  <div className="space-y-4">
+                    <h5 className="text-sm font-medium text-gray-700">Smart Features</h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="return_to_home"
+                          checked={product.return_to_home}
+                          onCheckedChange={(checked) => 
+                            setProduct(prev => ({ ...prev, return_to_home: checked as boolean }))
+                          }
+                        />
+                        <Label htmlFor="return_to_home">Return to Home</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="follow_me_mode"
+                          checked={product.follow_me_mode}
+                          onCheckedChange={(checked) => 
+                            setProduct(prev => ({ ...prev, follow_me_mode: checked as boolean }))
+                          }
+                        />
+                        <Label htmlFor="follow_me_mode">Follow Me Mode</Label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Custom Specifications (Optional) */}
+                <div className="space-y-4">
+                  <h4 className="text-base font-medium text-gray-700">Custom Specifications (Optional)</h4>
+                  <div className="space-y-2">
+                    <Label htmlFor="specifications">Additional Custom Data (JSON or Notes)</Label>
+                    <Textarea
+                      id="specifications"
+                      name="specifications"
+                      value={product.specifications}
+                      onChange={handleInputChange}
+                      placeholder="Enter any additional specifications as JSON or plain text notes..."
+                      rows={4}
+                      className="font-mono text-sm"
+                    />
+                    <div className="text-sm text-gray-600">
+                      <p><strong>� Note:</strong> Use this field for any custom specifications not covered above. You can use JSON format or plain text notes.</p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
