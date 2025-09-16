@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useEffect, useState } from "react"
 import Link from "next/link"
 import { ArrowRight, Plane, Camera, Zap, MapPin, Shield, Truck, Star, Clock, Wind, Users, Award, Globe, Battery, Wifi, ShoppingCart, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -10,74 +10,41 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { useCartStore } from "@/lib/cart-store"
 import { toast } from "@/hooks/use-toast"
-
-// Featured drone products
-const featuredProducts = [
-  {
-    id: 1,
-    name: "AeroX Pro 4K Racing Drone",
-    price: 899.99,
-    comparePrice: 1099.99,
-    imageUrl: "/placeholder.svg?height=400&width=400&text=AeroX+Racing+Drone",
-    slug: "aerox-pro-4k-racing-drone",
-    averageRating: 4.8,
-    reviewCount: 342,
-    isFeatured: true,
-    stockQuantity: 25,
-    category: "Racing Drones",
-    badge: "Best Seller"
-  },
-  {
-    id: 2,
-    name: "SkyCapture Pro Photography Drone",
-    price: 1299.99,
-    comparePrice: 1499.99,
-    imageUrl: "/placeholder.svg?height=400&width=400&text=SkyCapture+Photography",
-    slug: "skycapture-pro-photography-drone",
-    averageRating: 4.9,
-    reviewCount: 218,
-    isFeatured: true,
-    stockQuantity: 18,
-    category: "Photography Drones",
-    badge: "Professional"
-  },
-  {
-    id: 3,
-    name: "GuardEye Surveillance Drone",
-    price: 2199.99,
-    comparePrice: 2499.99,
-    imageUrl: "/placeholder.svg?height=400&width=400&text=GuardEye+Surveillance",
-    slug: "guardeye-surveillance-drone",
-    averageRating: 4.7,
-    reviewCount: 156,
-    isFeatured: true,
-    stockQuantity: 12,
-    category: "Surveillance Drones",
-    badge: "Military Grade"
-  },
-  {
-    id: 4,
-    name: "SkyLearner Beginner Drone",
-    price: 299.99,
-    comparePrice: 399.99,
-    imageUrl: "/placeholder.svg?height=400&width=400&text=SkyLearner+Beginner",
-    slug: "skylearner-beginner-drone",
-    averageRating: 4.4,
-    reviewCount: 456,
-    isFeatured: true,
-    stockQuantity: 50,
-    category: "Beginner Drones",
-    badge: "Beginner Friendly"
-  },
-]
+import { getProducts, Product } from "@/lib/supabase"
 
 export default function HomePage() {
   const { addItem } = useCartStore()
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleAddToCart = (e: React.MouseEvent, product: typeof featuredProducts[0]) => {
+  useEffect(() => {
+    const fetchFeaturedProducts = async () => {
+      try {
+        setLoading(true)
+        const products = await getProducts({ 
+          featured: true, 
+          active: true, 
+          limit: 4 
+        })
+        setFeaturedProducts(products)
+        setError(null)
+      } catch (err) {
+        console.error('Error fetching featured products:', err)
+        setError('Failed to load featured products')
+        // No fallback data needed since we're fetching directly from database
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchFeaturedProducts()
+  }, [])
+
+  const handleAddToCart = (e: React.MouseEvent, product: Product) => {
     e.preventDefault()
 
-    if (product.stockQuantity === 0) {
+    if (product.stock_quantity === 0) {
       toast({
         title: "Out of Stock",
         description: "This product is currently out of stock.",
@@ -87,12 +54,12 @@ export default function HomePage() {
     }
 
     addItem({
-      id: product.id,
+      id: parseInt(product.id) || 0,
       name: product.name,
       price: product.price,
-      imageUrl: product.imageUrl,
+      imageUrl: product.image_url || "/placeholder.svg",
       slug: product.slug,
-      stockQuantity: product.stockQuantity,
+      stockQuantity: product.stock_quantity,
     })
 
     toast({
@@ -257,18 +224,43 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-              {featuredProducts.map((product) => {
-                const discountPercentage = product.comparePrice
-                  ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
-                  : 0
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+                {[1, 2, 3, 4].map((i) => (
+                  <Card key={i} className="overflow-hidden animate-pulse">
+                    <div className="aspect-square bg-gray-200"></div>
+                    <CardContent className="p-4">
+                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <p className="text-red-600 text-lg mb-4">{error}</p>
+                <Button 
+                  onClick={() => window.location.reload()} 
+                  variant="outline"
+                  className="border-red-200 text-red-600 hover:bg-red-50"
+                >
+                  Try Again
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+                {featuredProducts.map((product) => {
+                  const discountPercentage = product.compare_price
+                    ? Math.round(((product.compare_price - product.price) / product.compare_price) * 100)
+                    : 0
 
-                return (
-                  <Card key={product.id} className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                  return (
+                    <Card key={product.id} className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
                     <Link href={`/products/${product.slug}`}>
                       <div className="relative aspect-square overflow-hidden">
                         <img
-                          src={product.imageUrl || "/placeholder.svg"}
+                          src={product.image_url || "/placeholder.svg"}
                           alt={product.name}
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
@@ -277,12 +269,12 @@ export default function HomePage() {
                             -{discountPercentage}%
                           </div>
                         )}
-                        {product.isFeatured && (
+                        {product.is_featured && (
                           <div className="absolute top-2 right-2 bg-primary text-primary-foreground px-2 py-1 rounded text-xs font-semibold">
                             Featured
                           </div>
                         )}
-                        {product.stockQuantity === 0 && (
+                        {product.stock_quantity === 0 && (
                           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                             <div className="bg-red-600 text-white px-3 py-1 rounded text-sm font-semibold">Out of Stock</div>
                           </div>
@@ -298,27 +290,27 @@ export default function HomePage() {
                       </Link>
 
                       {/* Rating */}
-                      {product.averageRating && (
+                      {product.average_rating && (
                         <div className="flex items-center gap-1 mb-2">
                           <div className="flex">
                             {[1, 2, 3, 4, 5].map((star) => (
                               <Star
                                 key={star}
                                 className={`h-4 w-4 ${
-                                  star <= Math.round(product.averageRating!) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                                  star <= Math.round(product.average_rating!) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
                                 }`}
                               />
                             ))}
                           </div>
-                          <span className="text-sm text-muted-foreground">({product.reviewCount || 0})</span>
+                          <span className="text-sm text-muted-foreground">(0)</span>
                         </div>
                       )}
 
                       {/* Price */}
                       <div className="flex items-center gap-2 mb-3">
                         <span className="text-lg font-bold text-primary">₹{product.price.toLocaleString('en-IN')}</span>
-                        {product.comparePrice && (
-                          <span className="text-sm text-muted-foreground line-through">₹{product.comparePrice.toLocaleString('en-IN')}</span>
+                        {product.compare_price && (
+                          <span className="text-sm text-muted-foreground line-through">₹{product.compare_price.toLocaleString('en-IN')}</span>
                         )}
                       </div>
                     </CardContent>
@@ -327,12 +319,12 @@ export default function HomePage() {
                       <div className="w-full space-y-2">
                         <Button 
                           onClick={(e) => handleAddToCart(e, product)}
-                          disabled={product.stockQuantity === 0} 
-                          className={`w-full ${product.stockQuantity === 0 ? 'bg-gray-400' : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800'} text-white shadow-md hover:shadow-lg transition-all duration-300`}
+                          disabled={product.stock_quantity === 0} 
+                          className={`w-full ${product.stock_quantity === 0 ? 'bg-gray-400' : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800'} text-white shadow-md hover:shadow-lg transition-all duration-300`}
                           size="sm"
                         >
                           <ShoppingCart className="h-4 w-4 mr-2" />
-                          {product.stockQuantity === 0 ? "Out of Stock" : "Add to Cart"}
+                          {product.stock_quantity === 0 ? "Out of Stock" : "Add to Cart"}
                         </Button>
                         
                         <Link href={`/products/${product.slug}`} className="w-full">
@@ -344,9 +336,10 @@ export default function HomePage() {
                       </div>
                     </div>
                   </Card>
-                )
-              })}
-            </div>
+                  )
+                })}
+              </div>
+            )}
 
             <div className="text-center">
               <Button size="lg" variant="outline" className="text-xl px-10 py-6 border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white transition-all duration-300" asChild>

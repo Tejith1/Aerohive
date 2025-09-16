@@ -71,6 +71,13 @@ export const productsApi = {
     )
   },
 
+  getFeatured: (limit?: number) => {
+    const searchParams = new URLSearchParams()
+    if (limit) searchParams.set("limit", limit.toString())
+    
+    return apiRequest<any[]>(`/products/featured?${searchParams.toString()}`)
+  },
+
   getById: (id: string) => apiRequest<any>(`/products/${id}`),
 
   getCategories: () => apiRequest<any[]>("/categories"),
