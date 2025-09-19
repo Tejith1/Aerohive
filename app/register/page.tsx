@@ -13,11 +13,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Checkbox } from "@/components/ui/checkbox"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { signUp } from "@/lib/supabase"
+import { useAuth } from "@/contexts/auth-context"
 import { toast } from "@/hooks/use-toast"
 
 export default function RegisterPage() {
   const router = useRouter()
+  const { register: registerUser } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -64,28 +65,16 @@ export default function RegisterPage() {
 
     try {
       setIsLoading(true)
-      const data = await signUp(
+      await registerUser(
         formData.email,
         formData.password,
         formData.firstName,
         formData.lastName,
         formData.phone
       )
-
-      toast({
-        title: "Registration Successful!",
-        description: "Please check your email to verify your account",
-      })
-
-      // Redirect to login page
-      router.push("/login")
-
+      // The register function handles redirection and toast messages
     } catch (error: any) {
-      toast({
-        title: "Registration Failed",
-        description: error.message || "An unexpected error occurred",
-        variant: "destructive"
-      })
+      // Error handling is done in the auth context
     } finally {
       setIsLoading(false)
     }

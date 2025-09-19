@@ -11,11 +11,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Checkbox } from "@/components/ui/checkbox"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { signIn } from "@/lib/supabase"
+import { useAuth } from "@/contexts/auth-context"
 import { toast } from "@/hooks/use-toast"
 
 export default function LoginPage() {
   const router = useRouter()
+  const { login, isLoading: authLoading } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -38,26 +39,10 @@ export default function LoginPage() {
 
     try {
       setIsLoading(true)
-      const { user } = await signIn(formData.email, formData.password)
-      
-      toast({
-        title: "Success",
-        description: "Logged in successfully!"
-      })
-
-      // Check if user is admin and redirect accordingly
-      if (user?.user_metadata?.is_admin) {
-        router.push('/admin')
-      } else {
-        router.push('/')
-      }
+      await login(formData.email, formData.password)
+      // The login function handles redirection
     } catch (error: any) {
-      console.error('Login error:', error)
-      toast({
-        title: "Error",
-        description: error.message || "Failed to log in",
-        variant: "destructive"
-      })
+      // Error handling is done in the auth context
     } finally {
       setIsLoading(false)
     }

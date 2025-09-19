@@ -5,12 +5,13 @@ import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import { Toaster } from "@/components/ui/toaster"
+import { AuthProvider } from "@/contexts/auth-context"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "EcoShop - Sustainable Shopping for a Better Tomorrow",
+  title: "AeroHive Drones - Professional Drones for Every Mission",
   description:
-    "Discover eco-friendly products that don't compromise on quality. Join thousands of conscious consumers making a positive impact.",
+    "Discover cutting-edge drones for professional photography, racing, surveillance, and agricultural operations. Expert support and training included.",
   generator: "v0.app",
 }
 
@@ -22,8 +23,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <Suspense fallback={null}>{children}</Suspense>
-        <Toaster />
+        <AuthProvider>
+          <Suspense fallback={null}>{children}</Suspense>
+          <Toaster />
+        </AuthProvider>
         <Analytics />
       </body>
     </html>
