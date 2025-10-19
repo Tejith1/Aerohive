@@ -11,8 +11,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
+import { ModernHeader } from "@/components/layout/modern-header"
+import { ModernFooter } from "@/components/layout/modern-footer"
 import { useAuth } from "@/contexts/auth-context"
 import { toast } from "@/hooks/use-toast"
 
@@ -82,7 +82,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
-      <Header />
+      <ModernHeader />
 
       <main className="flex-1 flex items-center justify-center py-12 px-4">
         <Card className="w-full max-w-md border-0 shadow-2xl bg-white/90 backdrop-blur-sm">
@@ -270,7 +270,7 @@ export default function RegisterPage() {
         </Card>
       </main>
 
-      <Footer />
+      <ModernFooter />
     </div>
   )
 }

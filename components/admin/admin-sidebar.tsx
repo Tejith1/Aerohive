@@ -30,14 +30,17 @@ export function AdminSidebar() {
   }
 
   return (
-    <div className="flex h-full w-64 flex-col bg-card border-r">
+    <div className="flex h-full w-64 flex-col bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 border-r border-slate-700/50 backdrop-blur-xl">
       {/* Logo */}
-      <div className="flex h-16 items-center px-6 border-b">
-        <Link href="/admin" className="flex items-center space-x-2">
-          <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
-            <Store className="h-4 w-4 text-primary-foreground" />
+      <div className="flex h-16 items-center px-6 border-b border-slate-700/50">
+        <Link href="/admin" className="flex items-center space-x-3">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+            <Store className="h-5 w-5 text-white" />
           </div>
-          <span className="font-bold text-lg text-card-foreground">Admin Panel</span>
+          <div>
+            <span className="font-bold text-lg text-white">AeroHive</span>
+            <div className="text-xs text-slate-400 font-medium">Admin Panel</div>
+          </div>
         </Link>
       </div>
 
@@ -52,36 +55,41 @@ export function AdminSidebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group relative overflow-hidden",
                 isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-card-foreground hover:bg-muted",
+                  ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg"
+                  : "text-slate-300 hover:text-white hover:bg-white/10 backdrop-blur-sm",
               )}
             >
-              <Icon className="h-5 w-5" />
-              {item.name}
+              <Icon className="h-5 w-5 relative z-10" />
+              <span className="relative z-10">{item.name}</span>
+              {isActive && (
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-xl" />
+              )}
             </Link>
           )
         })}
       </nav>
 
       {/* User Actions */}
-      <div className="p-4 border-t">
-        <div className="flex items-center gap-3 px-3 py-2 mb-2">
-          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
-            <Shield className="h-4 w-4 text-white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-card-foreground">
-              {user?.first_name} {user?.last_name}
-            </p>
-            <p className="text-xs text-muted-foreground">{user?.email}</p>
+      <div className="p-4 border-t border-slate-700/50">
+        <div className="bg-white/5 backdrop-blur-sm rounded-xl p-3 mb-3 border border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+              <Shield className="h-5 w-5 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-white">
+                {user?.first_name} {user?.last_name}
+              </p>
+              <p className="text-xs text-slate-400">{user?.email}</p>
+            </div>
           </div>
         </div>
         <Button 
           variant="ghost" 
           size="sm" 
-          className="w-full justify-start"
+          className="w-full justify-start text-slate-300 hover:text-white hover:bg-red-500/20 transition-all duration-200"
           onClick={handleLogout}
         >
           <LogOut className="h-4 w-4 mr-2" />

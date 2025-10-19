@@ -11,8 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
+import { ModernHeader } from "@/components/layout/modern-header"
+import { ModernFooter } from "@/components/layout/modern-footer"
 import { PaymentForm } from "@/components/checkout/payment-form"
 import { useCartStore } from "@/lib/cart-store"
 import { stripePromise } from "@/lib/stripe"
@@ -108,13 +108,13 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-50">
+      <ModernHeader />
 
       <main className="flex-1 py-8">
         <div className="container mx-auto px-4 max-w-6xl">
           {/* Progress Steps */}
-          <div className="mb-8">
+          <div className="mb-12">
             <div className="flex items-center justify-center space-x-8">
               {steps.map((step, index) => {
                 const Icon = step.icon
@@ -124,21 +124,25 @@ export default function CheckoutPage() {
                 return (
                   <div key={step.id} className="flex items-center">
                     <div
-                      className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+                      className={`flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all duration-300 ${
                         isCompleted
-                          ? "bg-primary border-primary text-primary-foreground"
+                          ? "bg-gradient-to-r from-green-500 to-green-600 border-green-500 text-white shadow-lg"
                           : isActive
-                            ? "border-primary text-primary"
-                            : "border-muted-foreground text-muted-foreground"
+                            ? "bg-gradient-to-r from-blue-500 to-purple-600 border-blue-500 text-white shadow-lg"
+                            : "border-slate-300 text-slate-400 bg-white"
                       }`}
                     >
                       {isCompleted ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
                     </div>
-                    <span className={`ml-2 font-medium ${isActive ? "text-primary" : "text-muted-foreground"}`}>
+                    <span className={`ml-3 font-medium transition-colors ${
+                      isActive ? "text-blue-600" : isCompleted ? "text-green-600" : "text-slate-500"
+                    }`}>
                       {step.name}
                     </span>
                     {index < steps.length - 1 && (
-                      <div className={`w-16 h-0.5 mx-4 ${isCompleted ? "bg-primary" : "bg-muted"}`} />
+                      <div className={`w-16 h-1 mx-6 rounded-full transition-colors ${
+                        isCompleted ? "bg-gradient-to-r from-green-500 to-green-400" : "bg-slate-200"
+                      }`} />
                     )}
                   </div>
                 )
@@ -151,10 +155,12 @@ export default function CheckoutPage() {
             <div className="lg:col-span-2">
               {/* Step 1: Shipping Information */}
               {currentStep === 1 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MapPin className="h-5 w-5" />
+                <Card className="shadow-xl bg-white/90 backdrop-blur-sm border-0">
+                  <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-t-lg">
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                      <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <MapPin className="h-4 w-4 text-white" />
+                      </div>
                       Shipping Information
                     </CardTitle>
                   </CardHeader>
@@ -395,18 +401,18 @@ export default function CheckoutPage() {
               )}
 
               {/* Navigation Buttons */}
-              <div className="flex justify-between mt-6">
-                <Button variant="outline" onClick={handlePrevStep} disabled={currentStep === 1}>
+              <div className="flex justify-between mt-8">
+                <Button variant="outline" onClick={handlePrevStep} disabled={currentStep === 1} className="border-slate-300 hover:bg-slate-50">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Previous
                 </Button>
 
                 {currentStep < 2 ? (
-                  <Button onClick={handleNextStep}>Next Step</Button>
+                  <Button onClick={handleNextStep} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg">Next Step</Button>
                 ) : currentStep === 2 ? (
-                  <Button onClick={handleNextStep}>Review Order</Button>
+                  <Button onClick={handleNextStep} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg">Review Order</Button>
                 ) : (
-                  <Button onClick={handlePlaceOrder} size="lg" disabled={isProcessingPayment}>
+                  <Button onClick={handlePlaceOrder} size="lg" disabled={isProcessingPayment} className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-lg">
                     Place Order
                   </Button>
                 )}
@@ -415,9 +421,10 @@ export default function CheckoutPage() {
 
             {/* Order Summary */}
             <div className="lg:col-span-1">
-              <Card className="sticky top-4">
-                <CardHeader>
-                  <CardTitle>Order Summary</CardTitle>
+              <Card className="sticky top-4 shadow-xl bg-white/90 backdrop-blur-sm border-0 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-purple-50/50"></div>
+                <CardHeader className="relative">
+                  <CardTitle className="text-xl bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">Order Summary</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
@@ -463,7 +470,7 @@ export default function CheckoutPage() {
         </div>
       </main>
 
-      <Footer />
+      <ModernFooter />
     </div>
   )
 }

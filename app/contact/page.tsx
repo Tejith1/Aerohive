@@ -10,8 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
+import { ModernHeader } from "@/components/layout/modern-header"
+import { ModernFooter } from "@/components/layout/modern-footer"
 import { toast } from "@/hooks/use-toast"
 
 const contactInfo = [
@@ -204,7 +204,7 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <Header />
+      <ModernHeader />
 
       <main className="flex-1">
         {/* Hero Section */}
@@ -720,7 +720,7 @@ export default function ContactPage() {
         </section>
       </main>
 
-      <Footer />
+      <ModernFooter />
 
       <style jsx>{`
         @keyframes float {

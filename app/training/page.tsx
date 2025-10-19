@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
+import { ModernHeader } from "@/components/layout/modern-header"
+import { ModernFooter } from "@/components/layout/modern-footer"
 
 interface TrainingProvider {
   id: string
@@ -237,7 +237,7 @@ export default function TrainingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-      <Header />
+      <ModernHeader />
       
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-900 via-indigo-800 to-purple-900 text-white py-20">
@@ -539,7 +539,7 @@ export default function TrainingPage() {
         </div>
       </section>
 
-      <Footer />
+      <ModernFooter />
     </div>
   )
 }

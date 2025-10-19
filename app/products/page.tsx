@@ -2,16 +2,17 @@
 
 import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
-import { Filter, Grid, List, SlidersHorizontal, Plane, Star, Package } from "lucide-react"
+import { Filter, Grid, List, SlidersHorizontal, Star, Package, Search, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ProductCard } from "@/components/product/product-card"
-import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
+import { ModernProductCard } from "@/components/ui/modern-product-card"
+import { ModernHeader } from "@/components/layout/modern-header"
+import { ModernFooter } from "@/components/layout/modern-footer"
+import { useCartStore } from "@/lib/cart-store"
 import { getProducts, Product, getCategories, Category } from "@/lib/supabase"
 import { toast } from "@/hooks/use-toast"
 
@@ -26,10 +27,37 @@ export default function ProductsPage() {
   const [priceRange, setPriceRange] = useState({ min: "", max: "" })
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [showFilters, setShowFilters] = useState(false)
+  const { addItem } = useCartStore()
 
   useEffect(() => {
     loadData()
   }, [])
+
+  const handleAddToCart = (product: Product) => {
+    if (product.stock_quantity === 0) {
+      toast({
+        title: "Out of Stock",
+        description: "This product is currently out of stock.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    addItem({
+      id: parseInt(product.id) || 0,
+      name: product.name,
+      price: product.price,
+      imageUrl: product.image_url || "/placeholder.svg",
+      slug: product.slug,
+      stockQuantity: product.stock_quantity,
+    })
+
+    toast({
+      title: "🎉 Added to Cart!",
+      description: `${product.name} has been added to your cart.`,
+      className: "border-green-200 bg-green-50 text-green-900",
+    })
+  }
 
   const loadData = async () => {
     try {
@@ -84,59 +112,67 @@ export default function ProductsPage() {
   })
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
-      <Header />
+    <div className="min-h-screen flex flex-col">
+      <ModernHeader />
 
-      <main className="flex-1 container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary via-blue-500 to-secondary flex items-center justify-center shadow-lg">
-              <Plane className="text-white h-6 w-6" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Drone Collection
+      <main className="flex-1 pt-20">
+        {/* Hero Header */}
+        <section className="bg-gradient-to-br from-slate-50 via-white to-blue-50 py-16">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <div className="flex items-center justify-center mb-6">
+                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center shadow-lg">
+                  <Package className="text-white h-8 w-8" />
+                </div>
+              </div>
+              <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+                Drone <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Collection</span>
               </h1>
-              <p className="text-muted-foreground">
-                Discover our premium selection of professional drones
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                Discover our premium selection of professional-grade drones and aerial equipment
               </p>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Filters and Search */}
-        <div className="grid gap-6 lg:grid-cols-4 mb-8">
+        <div className="container mx-auto px-4 py-12">
+          {/* Filters and Search */}
+          <div className="grid gap-6 lg:grid-cols-4 mb-8">
           {/* Filters Sidebar */}
           <div className={`lg:block ${showFilters ? 'block' : 'hidden'} lg:col-span-1`}>
-            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm sticky top-24">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Filter className="h-5 w-5" />
-                  <span>Filters</span>
+            <Card className="border-0 shadow-xl bg-white rounded-2xl sticky top-32">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center space-x-3 text-gray-900">
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
+                    <Filter className="h-4 w-4 text-white" />
+                  </div>
+                  <span className="text-xl font-bold">Filters</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Search */}
                 <div>
-                  <Label htmlFor="search">Search Products</Label>
-                  <Input
-                    id="search"
-                    placeholder="Search drones..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="mt-1"
-                  />
+                  <Label htmlFor="search" className="text-sm font-semibold text-gray-700">Search Products</Label>
+                  <div className="relative mt-2">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="search"
+                      placeholder="Search drones..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 rounded-xl border-2 border-gray-200 focus:border-blue-500 transition-colors"
+                    />
+                  </div>
                 </div>
 
                 {/* Category Filter */}
                 <div>
-                  <Label>Category</Label>
+                  <Label className="text-sm font-semibold text-gray-700">Category</Label>
                   <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="mt-1">
+                    <SelectTrigger className="mt-2 rounded-xl border-2 border-gray-200 focus:border-blue-500 transition-colors">
                       <SelectValue placeholder="All Categories" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-xl">
                       <SelectItem value="all">All Categories</SelectItem>
                       {categories.map((category) => (
                         <SelectItem key={category.id} value={category.id}>
@@ -149,19 +185,21 @@ export default function ProductsPage() {
 
                 {/* Price Range */}
                 <div>
-                  <Label>Price Range (₹)</Label>
-                  <div className="grid grid-cols-2 gap-2 mt-1">
+                  <Label className="text-sm font-semibold text-gray-700">Price Range (₹)</Label>
+                  <div className="grid grid-cols-2 gap-3 mt-2">
                     <Input
                       placeholder="Min"
                       type="number"
                       value={priceRange.min}
                       onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
+                      className="rounded-xl border-2 border-gray-200 focus:border-blue-500 transition-colors"
                     />
                     <Input
                       placeholder="Max"
                       type="number"
                       value={priceRange.max}
                       onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
+                      className="rounded-xl border-2 border-gray-200 focus:border-blue-500 transition-colors"
                     />
                   </div>
                 </div>
@@ -174,8 +212,9 @@ export default function ProductsPage() {
                     setSelectedCategory("all")
                     setPriceRange({ min: "", max: "" })
                   }}
-                  className="w-full"
+                  className="w-full rounded-xl border-2 border-gray-300 hover:bg-gray-50 transition-all duration-300"
                 >
+                  <Zap className="h-4 w-4 mr-2" />
                   Clear Filters
                 </Button>
               </CardContent>
@@ -185,43 +224,50 @@ export default function ProductsPage() {
           {/* Products Grid */}
           <div className="lg:col-span-3">
             {/* Toolbar */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-              <div className="flex items-center space-x-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
+              <div className="flex items-center space-x-6">
                 <Button
                   variant="outline"
                   onClick={() => setShowFilters(!showFilters)}
-                  className="lg:hidden"
+                  className="lg:hidden rounded-xl border-2 border-gray-300 hover:bg-gray-50 transition-all duration-300"
                 >
                   <SlidersHorizontal className="h-4 w-4 mr-2" />
                   Filters
                 </Button>
                 
-                <p className="text-sm text-muted-foreground">
-                  {isLoading ? "Loading..." : `${sortedProducts.length} products found`}
-                </p>
+                <div className="flex items-center space-x-2">
+                  <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                  <p className="text-sm font-medium text-gray-600">
+                    {isLoading ? "Loading..." : `${sortedProducts.length} products available`}
+                  </p>
+                </div>
               </div>
 
               <div className="flex items-center space-x-4">
                 <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-48">
+                  <SelectTrigger className="w-52 rounded-xl border-2 border-gray-200 focus:border-blue-500 transition-colors">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="created_desc">Newest First</SelectItem>
-                    <SelectItem value="created_asc">Oldest First</SelectItem>
-                    <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                    <SelectItem value="price_desc">Price: High to Low</SelectItem>
-                    <SelectItem value="name_asc">Name: A to Z</SelectItem>
-                    <SelectItem value="name_desc">Name: Z to A</SelectItem>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="created_desc">✨ Newest First</SelectItem>
+                    <SelectItem value="created_asc">📅 Oldest First</SelectItem>
+                    <SelectItem value="price_asc">💰 Price: Low to High</SelectItem>
+                    <SelectItem value="price_desc">💎 Price: High to Low</SelectItem>
+                    <SelectItem value="name_asc">🔤 Name: A to Z</SelectItem>
+                    <SelectItem value="name_desc">🔢 Name: Z to A</SelectItem>
                   </SelectContent>
                 </Select>
 
-                <div className="flex border rounded-md">
+                <div className="flex bg-gray-100 rounded-xl p-1">
                   <Button
                     variant={viewMode === "grid" ? "default" : "ghost"}
                     size="sm"
                     onClick={() => setViewMode("grid")}
-                    className="rounded-r-none"
+                    className={`rounded-lg transition-all duration-300 ${
+                      viewMode === "grid" 
+                        ? "bg-white shadow-md text-blue-600" 
+                        : "hover:bg-gray-200 text-gray-600"
+                    }`}
                   >
                     <Grid className="h-4 w-4" />
                   </Button>
@@ -229,7 +275,11 @@ export default function ProductsPage() {
                     variant={viewMode === "list" ? "default" : "ghost"}
                     size="sm"
                     onClick={() => setViewMode("list")}
-                    className="rounded-l-none"
+                    className={`rounded-lg transition-all duration-300 ${
+                      viewMode === "list" 
+                        ? "bg-white shadow-md text-blue-600" 
+                        : "hover:bg-gray-200 text-gray-600"
+                    }`}
                   >
                     <List className="h-4 w-4" />
                   </Button>
@@ -239,33 +289,40 @@ export default function ProductsPage() {
 
             {/* Products */}
             {isLoading ? (
-              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <Card key={i} className="border-0 shadow-lg bg-white/80 backdrop-blur-sm animate-pulse">
-                    <div className="aspect-square bg-gray-200 rounded-t-lg"></div>
-                    <CardContent className="p-4">
-                      <div className="space-y-3">
-                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                        <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+                  <Card key={i} className="border-0 shadow-xl bg-white rounded-2xl animate-pulse overflow-hidden">
+                    <div className="aspect-square bg-gradient-to-br from-gray-200 to-gray-300"></div>
+                    <CardContent className="p-6">
+                      <div className="space-y-4">
+                        <div className="h-5 bg-gray-200 rounded-lg w-3/4"></div>
+                        <div className="h-4 bg-gray-200 rounded-lg w-1/2"></div>
+                        <div className="h-8 bg-gray-200 rounded-lg w-1/3"></div>
+                        <div className="h-10 bg-gray-200 rounded-xl"></div>
                       </div>
                     </CardContent>
                   </Card>
                 ))}
               </div>
             ) : sortedProducts.length === 0 ? (
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                <CardContent className="p-12 text-center">
-                  <Package className="h-16 w-16 mx-auto text-muted-foreground mb-6" />
-                  <h3 className="text-xl font-semibold mb-2">No products found</h3>
-                  <p className="text-muted-foreground mb-6">
-                    Try adjusting your search criteria or browse our categories.
+              <Card className="border-0 shadow-xl bg-white rounded-2xl">
+                <CardContent className="p-16 text-center">
+                  <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-8">
+                    <Package className="h-12 w-12 text-gray-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">No products found</h3>
+                  <p className="text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
+                    We couldn't find any products matching your criteria. Try adjusting your filters or search terms.
                   </p>
-                  <Button onClick={() => {
-                    setSearchQuery("")
-                    setSelectedCategory("all")
-                    setPriceRange({ min: "", max: "" })
-                  }}>
+                  <Button 
+                    onClick={() => {
+                      setSearchQuery("")
+                      setSelectedCategory("all")
+                      setPriceRange({ min: "", max: "" })
+                    }}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl px-8 py-3 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                  >
+                    <Zap className="h-4 w-4 mr-2" />
                     Clear All Filters
                   </Button>
                 </CardContent>
@@ -277,29 +334,31 @@ export default function ProductsPage() {
                   : "grid-cols-1"
               }`}>
                 {sortedProducts.map((product) => (
-                  <ProductCard
+                  <ModernProductCard
                     key={product.id}
-                    product={{
-                      id: parseInt(product.id),
-                      name: product.name,
-                      price: product.price,
-                      comparePrice: product.compare_price || undefined,
-                      imageUrl: product.image_url || "/placeholder.svg",
-                      slug: product.slug,
-                      averageRating: product.average_rating || 4.5,
-                      reviewCount: 0, // TODO: Add review count from database
-                      isFeatured: product.is_featured,
-                      stockQuantity: product.stock_quantity,
-                    }}
+                    id={product.id}
+                    name={product.name}
+                    price={product.price}
+                    comparePrice={product.compare_price || undefined}
+                    imageUrl={product.image_url || "/placeholder.svg"}
+                    slug={product.slug}
+                    rating={product.average_rating || 0}
+                    reviewCount={0}
+                    isNew={false}
+                    isFeatured={product.is_featured}
+                    isOnSale={!!product.compare_price}
+                    stockQuantity={product.stock_quantity}
+                    onAddToCart={() => handleAddToCart(product)}
                   />
                 ))}
               </div>
             )}
           </div>
         </div>
+        </div>
       </main>
 
-      <Footer />
+      <ModernFooter />
     </div>
   )
 }

@@ -2,12 +2,13 @@
 
 import React, { useEffect, useState } from "react"
 import Link from "next/link"
-import { ArrowRight, Plane, Camera, Zap, MapPin, Shield, Truck, Star, Clock, Wind, Users, Award, Globe, Battery, Wifi, ShoppingCart, Settings } from "lucide-react"
+import { ArrowRight, Plane, Camera, Zap, MapPin, Shield, Truck, Star, Clock, Wind, Users, Award, Globe, Battery, Wifi, ShoppingCart, Settings, Play, Eye, Headphones, Gauge, Navigation, Wifi as WifiIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ProductCard } from "@/components/product/product-card"
-import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
+import { HeroSection } from "@/components/ui/hero-section"
+import { ModernProductCard } from "@/components/ui/modern-product-card"
+import { ModernHeader } from "@/components/layout/modern-header"
+import { ModernFooter } from "@/components/layout/modern-footer"
 import { useCartStore } from "@/lib/cart-store"
 import { toast } from "@/hooks/use-toast"
 import { getProducts, Product } from "@/lib/supabase"
@@ -69,143 +70,95 @@ export default function HomePage() {
     })
   }
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50">
-      <Header />
+    <div className="min-h-screen flex flex-col">
+      <ModernHeader />
 
-      <main className="flex-1">
+      <main className="flex-1 pt-20">
         {/* Hero Section */}
-        <section className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white py-32 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-black/20"></div>
-          <div className="container mx-auto px-4 relative z-10">
-            <div className="max-w-6xl mx-auto">
-              <div className="grid lg:grid-cols-2 gap-12 items-center">
-                <div className="text-center lg:text-left">
-                  <div className="flex items-center justify-center lg:justify-start mb-8">
-                    <Plane className="h-16 w-16 mr-4 drone-float text-cyan-400" />
-                    <span className="text-2xl font-bold text-white">AeroHive Drones</span>
-                  </div>
-                  <h1 className="text-6xl md:text-8xl font-extrabold mb-8 text-white drop-shadow-lg">
-                    The Future of 
-                    <span className="block text-transparent bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text">
-                      Flight is Here
-                    </span>
-                  </h1>
-                  <p className="text-2xl text-gray-200 mb-10 leading-relaxed max-w-2xl font-medium">
-                    Discover cutting-edge drones for every mission - from professional photography and racing to commercial surveillance and agricultural operations.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start">
-                    <Button size="lg" className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-xl px-10 py-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105" asChild>
-                      <Link href="/products">
-                        Explore Drones
-                        <Plane className="ml-3 h-6 w-6" />
-                      </Link>
-                    </Button>
-                    <Button variant="outline" size="lg" className="text-xl px-10 py-6 rounded-xl border-2 border-white text-white hover:bg-white hover:text-slate-900 transition-all duration-300" asChild>
-                      <Link href="/categories">Browse Categories</Link>
-                    </Button>
-                  </div>
-                  
-                  {/* Key Stats */}
-                  <div className="grid grid-cols-3 gap-8 mt-16 pt-10 border-t border-white/30">
-                    <div className="text-center">
-                      <div className="text-4xl font-bold text-white">500+</div>
-                      <div className="text-gray-300 text-lg">Drones Available</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-4xl font-bold text-white">50K+</div>
-                      <div className="text-gray-300 text-lg">Happy Pilots</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-4xl font-bold text-white">4.8★</div>
-                      <div className="text-gray-300 text-lg">Average Rating</div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="relative">
-                  <div className="relative z-10">
-                    <img
-                      src="/placeholder.svg?height=700&width=700&text=Hero+Drone+Image"
-                      alt="Professional Drone"
-                      className="w-full max-w-2xl mx-auto drone-float drop-shadow-2xl"
-                    />
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 rounded-full blur-3xl"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Floating Elements */}
-          <div className="absolute top-20 left-10 opacity-30">
-            <Wind className="h-12 w-12 text-cyan-400 drone-float" style={{ animationDelay: '0.5s' }} />
-          </div>
-          <div className="absolute bottom-20 right-10 opacity-30">
-            <Battery className="h-12 w-12 text-cyan-400 drone-float" style={{ animationDelay: '1s' }} />
-          </div>
-          <div className="absolute top-1/2 right-20 opacity-20">
-            <Wifi className="h-10 w-10 text-blue-400 drone-float" style={{ animationDelay: '1.5s' }} />
-          </div>
-        </section>
+        <HeroSection
+          title="Soar Above"
+          subtitle="Professional Drones"
+          description="From advanced racing drones to professional aerial photography systems, discover our complete range of cutting-edge drones designed for enthusiasts and professionals alike."
+          primaryButtonText="Explore Drones"
+          primaryButtonHref="/products"
+          secondaryButtonText="Watch Demo"
+          secondaryButtonHref="/demo"
+          backgroundImage="/placeholder.svg?height=600&width=600&text=Professional+Drone"
+          stats={[
+            { label: "Drone Models", value: "200+" },
+            { label: "Pilots Served", value: "25K+" },
+            { label: "Average Rating", value: "4.9★" }
+          ]}
+          features={[
+            "Professional Grade",
+            "Expert Support", 
+            "Fast Shipping",
+            "Full Warranty"
+          ]}
+        />
 
         {/* Features Section */}
-        <section className="py-24 bg-gradient-to-br from-gray-50 to-blue-50">
+        <section className="py-24 bg-white">
           <div className="container mx-auto px-4">
             <div className="text-center mb-20">
-              <h2 className="text-5xl md:text-6xl font-bold text-slate-900 mb-6">
-                Why Choose AeroHive?
+              <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+                Why Choose <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">AeroHive</span>?
               </h2>
-              <p className="text-2xl text-slate-700 max-w-4xl mx-auto leading-relaxed">
-                We're more than just a drone retailer - we're your complete aviation partner
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                Experience unmatched quality and innovation with our professional drone solutions
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              <Card className="drone-card text-center group bg-white shadow-lg hover:shadow-xl border-0">
-                <CardContent className="p-10">
-                  <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform">
-                    <Shield className="h-10 w-10 text-green-600" />
+              <Card className="group bg-gradient-to-br from-blue-50 to-indigo-50 border-0 rounded-2xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
+                <CardContent className="p-8 text-center relative">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <Camera className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-4">Premium Quality</h3>
-                  <p className="text-slate-600 leading-relaxed text-lg">
-                    Military-grade components and rigorous testing ensure maximum reliability and performance.
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">4K Cameras</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    Professional-grade cameras with stabilized gimbals for stunning aerial photography and videography.
                   </p>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-200/30 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
                 </CardContent>
               </Card>
 
-              <Card className="drone-card text-center group bg-white shadow-lg hover:shadow-xl border-0">
-                <CardContent className="p-10">
-                  <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform">
-                    <Users className="h-10 w-10 text-blue-600" />
+              <Card className="group bg-gradient-to-br from-purple-50 to-pink-50 border-0 rounded-2xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
+                <CardContent className="p-8 text-center relative">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <Navigation className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-4">Expert Support</h3>
-                  <p className="text-slate-600 leading-relaxed text-lg">
-                    24/7 technical support from certified drone experts and flight instructors.
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">Smart Navigation</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    Advanced GPS and obstacle avoidance systems for precise autonomous flight and safe operation.
                   </p>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-200/30 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
                 </CardContent>
               </Card>
 
-              <Card className="drone-card text-center group bg-white shadow-lg hover:shadow-xl border-0">
-                <CardContent className="p-10">
-                  <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform">
-                    <Award className="h-10 w-10 text-purple-600" />
+              <Card className="group bg-gradient-to-br from-green-50 to-emerald-50 border-0 rounded-2xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
+                <CardContent className="p-8 text-center relative">
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-600 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <Shield className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-4">Training Programs</h3>
-                  <p className="text-slate-600 leading-relaxed text-lg">
-                    Comprehensive training courses and certification programs for all skill levels.
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">Safety First</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    Multiple safety features including return-to-home, low battery protection, and collision avoidance.
                   </p>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-200/30 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
                 </CardContent>
               </Card>
 
-              <Card className="drone-card text-center group bg-white shadow-lg hover:shadow-xl border-0">
-                <CardContent className="p-10">
-                  <div className="w-20 h-20 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform">
-                    <Truck className="h-10 w-10 text-orange-600" />
+              <Card className="group bg-gradient-to-br from-orange-50 to-red-50 border-0 rounded-2xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
+                <CardContent className="p-8 text-center relative">
+                  <div className="w-16 h-16 bg-gradient-to-br from-orange-600 to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <Battery className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-4">Fast Delivery</h3>
-                  <p className="text-slate-600 leading-relaxed text-lg">
-                    Free overnight shipping and secure packaging for safe drone delivery worldwide.
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">Long Flight Time</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    Extended battery life with intelligent power management for longer flights and more productivity.
                   </p>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-200/30 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
                 </CardContent>
               </Card>
             </div>
@@ -227,11 +180,11 @@ export default function HomePage() {
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
                 {[1, 2, 3, 4].map((i) => (
-                  <Card key={i} className="overflow-hidden animate-pulse">
+                  <Card key={i} className="overflow-hidden animate-pulse rounded-2xl border-0">
                     <div className="aspect-square bg-gray-200"></div>
-                    <CardContent className="p-4">
-                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <CardContent className="p-6">
+                      <div className="h-4 bg-gray-200 rounded mb-3"></div>
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-3"></div>
                       <div className="h-6 bg-gray-200 rounded w-1/2"></div>
                     </CardContent>
                   </Card>
@@ -243,101 +196,31 @@ export default function HomePage() {
                 <Button 
                   onClick={() => window.location.reload()} 
                   variant="outline"
-                  className="border-red-200 text-red-600 hover:bg-red-50"
+                  className="border-red-200 text-red-600 hover:bg-red-50 rounded-xl"
                 >
                   Try Again
                 </Button>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-                {featuredProducts.map((product) => {
-                  const discountPercentage = product.compare_price
-                    ? Math.round(((product.compare_price - product.price) / product.compare_price) * 100)
-                    : 0
-
-                  return (
-                    <Card key={product.id} className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-                    <Link href={`/products/${product.slug}`}>
-                      <div className="relative aspect-square overflow-hidden">
-                        <img
-                          src={product.image_url || "/placeholder.svg"}
-                          alt={product.name}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        />
-                        {discountPercentage > 0 && (
-                          <div className="absolute top-2 left-2 bg-secondary text-secondary-foreground px-2 py-1 rounded text-xs font-semibold">
-                            -{discountPercentage}%
-                          </div>
-                        )}
-                        {product.is_featured && (
-                          <div className="absolute top-2 right-2 bg-primary text-primary-foreground px-2 py-1 rounded text-xs font-semibold">
-                            Featured
-                          </div>
-                        )}
-                        {product.stock_quantity === 0 && (
-                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                            <div className="bg-red-600 text-white px-3 py-1 rounded text-sm font-semibold">Out of Stock</div>
-                          </div>
-                        )}
-                      </div>
-                    </Link>
-
-                    <CardContent className="p-4">
-                      <Link href={`/products/${product.slug}`}>
-                        <h3 className="font-semibold text-card-foreground line-clamp-2 mb-2 group-hover:text-primary transition-colors">
-                          {product.name}
-                        </h3>
-                      </Link>
-
-                      {/* Rating */}
-                      {product.average_rating && (
-                        <div className="flex items-center gap-1 mb-2">
-                          <div className="flex">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star
-                                key={star}
-                                className={`h-4 w-4 ${
-                                  star <= Math.round(product.average_rating!) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-                                }`}
-                              />
-                            ))}
-                          </div>
-                          <span className="text-sm text-muted-foreground">(0)</span>
-                        </div>
-                      )}
-
-                      {/* Price */}
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-lg font-bold text-primary">₹{product.price.toLocaleString('en-IN')}</span>
-                        {product.compare_price && (
-                          <span className="text-sm text-muted-foreground line-through">₹{product.compare_price.toLocaleString('en-IN')}</span>
-                        )}
-                      </div>
-                    </CardContent>
-
-                    <div className="p-4 pt-0">
-                      <div className="w-full space-y-2">
-                        <Button 
-                          onClick={(e) => handleAddToCart(e, product)}
-                          disabled={product.stock_quantity === 0} 
-                          className={`w-full ${product.stock_quantity === 0 ? 'bg-gray-400' : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800'} text-white shadow-md hover:shadow-lg transition-all duration-300`}
-                          size="sm"
-                        >
-                          <ShoppingCart className="h-4 w-4 mr-2" />
-                          {product.stock_quantity === 0 ? "Out of Stock" : "Add to Cart"}
-                        </Button>
-                        
-                        <Link href={`/products/${product.slug}`} className="w-full">
-                          <Button variant="outline" className="w-full border-2 hover:bg-blue-50 hover:border-blue-200 transition-all duration-300" size="sm">
-                            <Settings className="h-4 w-4 mr-2" />
-                            Customize
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </Card>
-                  )
-                })}
+                {featuredProducts.map((product) => (
+                  <ModernProductCard
+                    key={product.id}
+                    id={product.id}
+                    name={product.name}
+                    price={product.price}
+                    comparePrice={product.compare_price || undefined}
+                    imageUrl={product.image_url || "/placeholder.svg"}
+                    slug={product.slug}
+                    rating={product.average_rating || 0}
+                    reviewCount={0}
+                    isNew={false}
+                    isFeatured={product.is_featured}
+                    isOnSale={!!product.compare_price}
+                    stockQuantity={product.stock_quantity}
+                    onAddToCart={() => handleAddToCart({} as React.MouseEvent, product)}
+                  />
+                ))}
               </div>
             )}
 
@@ -353,55 +236,63 @@ export default function HomePage() {
         </section>
 
         {/* Services Section */}
-        <section className="py-24 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white">
+        <section className="py-24 bg-gradient-to-br from-gray-50 via-white to-blue-50">
           <div className="container mx-auto px-4">
             <div className="text-center mb-20">
-              <h2 className="text-5xl md:text-6xl font-bold mb-6 text-white">
-                Complete Drone Services
+              <h2 className="text-5xl md:text-6xl font-bold mb-6 text-gray-900">
+                Complete <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Aerial Solutions</span>
               </h2>
-              <p className="text-2xl text-gray-200 max-w-4xl mx-auto leading-relaxed">
-                Beyond selling drones, we offer comprehensive services for all your aerial needs
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                Beyond premium products, we offer comprehensive services for all your drone and aviation needs
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              <Card className="bg-white/15 backdrop-blur-sm border-white/30 text-white hover:bg-white/25 transition-all duration-300 shadow-xl">
-                <CardContent className="p-10 text-center">
-                  <Clock className="h-16 w-16 mx-auto mb-6 text-cyan-300" />
-                  <h3 className="text-2xl font-bold mb-4 text-white">Training Courses</h3>
-                  <p className="text-gray-200 leading-relaxed text-lg">
-                    Professional pilot certification and advanced flight training programs.
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <Card className="group bg-white border-0 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
+                <CardContent className="p-8 text-center relative">
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <Plane className="h-10 w-10 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Drone Services</h3>
+                  <p className="text-gray-600 leading-relaxed text-lg mb-6">
+                    Professional drone services including aerial photography, mapping, surveying, and custom operations.
                   </p>
+                  <Button variant="outline" className="border-2 border-blue-200 text-blue-600 hover:bg-blue-50 rounded-xl" asChild>
+                    <Link href="/drone-services">Learn More</Link>
+                  </Button>
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-indigo-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-white/15 backdrop-blur-sm border-white/30 text-white hover:bg-white/25 transition-all duration-300 shadow-xl">
-                <CardContent className="p-10 text-center">
-                  <Shield className="h-16 w-16 mx-auto mb-6 text-cyan-300" />
-                  <h3 className="text-2xl font-bold mb-4 text-white">Insurance Plans</h3>
-                  <p className="text-gray-200 leading-relaxed text-lg">
-                    Comprehensive coverage plans to protect your investment and operations.
+              <Card className="group bg-white border-0 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
+                <CardContent className="p-8 text-center relative">
+                  <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <Settings className="h-10 w-10 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Repair Services</h3>
+                  <p className="text-gray-600 leading-relaxed text-lg mb-6">
+                    Expert repair services and maintenance programs to keep your drones flying at peak performance.
                   </p>
+                  <Button variant="outline" className="border-2 border-purple-200 text-purple-600 hover:bg-purple-50 rounded-xl" asChild>
+                    <Link href="/repair-services">Learn More</Link>
+                  </Button>
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 to-pink-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-white/15 backdrop-blur-sm border-white/30 text-white hover:bg-white/25 transition-all duration-300 shadow-xl">
-                <CardContent className="p-10 text-center">
-                  <Truck className="h-16 w-16 mx-auto mb-6 text-cyan-300" />
-                  <h3 className="text-2xl font-bold mb-4 text-white">Repair Services</h3>
-                  <p className="text-gray-200 leading-relaxed text-lg">
-                    Expert repair and maintenance services to keep your drones flying.
+              <Card className="group bg-white border-0 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
+                <CardContent className="p-8 text-center relative">
+                  <div className="w-20 h-20 bg-gradient-to-br from-green-600 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <Users className="h-10 w-10 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Training & Certification</h3>
+                  <p className="text-gray-600 leading-relaxed text-lg mb-6">
+                    Comprehensive training programs and certifications from licensed pilots and aviation experts.
                   </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white/15 backdrop-blur-sm border-white/30 text-white hover:bg-white/25 transition-all duration-300 shadow-xl">
-                <CardContent className="p-10 text-center">
-                  <Globe className="h-16 w-16 mx-auto mb-6 text-cyan-300" />
-                  <h3 className="text-2xl font-bold mb-4 text-white">DaaS Platform</h3>
-                  <p className="text-gray-200 leading-relaxed text-lg">
-                    Drone-as-a-Service for commercial operations and specialized missions.
-                  </p>
+                  <Button variant="outline" className="border-2 border-green-200 text-green-600 hover:bg-green-50 rounded-xl" asChild>
+                    <Link href="/training">Learn More</Link>
+                  </Button>
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-600 to-emerald-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
                 </CardContent>
               </Card>
             </div>
@@ -409,34 +300,45 @@ export default function HomePage() {
         </section>
 
         {/* Newsletter Section */}
-        <section className="py-24 bg-gradient-to-r from-slate-900 to-blue-900 text-white">
-          <div className="container mx-auto px-4">
+        <section className="py-24 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white relative overflow-hidden">
+          <div className="absolute inset-0 opacity-10">
+            <div className="w-full h-full bg-repeat" style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+            }}></div>
+          </div>
+          <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-4xl mx-auto text-center">
-              <Plane className="h-20 w-20 mx-auto mb-8 text-cyan-400" />
-              <h2 className="text-5xl font-bold mb-6 text-white">Join the AeroHive Community</h2>
-              <p className="text-2xl text-gray-200 mb-12 leading-relaxed">
-                Get exclusive access to new releases, expert tips, and special offers for drone enthusiasts
+              <div className="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-8 backdrop-blur-sm">
+                <Plane className="h-10 w-10 text-white" />
+              </div>
+              <h2 className="text-5xl font-bold mb-6 text-white">
+                Stay <span className="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">Airborne</span>
+              </h2>
+              <p className="text-xl text-blue-100 mb-12 leading-relaxed">
+                Get exclusive access to new drone releases, flight tips, and special offers for pilots
               </p>
-              <div className="flex flex-col sm:flex-row gap-6 max-w-xl mx-auto">
+              
+              <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto mb-8">
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className="flex-1 px-8 py-6 rounded-xl border-2 border-cyan-400/30 bg-white/10 text-white placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 backdrop-blur-sm text-lg"
+                  className="flex-1 px-6 py-4 rounded-xl border-2 border-white/20 bg-white/10 text-white placeholder:text-blue-200 focus:outline-none focus:ring-2 focus:ring-white/50 backdrop-blur-sm text-lg"
                 />
-                <Button className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 px-10 py-6 rounded-xl text-lg font-semibold">
+                <Button className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                   Subscribe
-                  <ArrowRight className="ml-3 h-5 w-5" />
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </div>
-              <p className="text-lg text-gray-300 mt-6">
-                Join 50,000+ drone pilots worldwide. Unsubscribe anytime.
+              
+              <p className="text-blue-200">
+                Join 50,000+ drone enthusiasts worldwide. Unsubscribe anytime.
               </p>
             </div>
           </div>
         </section>
       </main>
 
-      <Footer />
+      <ModernFooter />
     </div>
   )
 }

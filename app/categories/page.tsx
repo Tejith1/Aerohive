@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
+import { ModernHeader } from "@/components/layout/modern-header"
+import { ModernFooter } from "@/components/layout/modern-footer"
 
 // Drone categories data with icons and updated design
 const droneCategories = [
@@ -161,7 +161,7 @@ export default function CategoriesPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50">
-      <Header />
+      <ModernHeader />
       
       <main className="flex-1">
         {/* Hero Section */}
@@ -306,7 +306,7 @@ export default function CategoriesPage() {
         </section>
       </main>
 
-      <Footer />
+      <ModernFooter />
     </div>
   )
 }

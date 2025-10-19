@@ -73,32 +73,37 @@ export default function AdminDashboard() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100">
       <AdminHeader title="Dashboard" description="Welcome back! Here's what's happening with your store today." />
       
       <main className="container mx-auto px-4 py-8">
         {/* Welcome Section with Premium Design */}
         <div className="mb-8">
-          <div className="bg-gradient-to-r from-primary via-blue-500 to-secondary rounded-2xl p-8 text-white relative overflow-hidden">
-            <div className="absolute inset-0 bg-black/10 backdrop-blur-sm"></div>
+          <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-transparent to-purple-600/20"></div>
+            <div className="absolute top-0 left-0 w-full h-full">
+              <div className="absolute top-4 left-8 w-16 h-16 bg-white/10 rounded-full blur-xl"></div>
+              <div className="absolute bottom-8 right-12 w-20 h-20 bg-blue-400/20 rounded-full blur-xl"></div>
+              <div className="absolute top-1/2 right-1/4 w-12 h-12 bg-purple-400/20 rounded-full blur-xl"></div>
+            </div>
             <div className="relative z-10">
-              <h1 className="text-4xl font-bold mb-2">Welcome to AeroHive Admin</h1>
-              <p className="text-blue-100 text-lg">Manage your drone e-commerce platform with ease</p>
+              <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">Welcome to AeroHive Admin</h1>
+              <p className="text-blue-100 text-lg">Manage your drone e-commerce platform with ease and precision</p>
               <div className="flex items-center space-x-4 mt-6">
                 <Link href="/admin/products/new">
-                  <Button variant="secondary" size="lg" className="bg-white/20 border-white/30 text-white hover:bg-white/30 backdrop-blur-sm">
+                  <Button size="lg" className="bg-white/20 border border-white/30 text-white hover:bg-white/30 backdrop-blur-sm transition-all duration-300 shadow-lg">
                     <Plus className="h-5 w-5 mr-2" />
                     Add New Product
                   </Button>
                 </Link>
                 <Link href="/admin/categories">
-                  <Button variant="outline" size="lg" className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm">
+                  <Button variant="outline" size="lg" className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm transition-all duration-300">
                     Manage Categories
                   </Button>
                 </Link>
               </div>
             </div>
-            <div className="absolute top-4 right-8 opacity-20">
+            <div className="absolute top-6 right-8 opacity-10">
               <Package className="h-32 w-32" />
             </div>
           </div>
@@ -107,30 +112,30 @@ export default function AdminDashboard() {
         {/* Stats Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
           {stats.map((stat) => (
-            <Card key={stat.title} className="relative overflow-hidden border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-105">
+            <Card key={stat.title} className="relative overflow-hidden border-0 shadow-lg bg-white/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-105 hover:-translate-y-1 group">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+                <CardTitle className="text-sm font-medium text-slate-600 group-hover:text-slate-700 transition-colors">
                   {stat.title}
                 </CardTitle>
-                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-                  <stat.icon className="h-5 w-5 text-primary" />
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center group-hover:from-blue-500/30 group-hover:to-purple-500/30 transition-all duration-300">
+                  <stat.icon className="h-6 w-6 text-blue-600 group-hover:text-blue-700 transition-colors" />
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-                <div className="flex items-center space-x-2 text-xs text-muted-foreground mt-2">
+                <div className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">{stat.value}</div>
+                <div className="flex items-center space-x-2 text-xs text-slate-500 mt-2">
                   {stat.trend === "up" ? (
                     <TrendingUp className="h-3 w-3 text-green-500" />
                   ) : (
                     <TrendingDown className="h-3 w-3 text-red-500" />
                   )}
-                  <span className={stat.trend === "up" ? "text-green-500" : "text-red-500"}>
+                  <span className={stat.trend === "up" ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
                     {stat.change}
                   </span>
                   <span>from last month</span>
                 </div>
               </CardContent>
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </Card>
           ))}
         </div>
