@@ -83,7 +83,7 @@ export default function HomePage() {
           primaryButtonHref="/products"
           secondaryButtonText="Watch Demo"
           secondaryButtonHref="/demo"
-          backgroundImage="/placeholder.svg?height=600&width=600&text=Professional+Drone"
+          backgroundImage="/WhatsApp Image 2025-10-19 at 16.42.37_1ae76f20.jpg"
           stats={[
             { label: "Drone Models", value: "200+" },
             { label: "Pilots Served", value: "25K+" },
