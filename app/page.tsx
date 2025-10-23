@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from "react"
 import Link from "next/link"
-import { ArrowRight, Plane, Camera, Zap, MapPin, Shield, Truck, Star, Clock, Wind, Users, Award, Globe, Battery, Wifi, ShoppingCart, Settings, Play, Eye, Headphones, Gauge, Navigation, Wifi as WifiIcon } from "lucide-react"
+import { useSearchParams } from "next/navigation"
+import { ArrowRight, Plane, Camera, Zap, MapPin, Shield, Truck, Star, Clock, Wind, Users, Award, Globe, Battery, Wifi, ShoppingCart, Settings, Play, Eye, Headphones, Gauge, Navigation, Wifi as WifiIcon, Mail, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { HeroSection } from "@/components/ui/hero-section"
@@ -15,11 +16,42 @@ import { getProducts, Product } from "@/lib/supabase"
 
 export default function HomePage() {
   const { addItem } = useCartStore()
+  const searchParams = useSearchParams()
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    // Check for messages from registration/email confirmation
+    const message = searchParams.get('message')
+    const error = searchParams.get('error')
+    
+    if (message === 'check-email') {
+      toast({
+        title: "📧 Check Your Email!",
+        description: "We've sent you a confirmation link. Click it to activate your account and start shopping for drones!",
+        className: "border-blue-200 bg-blue-50 text-blue-900",
+        duration: 15000, // Show for 15 seconds
+      })
+    } else if (message === 'email-confirmed') {
+      toast({
+        title: "✅ Email Confirmed!",
+        description: "Your account is now active. Welcome to AeroHive! You can now log in and start shopping.",
+        className: "border-green-200 bg-green-50 text-green-900",
+        duration: 10000,
+      })
+      // Clear the URL parameter
+      window.history.replaceState({}, '', '/')
+    } else if (error === 'confirmation-failed') {
+      toast({
+        title: "Confirmation Failed",
+        description: "We couldn't confirm your email. The link may have expired. Please try registering again or contact support.",
+        variant: "destructive",
+        duration: 10000,
+      })
+      window.history.replaceState({}, '', '/')
+    }
+
     const fetchFeaturedProducts = async () => {
       try {
         setLoading(true)
@@ -40,7 +72,7 @@ export default function HomePage() {
     }
 
     fetchFeaturedProducts()
-  }, [])
+  }, [searchParams])
 
   const handleAddToCart = (e: React.MouseEvent, product: Product) => {
     e.preventDefault()

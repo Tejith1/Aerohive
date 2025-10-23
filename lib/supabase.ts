@@ -3,7 +3,35 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+console.log('🔧 Supabase Configuration:')
+console.log('URL:', supabaseUrl ? '✅ Set' : '❌ Missing')
+console.log('URL Value:', supabaseUrl)
+console.log('Anon Key:', supabaseAnonKey ? '✅ Set' : '❌ Missing')
+console.log('Anon Key Length:', supabaseAnonKey?.length)
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('❌ CRITICAL: Missing Supabase environment variables!')
+  console.error('Please ensure .env.local exists with:')
+  console.error('NEXT_PUBLIC_SUPABASE_URL=your_url')
+  console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key')
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce'
+  },
+  global: {
+    headers: {
+      'x-client-info': 'supabase-js-web'
+    }
+  },
+  db: {
+    schema: 'public'
+  }
+})
 
 // Database types
 export interface User {

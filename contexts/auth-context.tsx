@@ -208,118 +208,79 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (email: string, password: string, firstName: string, lastName: string, phone?: string) => {
     try {
       setIsLoading(true)
+      console.log('🔵 Auth Context: Starting server-side signup...')
+      console.log('📧 Email:', email)
+      console.log('👤 User data:', { first_name: firstName, last_name: lastName, phone })
 
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: undefined, // Disable email confirmation redirect
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-            phone: phone || null,
-            is_admin: false
-          }
-        }
+      // Call our server-side API endpoint instead of Supabase directly
+      // This bypasses CORS issues
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          firstName,
+          lastName,
+          phone
+        })
       })
 
-      if (error) {
-        console.error('Registration error:', error)
+      const result = await response.json()
+
+      console.log('📦 Server signup response:', result)
+
+      if (!response.ok || result.error) {
+        console.error('❌ Server Signup Error Details:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: result.error,
+          details: result.details
+        })
+        const error = new Error(result.error || 'Registration failed')
         
-        // Handle specific error cases
-        if (error.message.includes('email') && error.message.includes('confirm')) {
+        // Handle specific error cases with user-friendly messages
+        if (error.message.includes('User already registered')) {
           toast({
-            title: "Email Confirmation Required",
-            description: "Please check your email and click the confirmation link to complete registration.",
+            title: "Email Already Registered",
+            description: "This email is already registered. Please try logging in instead.",
+            variant: "destructive",
+          })
+        } else if (error.message.includes('Invalid email') || error.message.includes('email_address_invalid')) {
+          toast({
+            title: "Invalid Email Address",
+            description: "Please use a real email address (Gmail, Outlook, Yahoo, etc.). Test emails like @example.com are not allowed.",
+            variant: "destructive",
+          })
+        } else if (error.message.includes('Password')) {
+          toast({
+            title: "Weak Password",
+            description: "Password must be at least 6 characters long.",
+            variant: "destructive",
+          })
+        } else {
+          toast({
+            title: "Registration Failed",
+            description: error.message || "Unable to create account. Please try again.",
             variant: "destructive",
           })
         }
         throw error
       }
 
-      // Insert user profile into users table
-      if (data.user) {
-        console.log('Creating user profile for:', data.user.id, data.user.email)
-        
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert({
-            id: data.user.id,
-            email: data.user.email!,
-            password_hash: 'managed_by_supabase_auth', // Required by schema but not used
-            first_name: firstName,
-            last_name: lastName,
-            phone: phone || null,
-            is_admin: email === 'admin1@gmail.com', // Auto-set admin for admin email
-            is_active: true
-          })
-
-        if (profileError) {
-          console.error('Error creating user profile:', profileError)
-          
-          // Check if it's a duplicate key error (user already exists)
-          if (profileError.message.includes('duplicate key') || profileError.code === '23505') {
-            console.log('User profile already exists, fetching existing profile...')
-            
-            // Fetch existing profile
-            const { data: existingProfile } = await supabase
-              .from('users')
-              .select('*')
-              .eq('id', data.user.id)
-              .single()
-            
-            if (existingProfile) {
-              setUser(existingProfile)
-              toast({
-                title: "Welcome back!",
-                description: "Your account already exists. You're now logged in.",
-                className: "border-green-200 bg-green-50 text-green-900",
-              })
-              router.push(existingProfile.is_admin ? '/admin' : '/')
-              return
-            }
-          }
-          
-          toast({
-            title: "Profile Creation Failed",
-            description: `Account created but profile setup failed: ${profileError.message}. Please try logging in.`,
-            variant: "destructive",
-          })
-        } else {
-          console.log('✅ User profile created successfully')
-          
-          // Set user state and redirect
-          const newUser = {
-            id: data.user.id,
-            email: data.user.email!,
-            first_name: firstName,
-            last_name: lastName,
-            phone: phone || undefined,
-            is_admin: email === 'admin1@gmail.com',
-          }
-          
-          setUser(newUser)
-          
-          toast({
-            title: "Account Created Successfully!",
-            description: "Welcome to AeroHive! You're now logged in.",
-            className: "border-green-200 bg-green-50 text-green-900",
-          })
-          
-          router.push(newUser.is_admin ? '/admin' : '/')
-          return
-        }
-      }
-
-      // Only show this toast if profile creation failed and we're not redirecting
-      if (data.user && !user) {
-        router.push('/')
-        toast({
-          title: "Registration Completed!",
-          description: "Please check your email for confirmation or try logging in.",
-          className: "border-blue-200 bg-blue-50 text-blue-900",
-        })
-      }
+      // Success! User created and auto-confirmed
+      console.log('✅ Registration successful!')
+      
+      toast({
+        title: "Account Created! 🎉",
+        description: result.message || "Welcome to AeroHive! Logging you in...",
+        className: "border-green-200 bg-green-50 text-green-900",
+      })
+      
+      // Now log them in
+      await login(email, password)
     } catch (error: any) {
       console.error('Registration error:', error)
       toast({

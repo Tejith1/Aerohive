@@ -1,9 +1,16 @@
 // Quick database update to support data URLs
 const { createClient } = require('@supabase/supabase-js')
+require('dotenv').config({ path: '.env.local' })
 
 // Get Supabase credentials from environment
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://pkznmqoztkwbbvlcrsmi.supabase.co'
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrem5tcW96dGt3YmJ2bGNyc21pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzEzNDE1NTEsImV4cCI6MjA0NjkxNzU1MX0.QOO0f5bEJfMT7VpPtKtJMLl_LV6O4V5m4XOB3wOsNhs'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('❌ Missing Supabase credentials in .env.local')
+  console.error('Please ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set')
+  process.exit(1)
+}
 
 const supabase = createClient(supabaseUrl, supabaseKey)
 
