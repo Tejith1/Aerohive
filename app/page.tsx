@@ -115,7 +115,7 @@ export default function HomePage() {
           primaryButtonHref="/products"
           secondaryButtonText="Watch Demo"
           secondaryButtonHref="/demo"
-          backgroundImage="/WhatsApp Image 2025-10-19 at 16.42.37_1ae76f20.jpg"
+          backgroundImage="/WhatsApp Image 2025-10-24 at 09.33.29_68a8851c.jpg"
           stats={[
             { label: "Drone Models", value: "200+" },
             { label: "Pilots Served", value: "25K+" },
@@ -282,8 +282,12 @@ export default function HomePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <Card className="group bg-white border-0 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
                 <CardContent className="p-8 text-center relative">
-                  <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                    <Plane className="h-10 w-10 text-white" />
+                  <div className="w-20 h-20 bg-white rounded-2xl overflow-hidden flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border-2 border-blue-100">
+                    <img 
+                      src="/WhatsApp Image 2025-10-24 at 09.33.29_68a8851c.jpg" 
+                      alt="AeroHive Drone Services" 
+                      className="h-full w-full object-contain p-2"
+                    />
                   </div>
                   <h3 className="text-2xl font-bold mb-4 text-gray-900">Drone Services</h3>
                   <p className="text-gray-600 leading-relaxed text-lg mb-6">
@@ -340,8 +344,12 @@ export default function HomePage() {
           </div>
           <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-4xl mx-auto text-center">
-              <div className="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-8 backdrop-blur-sm">
-                <Plane className="h-10 w-10 text-white" />
+              <div className="w-20 h-20 bg-white/90 rounded-2xl overflow-hidden flex items-center justify-center mx-auto mb-8 backdrop-blur-sm shadow-lg">
+                <img 
+                  src="/WhatsApp Image 2025-10-24 at 09.33.29_68a8851c.jpg" 
+                  alt="AeroHive Logo" 
+                  className="h-full w-full object-contain p-2"
+                />
               </div>
               <h2 className="text-5xl font-bold mb-6 text-white">
                 Stay <span className="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">Airborne</span>
