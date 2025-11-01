@@ -87,7 +87,7 @@ export function ModernHeader() {
       <div className="container mx-auto px-4">
         <div className="flex h-20 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-3 group">
+          <Link href="/" className="flex items-center group">
             <div className="relative">
               <div className="h-12 w-12 rounded-2xl overflow-hidden shadow-lg group-hover:shadow-xl transition-all duration-300 bg-white">
                 <img 
@@ -98,11 +98,13 @@ export function ModernHeader() {
               </div>
               <div className="absolute -inset-0.5 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl opacity-0 group-hover:opacity-20 blur transition-all duration-300"></div>
             </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                AeroHive
-              </span>
-              <span className="text-xs text-gray-500 font-medium -mt-1">Professional Drones</span>
+            <div className="flex items-center -ml-8">
+              <img 
+                src="/Aerohive text logo scaled up.png" 
+                alt="AeroHive" 
+                className="w-auto object-contain"
+                style={{ filter: 'none', height: '140px' }}
+              />
             </div>
           </Link>
 
