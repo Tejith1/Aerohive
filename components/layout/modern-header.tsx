@@ -57,6 +57,11 @@ export function ModernHeader() {
       description: "Shop by category"
     },
     { 
+      href: "/drone-pilots", 
+      label: "Drone Pilots",
+      description: "Find certified drone operators"
+    },
+    { 
       href: "#", 
       label: "Services",
       hasDropdown: true,

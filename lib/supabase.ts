@@ -110,6 +110,30 @@ export interface Product {
   category?: Category
 }
 
+export interface DronePilot {
+  id: string
+  user_id?: string | null
+  full_name: string
+  email: string
+  phone: string
+  location: string
+  area: string
+  experience: string
+  certifications: string
+  specializations: string
+  hourly_rate: number
+  about: string
+  dgca_number: string
+  profile_image_url?: string | null
+  certificate_image_url?: string | null
+  rating: number
+  completed_jobs: number
+  is_verified: boolean
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
 // Auth functions
 export const signUp = async (email: string, password: string, firstName: string, lastName: string, phone?: string) => {
   const { data, error } = await supabase.auth.signUp({
@@ -596,4 +620,72 @@ export const createCategory = async (category: Omit<Category, 'id' | 'created_at
 
   if (error) throw error
   return data as Category
+}
+
+// Drone Pilot functions
+export const getDronePilots = async (filters?: {
+  location?: string
+  area?: string
+  search?: string
+}) => {
+  let query = supabase
+    .from('drone_pilots')
+    .select('*')
+    .eq('is_verified', true)
+    .eq('is_active', true)
+    .order('rating', { ascending: false })
+
+  if (filters?.location && filters.location !== 'All Locations') {
+    query = query.eq('location', filters.location)
+  }
+  
+  if (filters?.area && filters.area !== 'All Areas') {
+    query = query.eq('area', filters.area)
+  }
+  
+  if (filters?.search) {
+    query = query.or(`full_name.ilike.%${filters.search}%,specializations.ilike.%${filters.search}%`)
+  }
+
+  const { data, error } = await query
+  
+  if (error) throw error
+  return data as DronePilot[]
+}
+
+export const createDronePilot = async (pilotData: Omit<DronePilot, 'id' | 'rating' | 'completed_jobs' | 'is_verified' | 'is_active' | 'created_at' | 'updated_at'>) => {
+  const { data, error } = await supabase
+    .from('drone_pilots')
+    .insert(pilotData)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating drone pilot:', error)
+    throw error
+  }
+  return data as DronePilot
+}
+
+export const updateDronePilot = async (id: string, updates: Partial<DronePilot>) => {
+  const { data, error } = await supabase
+    .from('drone_pilots')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as DronePilot
+}
+
+export const getDronePilotById = async (id: string) => {
+  const { data, error } = await supabase
+    .from('drone_pilots')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (error) throw error
+  return data as DronePilot
 }
