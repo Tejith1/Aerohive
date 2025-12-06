@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initializeAuth()
     
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('🔔 Auth state change:', event, session?.user?.email)
         
@@ -76,7 +76,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      authListener?.subscription?.unsubscribe()
+    }
   }, [])
 
   const initializeAuth = async () => {
@@ -107,14 +109,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = async (retryCount = 0) => {
     try {
-      const { data: { user: authUser } } = await supabase.auth.getUser()
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
+      
+      if (authError) {
+        console.error('❌ Auth user error:', authError)
+        setUser(null)
+        return
+      }
       
       console.log('🔍 Fetching user profile...', authUser?.email)
       
       if (authUser) {
-        // Get user profile from users table
+        // Get user profile from users table with retry logic
         const { data: userProfile, error } = await supabase
           .from('users')
           .select('*')
@@ -123,6 +131,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (error) {
           console.error('❌ Error fetching user profile:', error)
+          
+          // Retry once on connection issues
+          if (retryCount < 1 && (error.message?.includes('Failed to fetch') || error.message?.includes('network'))) {
+            console.log('🔄 Retrying profile fetch...')
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            return fetchUserProfile(retryCount + 1)
+          }
+          
           // If profile doesn't exist, user might need to complete registration
           return
         }
@@ -135,6 +151,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('❌ Error fetching user profile:', error)
+      
+      // Retry once on network errors
+      if (retryCount < 1) {
+        console.log('🔄 Retrying profile fetch due to error...')
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        return fetchUserProfile(retryCount + 1)
+      }
     }
   }
 

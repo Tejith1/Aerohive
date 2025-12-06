@@ -93,19 +93,29 @@ export default function HomePage() {
       window.history.replaceState({}, '', '/')
     }
 
-    const fetchFeaturedProducts = async () => {
+    const fetchFeaturedProducts = async (retryCount = 0) => {
       try {
         setLoading(true)
+        console.log('🔄 Fetching featured products...')
         const products = await getProducts({ 
           featured: true, 
           active: true, 
           limit: 4 
         })
+        console.log('✅ Featured products loaded:', products.length)
         setFeaturedProducts(products)
         setError(null)
-      } catch (err) {
-        console.error('Error fetching featured products:', err)
-        setError('Failed to load featured products')
+      } catch (err: any) {
+        console.error('❌ Error fetching featured products:', err)
+        
+        // Retry once on network/connection errors
+        if (retryCount < 1 && (err.message?.includes('Failed to fetch') || err.message?.includes('network'))) {
+          console.log('🔄 Retrying product fetch...')
+          await new Promise(resolve => setTimeout(resolve, 1500))
+          return fetchFeaturedProducts(retryCount + 1)
+        }
+        
+        setError('Failed to load featured products. Please refresh the page.')
       } finally {
         setLoading(false)
       }

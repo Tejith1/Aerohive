@@ -21,15 +21,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    storageKey: 'aerohive-auth',
     flowType: 'pkce'
-  },
-  global: {
-    headers: {
-      'x-client-info': 'supabase-js-web'
-    }
-  },
-  db: {
-    schema: 'public'
   }
 })
 
@@ -179,35 +173,49 @@ export const getProducts = async (filters?: {
   featured?: boolean
   active?: boolean
   limit?: number
-}) => {
-  let query = supabase
-    .from('products')
-    .select(`
-      *,
-      category:categories(*)
-    `)
-    .order('created_at', { ascending: false })
+}, retryCount = 0): Promise<Product[]> => {
+  try {
+    let query = supabase
+      .from('products')
+      .select(`
+        *,
+        category:categories(*)
+      `)
+      .order('created_at', { ascending: false })
 
-  if (filters?.category) {
-    query = query.eq('category.slug', filters.category)
-  }
-  
-  if (filters?.featured !== undefined) {
-    query = query.eq('is_featured', filters.featured)
-  }
-  
-  if (filters?.active !== undefined) {
-    query = query.eq('is_active', filters.active)
-  }
-  
-  if (filters?.limit) {
-    query = query.limit(filters.limit)
-  }
+    if (filters?.category) {
+      query = query.eq('category.slug', filters.category)
+    }
+    
+    if (filters?.featured !== undefined) {
+      query = query.eq('is_featured', filters.featured)
+    }
+    
+    if (filters?.active !== undefined) {
+      query = query.eq('is_active', filters.active)
+    }
+    
+    if (filters?.limit) {
+      query = query.limit(filters.limit)
+    }
 
-  const { data, error } = await query
-  
-  if (error) throw error
-  return data as Product[]
+    const { data, error } = await query
+    
+    if (error) {
+      console.error('❌ Database query error:', error)
+      throw error
+    }
+    
+    return data as Product[]
+  } catch (error: any) {
+    // Retry on network/connection errors
+    if (retryCount < 2 && (error.message?.includes('Failed to fetch') || error.message?.includes('network') || error.code === 'PGRST301')) {
+      console.log(`🔄 Retrying getProducts (attempt ${retryCount + 1})...`)
+      await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)))
+      return getProducts(filters, retryCount + 1)
+    }
+    throw error
+  }
 }
 
 export const getProductBySlug = async (slug: string) => {

@@ -13,6 +13,12 @@ export const metadata: Metadata = {
   description:
     "Discover cutting-edge drones for professional photography, racing, surveillance, and agricultural operations. Expert support and training included.",
   generator: "v0.app",
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/placeholder-logo.svg', type: 'image/svg+xml' }
+    ],
+  },
 }
 
 export default function RootLayout({
