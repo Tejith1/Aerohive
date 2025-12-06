@@ -12,12 +12,18 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { useAuth } from "@/contexts/auth-context"
 import { toast } from "@/hooks/use-toast"
 
+type LoginForm = {
+  email: string
+  password: string
+  rememberMe: boolean
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const { login, signInWithGoogle, isLoading: authLoading } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<LoginForm>({
     email: "",
     password: "",
     rememberMe: false,
@@ -78,10 +84,8 @@ export default function LoginPage() {
           </span>
         </Link>
         
-        <Link href="/register">
-          <Button variant="ghost" className="text-gray-600 hover:text-gray-800">
-            Don't have an account?
-          </Button>
+        <Link href="/register" className="text-gray-600 hover:text-gray-800">
+          Don't have an account?
         </Link>
       </div>
 
@@ -137,6 +141,7 @@ export default function LoginPage() {
                         type="button"
                         variant="ghost"
                         size="sm"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
                         className="absolute right-2 top-1/2 transform -translate-y-1/2 h-10 w-10 rounded-lg hover:bg-gray-100"
                         onClick={() => setShowPassword(!showPassword)}
                       >
@@ -154,7 +159,7 @@ export default function LoginPage() {
                       <Checkbox
                         id="remember"
                         checked={formData.rememberMe}
-                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, rememberMe: checked as boolean }))}
+                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, rememberMe: !!checked }))}
                         className="rounded-md"
                       />
                       <Label htmlFor="remember" className="text-sm font-medium text-gray-600">
@@ -197,7 +202,7 @@ export default function LoginPage() {
                       className="w-full h-14 flex items-center justify-center gap-3 border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-all duration-300"
                     >
                       <img
-                        src="https://www.svgrepo.com/show/475656/google-color.svg"
+                        src="https://www.svgrepo.com/show/475656/google-color.svg" 
                         alt="Google logo"
                         className="w-5 h-5"
                       />
@@ -269,7 +274,7 @@ export default function LoginPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </div> 
         </div>
       </main>
     </div>

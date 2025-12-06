@@ -23,8 +23,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,
     storage: typeof window !== 'undefined' ? window.localStorage : undefined,
     storageKey: 'aerohive-auth',
-    flowType: 'pkce'
-  }
+    flowType: 'pkce',
+  },
 })
 
 // Database types

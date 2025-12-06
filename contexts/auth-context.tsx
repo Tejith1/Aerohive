@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initializeAuth()
     
     // Listen for auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(
+    const { data } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('🔔 Auth state change:', event, session?.user?.email)
         
@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     )
 
     return () => {
-      authListener?.subscription?.unsubscribe()
+      data.subscription.unsubscribe()
     }
   }, [])
 
