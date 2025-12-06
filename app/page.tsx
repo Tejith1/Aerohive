@@ -13,25 +13,67 @@ import { ModernFooter } from "@/components/layout/modern-footer"
 import { useCartStore } from "@/lib/cart-store"
 import { toast } from "@/hooks/use-toast"
 import { getProducts, Product } from "@/lib/supabase"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function HomePage() {
   const { addItem } = useCartStore()
+  const { user, refreshUser } = useAuth()
   const searchParams = useSearchParams()
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+
+    // Check for OAuth callback
+    const handleOAuthCallback = () => {
+      const error = searchParams.get('error')
+      const errorDescription = searchParams.get('error_description')
+      const code = searchParams.get('code')
+
+      if (error) {
+        console.error('❌ OAuth error:', error, errorDescription)
+        toast({
+          title: "Authentication Failed",
+          description: errorDescription || error,
+          variant: "destructive",
+          duration: 5000,
+        })
+        window.history.replaceState({}, '', '/')
+        return
+      }
+
+      // Check for OAuth success
+      if (code || localStorage.getItem('oauth_success') === 'true') {
+        console.log('🎉 OAuth callback detected')
+        
+        // Give time for auth context to update
+        setTimeout(async () => {
+          await refreshUser()
+          localStorage.removeItem('oauth_success')
+          window.history.replaceState({}, '', '/')
+        }, 1000)
+      }
+    }
+
+    handleOAuthCallback()
+
     // Check for messages from registration/email confirmation
     const message = searchParams.get('message')
-    const error = searchParams.get('error')
+    const urlError = searchParams.get('error')
     
     if (message === 'check-email') {
       toast({
         title: "📧 Check Your Email!",
         description: "We've sent you a confirmation link. Click it to activate your account and start shopping for drones!",
         className: "border-blue-200 bg-blue-50 text-blue-900",
-        duration: 15000, // Show for 15 seconds
+        duration: 15000,
       })
     } else if (message === 'email-confirmed') {
       toast({
@@ -40,9 +82,8 @@ export default function HomePage() {
         className: "border-green-200 bg-green-50 text-green-900",
         duration: 10000,
       })
-      // Clear the URL parameter
       window.history.replaceState({}, '', '/')
-    } else if (error === 'confirmation-failed') {
+    } else if (urlError === 'confirmation-failed') {
       toast({
         title: "Confirmation Failed",
         description: "We couldn't confirm your email. The link may have expired. Please try registering again or contact support.",
@@ -65,14 +106,13 @@ export default function HomePage() {
       } catch (err) {
         console.error('Error fetching featured products:', err)
         setError('Failed to load featured products')
-        // No fallback data needed since we're fetching directly from database
       } finally {
         setLoading(false)
       }
     }
 
     fetchFeaturedProducts()
-  }, [searchParams])
+  }, [searchParams, mounted])
 
   const handleAddToCart = (e: React.MouseEvent, product: Product) => {
     e.preventDefault()
@@ -101,9 +141,14 @@ export default function HomePage() {
       className: "border-green-200 bg-green-50 text-green-900",
     })
   }
+
+  if (!mounted) {
+    return null // Prevent hydration mismatch
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
-      <ModernHeader />
+      <ModernHeader key={user?.id || 'guest'} />
 
       <main className="flex-1 pt-20">
         {/* Hero Section */}
