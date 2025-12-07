@@ -16,14 +16,31 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key')
 }
 
+// Custom storage adapter with better error handling
+const getStorage = () => {
+  if (typeof window === 'undefined') return undefined
+  
+  try {
+    // Test if localStorage is available and working
+    const testKey = '__supabase_test__'
+    window.localStorage.setItem(testKey, 'test')
+    window.localStorage.removeItem(testKey)
+    return window.localStorage
+  } catch (e) {
+    console.warn('⚠️ localStorage not available, using memory storage')
+    return undefined
+  }
+}
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-    storageKey: 'aerohive-auth',
+    storage: getStorage(),
+    storageKey: 'sb-aerohive-auth-token',
     flowType: 'pkce',
+    debug: process.env.NODE_ENV === 'development',
   },
 })
 

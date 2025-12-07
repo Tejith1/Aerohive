@@ -39,6 +39,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAuthenticated = !!user
   const isAdmin = user?.is_admin || false
 
+  // Handle visibility change - refresh session when user returns to tab
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible') {
+        console.log('👁️ Tab became visible, checking session...')
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session && !user) {
+          console.log('🔄 Session exists but user not loaded, refreshing...')
+          await initializeAuth()
+        }
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [user])
+
   // Initialize auth state
   useEffect(() => {
     initializeAuth()
@@ -67,8 +84,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log('📊 User signed out')
           setUser(null)
         } else if (event === 'TOKEN_REFRESHED') {
-          console.log('📊 Token refreshed')
-          // Don't fetch profile on token refresh to avoid loops
+          console.log('📊 Token refreshed successfully')
+          // Refetch profile to ensure we have latest data
+          await fetchUserProfile()
         } else if (event === 'USER_UPDATED') {
           console.log('📊 User updated')
           await fetchUserProfile()
@@ -76,19 +94,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     )
 
+    // Session heartbeat - check session every 30 seconds and refresh if needed
+    const heartbeat = setInterval(async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        const expiresAt = session.expires_at ? session.expires_at * 1000 : 0
+        const now = Date.now()
+        const timeUntilExpiry = expiresAt - now
+        
+        // Refresh if expiring in less than 5 minutes
+        if (timeUntilExpiry < 5 * 60 * 1000 && timeUntilExpiry > 0) {
+          console.log('🔄 Session expiring soon, refreshing...')
+          await supabase.auth.refreshSession()
+        }
+      }
+    }, 30000) // Check every 30 seconds
+
     return () => {
       data.subscription.unsubscribe()
+      clearInterval(heartbeat)
     }
   }, [])
 
   const initializeAuth = async () => {
     try {
       console.log('🔄 Initializing auth...')
+      console.log('🔍 Checking localStorage for session...')
+      
+      // Check if we have a stored session
+      const storedSession = typeof window !== 'undefined' 
+        ? localStorage.getItem('sb-aerohive-auth-token')
+        : null
+      console.log('💾 Stored session:', storedSession ? 'Found' : 'Not found')
       
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       
       if (sessionError) {
         console.error('❌ Session error:', sessionError)
+        console.error('❌ Error details:', JSON.stringify(sessionError, null, 2))
+        
+        // Try to refresh the session if we have a stored token
+        if (storedSession) {
+          console.log('🔄 Attempting session refresh...')
+          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+          if (!refreshError && refreshData.session) {
+            console.log('✅ Session refreshed successfully')
+            await fetchUserProfile()
+            return
+          }
+        }
+        
         setUser(null)
         setIsLoading(false)
         return
@@ -96,6 +151,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (session?.user) {
         console.log('✅ Session found:', session.user.email)
+        console.log('🔑 Session expires at:', new Date(session.expires_at! * 1000).toLocaleString())
         await fetchUserProfile()
       } else {
         console.log('ℹ️ No active session')
@@ -103,6 +159,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('❌ Auth initialization error:', error)
+      console.error('❌ Full error:', JSON.stringify(error, null, 2))
       setUser(null)
     } finally {
       setIsLoading(false)
