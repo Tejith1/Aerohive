@@ -207,10 +207,6 @@ export default function DronePilotsPage() {
           <h2 className="text-2xl font-bold text-gray-900">
             {loading ? 'Loading...' : `${filteredPilots.length} Pilot${filteredPilots.length !== 1 ? 's' : ''} Found`}
           </h2>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <TrendingUp className="h-4 w-4" />
-            <span>Sorted by Rating</span>
-          </div>
         </div>
 
         {loading ? (
@@ -273,10 +269,6 @@ export default function DronePilotsPage() {
                   </div>
 
                   <div className="flex items-center gap-4 text-sm">
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="font-semibold">{pilot.rating.toFixed(1)}</span>
-                    </div>
                     <div className="flex items-center gap-1 text-gray-600">
                       <Award className="h-4 w-4" />
                       <span>{pilot.experience}</span>

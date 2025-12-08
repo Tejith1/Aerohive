@@ -62,10 +62,10 @@ export default function DronePilotRegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Validate required fields
+    // Validate required fields (about is now optional)
     if (!formData.fullName || !formData.email || !formData.phone || !formData.location || 
         !formData.area || !formData.experience || !formData.certifications || 
-        !formData.specializations || !formData.hourlyRate || !formData.about || 
+        !formData.specializations || !formData.hourlyRate || 
         !formData.dgcaNumber) {
       toast({
         title: "Validation Error",
@@ -284,7 +284,7 @@ export default function DronePilotRegisterPage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name *</Label>
+                    <Label htmlFor="fullName">Full Name * <span className="text-sm font-normal text-gray-500">(As per DGCA certificate)</span></Label>
                     <Input
                       id="fullName"
                       name="fullName"
@@ -386,7 +386,7 @@ export default function DronePilotRegisterPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="hourlyRate">Hourly Rate (₹) *</Label>
+                    <Label htmlFor="hourlyRate">Hourly Rate (₹) * <span className="text-sm font-normal text-gray-500">(rate excluding transport charges)</span></Label>
                     <div className="relative">
                       <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
@@ -426,14 +426,13 @@ export default function DronePilotRegisterPage() {
                     />
                   </div>
                   <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="about">About You *</Label>
+                    <Label htmlFor="about">About You <span className="text-sm font-normal text-gray-500">(recommended)</span></Label>
                     <Textarea
                       id="about"
                       name="about"
                       placeholder="Tell us about your experience, equipment, and services you offer..."
                       value={formData.about}
                       onChange={handleInputChange}
-                      required
                       rows={4}
                       className="rounded-xl"
                     />
