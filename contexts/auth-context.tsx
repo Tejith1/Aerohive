@@ -59,17 +59,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Initialize auth state
   useEffect(() => {
     initializeAuth()
-    
+
     // Listen for auth changes
     const { data } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('🔔 Auth state change:', event, session?.user?.email)
-        
+
         // Only handle specific events, don't redirect on every change
         if (event === 'SIGNED_IN' && session) {
           console.log('📊 User signed in, fetching profile...')
           await fetchUserProfile()
-          
+
           // Check if this is an OAuth sign-in (Google, etc.)
           const provider = session.user.app_metadata?.provider
           if (provider === 'google') {
@@ -101,7 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const expiresAt = session.expires_at ? session.expires_at * 1000 : 0
         const now = Date.now()
         const timeUntilExpiry = expiresAt - now
-        
+
         // Refresh if expiring in less than 5 minutes
         if (timeUntilExpiry < 5 * 60 * 1000 && timeUntilExpiry > 0) {
           console.log('🔄 Session expiring soon, refreshing...')
@@ -120,19 +120,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('🔄 Initializing auth...')
       console.log('🔍 Checking localStorage for session...')
-      
+
       // Check if we have a stored session
-      const storedSession = typeof window !== 'undefined' 
+      const storedSession = typeof window !== 'undefined'
         ? localStorage.getItem('sb-aerohive-auth-token')
         : null
       console.log('💾 Stored session:', storedSession ? 'Found' : 'Not found')
-      
+
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      
+
       if (sessionError) {
         console.error('❌ Session error:', sessionError)
         console.error('❌ Error details:', JSON.stringify(sessionError, null, 2))
-        
+
         // Try to refresh the session if we have a stored token
         if (storedSession) {
           console.log('🔄 Attempting session refresh...')
@@ -143,7 +143,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return
           }
         }
-        
+
         setUser(null)
         setIsLoading(false)
         return
@@ -169,15 +169,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchUserProfile = async (retryCount = 0) => {
     try {
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
-      
+
       if (authError) {
         console.error('❌ Auth user error:', authError)
         setUser(null)
         return
       }
-      
+
       console.log('🔍 Fetching user profile...', authUser?.email)
-      
+
       if (authUser) {
         // Get user profile from users table with retry logic
         const { data: userProfile, error } = await supabase
@@ -188,14 +188,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (error) {
           console.error('❌ Error fetching user profile:', error)
-          
+
           // Retry once on connection issues
           if (retryCount < 1 && (error.message?.includes('Failed to fetch') || error.message?.includes('network'))) {
             console.log('🔄 Retrying profile fetch...')
             await new Promise(resolve => setTimeout(resolve, 1000))
             return fetchUserProfile(retryCount + 1)
           }
-          
+
           // If profile doesn't exist, user might need to complete registration
           return
         }
@@ -208,7 +208,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('❌ Error fetching user profile:', error)
-      
+
       // Retry once on network errors
       if (retryCount < 1) {
         console.log('🔄 Retrying profile fetch due to error...')
@@ -221,7 +221,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true)
-      
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -229,7 +229,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('Login error details:', error)
-        
+
         // Special handling for email not confirmed
         if (error.message === 'Email not confirmed') {
           toast({
@@ -237,7 +237,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             description: "Please check your email and click the confirmation link. If you don't see the email, contact support.",
             variant: "destructive",
           })
-          
+
           // For admin accounts, show additional help
           if (email === 'admin1@gmail.com' || email === 'admin@aerohive.com') {
             toast({
@@ -272,7 +272,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (!profileError && userProfile) {
           setUser(userProfile)
-          
+
           // Show welcome toast immediately
           toast({
             title: userProfile.is_admin ? "Welcome back, Admin!" : "Welcome back!",
@@ -280,7 +280,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             className: "border-green-200 bg-green-50 text-green-900",
             duration: 3000,
           })
-          
+
           // Redirect based on user role
           if (userProfile.is_admin) {
             router.push('/admin')
@@ -300,7 +300,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               is_admin: data.user.email === 'admin1@gmail.com' || data.user.email === 'admin@aerohive.com',
               is_active: true
             })
-          
+
           if (!createProfileError) {
             // Fetch the newly created profile
             const { data: newProfile } = await supabase
@@ -308,7 +308,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               .select('*')
               .eq('id', data.user.id)
               .single()
-            
+
             if (newProfile) {
               setUser(newProfile)
               router.push(newProfile.is_admin ? '/admin' : '/')
@@ -366,7 +366,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           details: result.details
         })
         const error = new Error(result.error || 'Registration failed')
-        
+
         // Handle specific error cases with user-friendly messages
         if (error.message.includes('User already registered')) {
           toast({
@@ -398,13 +398,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Success! User created and auto-confirmed
       console.log('✅ Registration successful!')
-      
+
       toast({
         title: "Account Created! 🎉",
         description: result.message || "Welcome to AeroHive! Logging you in...",
         className: "border-green-200 bg-green-50 text-green-900",
       })
-      
+
       // Now log them in
       await login(email, password)
     } catch (error: any) {
@@ -448,7 +448,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}`,
+          redirectTo: `${window.location.origin}/auth/callback`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
