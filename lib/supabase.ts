@@ -139,6 +139,25 @@ export interface DronePilot {
   is_active: boolean
   created_at: string
   updated_at: string
+  latitude?: number
+  longitude?: number
+}
+
+export interface Booking {
+  id: string
+  client_id: string
+  pilot_id: string
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled'
+  scheduled_at: string
+  duration_hours: number
+  client_location_lat: number
+  client_location_lng: number
+  client_notes?: string
+  total_amount: number
+  created_at: string
+  updated_at: string
+  pilot?: DronePilot
+  client?: User
 }
 
 // Auth functions
@@ -700,13 +719,82 @@ export const updateDronePilot = async (id: string, updates: Partial<DronePilot>)
   return data as DronePilot
 }
 
-export const getDronePilotById = async (id: string) => {
+// Duplicate fragment removed
+
+// Booking functions
+export const createBooking = async (bookingData: Omit<Booking, 'id' | 'created_at' | 'updated_at' | 'pilot' | 'client'>) => {
+  console.log('Creating booking:', bookingData)
   const { data, error } = await supabase
-    .from('drone_pilots')
-    .select('*')
-    .eq('id', id)
+    .from('bookings')
+    .insert(bookingData)
+    .select()
     .single()
 
+  if (error) {
+    console.error('Error creating booking:', error)
+    throw error
+  }
+  return data as Booking
+}
+
+export const getBookingsForUser = async (userId: string, isPilot: boolean = false) => {
+  let query = supabase
+    .from('bookings')
+    .select(`
+      *,
+      pilot:drone_pilots(*),
+      client:users(*)
+    `)
+    .order('scheduled_at', { ascending: true })
+
+  if (isPilot) {
+    // For pilots, we need to find bookings where the pilot_id matches a pilot record owned by this user
+    // This complex query is better handled by RLS, but for client-side filtering (if RLS allows reading all):
+    // Actually, simple way: get pilot ID first
+    const { data: pilot } = await supabase.from('drone_pilots').select('id').eq('user_id', userId).single()
+    if (!pilot) return []
+    query = query.eq('pilot_id', pilot.id)
+  } else {
+    query = query.eq('client_id', userId)
+  }
+
+  const { data, error } = await query
   if (error) throw error
-  return data as DronePilot
+  return data as Booking[]
+}
+
+// Helper for finding nearby pilots
+// Note: In a real app, use PostGIS. Here we'll fetch all pilots and filter in JS for simplicity/demo
+export const getNearbyPilots = async (lat: number, lng: number, radiusKm: number = 10): Promise<DronePilot[]> => {
+  const { data: pilots, error } = await supabase
+    .from('drone_pilots')
+    .select('*')
+    .eq('is_verified', true)
+    .eq('is_active', true)
+
+  if (error) throw error
+  if (!pilots) return []
+
+  return pilots.filter(pilot => {
+    if (!pilot.latitude || !pilot.longitude) return false
+    const distance = calculateDistance(lat, lng, pilot.latitude, pilot.longitude)
+    return distance <= radiusKm
+  })
+}
+
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Radius of the earth in km
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const d = R * c; // Distance in km
+  return d;
+}
+
+function deg2rad(deg: number): number {
+  return deg * (Math.PI / 180)
 }

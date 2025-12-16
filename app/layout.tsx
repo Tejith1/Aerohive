@@ -6,6 +6,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/contexts/auth-context"
+import Chatbot from "@/components/Chatbot"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -32,6 +33,7 @@ export default function RootLayout({
         <AuthProvider>
           <Suspense fallback={null}>{children}</Suspense>
           <Toaster />
+          <Chatbot />
         </AuthProvider>
         <Analytics />
       </body>
