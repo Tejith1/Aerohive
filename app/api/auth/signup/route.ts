@@ -26,6 +26,13 @@ export async function POST(request: NextRequest) {
   try {
     console.log('🔵 Signup API called')
 
+    console.log('--- DEBUG ENV VARS ---')
+    console.log('URL:', supabaseUrl)
+    console.log('ServiceKey Length:', supabaseServiceKey?.length)
+    console.log('Is "your-project-id" present?:', supabaseUrl?.includes('your-project-id'))
+    console.log('Is "your-service-role-key" present?:', supabaseServiceKey?.includes('your-service-role-key'))
+    console.log('----------------------')
+
     // Validate environment variables or check for placeholder/demo values
     const isMockCreds = supabaseUrl?.includes('your-project-id') ||
       supabaseServiceKey?.includes('your-service-role-key') ||
