@@ -52,7 +52,7 @@ export default function HomePage() {
       // Check for OAuth success
       if (code || localStorage.getItem('oauth_success') === 'true') {
         console.log('🎉 OAuth callback detected')
-        
+
         // Give time for auth context to update
         setTimeout(async () => {
           await refreshUser()
@@ -67,7 +67,7 @@ export default function HomePage() {
     // Check for messages from registration/email confirmation
     const message = searchParams.get('message')
     const urlError = searchParams.get('error')
-    
+
     if (message === 'check-email') {
       toast({
         title: "📧 Check Your Email!",
@@ -97,24 +97,24 @@ export default function HomePage() {
       try {
         setLoading(true)
         console.log('🔄 Fetching featured products...')
-        const products = await getProducts({ 
-          featured: true, 
-          active: true, 
-          limit: 4 
+        const products = await getProducts({
+          featured: true,
+          active: true,
+          limit: 4
         })
         console.log('✅ Featured products loaded:', products.length)
         setFeaturedProducts(products)
         setError(null)
       } catch (err: any) {
         console.error('❌ Error fetching featured products:', err)
-        
+
         // Retry once on network/connection errors
         if (retryCount < 1 && (err.message?.includes('Failed to fetch') || err.message?.includes('network'))) {
           console.log('🔄 Retrying product fetch...')
           await new Promise(resolve => setTimeout(resolve, 1500))
           return fetchFeaturedProducts(retryCount + 1)
         }
-        
+
         setError('Failed to load featured products. Please refresh the page.')
       } finally {
         setLoading(false)
@@ -178,7 +178,7 @@ export default function HomePage() {
           ]}
           features={[
             "Professional Grade",
-            "Expert Support", 
+            "Expert Support",
             "Fast Shipping",
             "Full Warranty"
           ]}
@@ -280,8 +280,8 @@ export default function HomePage() {
             ) : error ? (
               <div className="text-center py-12">
                 <p className="text-red-600 text-lg mb-4">{error}</p>
-                <Button 
-                  onClick={() => window.location.reload()} 
+                <Button
+                  onClick={() => window.location.reload()}
                   variant="outline"
                   className="border-red-200 text-red-600 hover:bg-red-50 rounded-xl"
                 >
@@ -338,18 +338,24 @@ export default function HomePage() {
               <Card className="group bg-white border-0 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
                 <CardContent className="p-8 text-center relative">
                   <div className="w-20 h-20 bg-white rounded-2xl overflow-hidden flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border-2 border-blue-100">
-                    <img 
-                      src="/WhatsApp Image 2025-10-24 at 09.33.29_68a8851c.jpg" 
-                      alt="AeroHive Drone Services" 
+                    <img
+                      src="/WhatsApp Image 2025-10-24 at 09.33.29_68a8851c.jpg"
+                      alt="AeroHive Drone Services"
                       className="h-full w-full object-contain p-2"
                     />
                   </div>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Drone Services</h3>
-                  <p className="text-gray-600 leading-relaxed text-lg mb-6">
-                    Professional drone services including aerial photography, mapping, surveying, and custom operations.
-                  </p>
+                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Pilot Services</h3>
+                  <div className="text-gray-600 leading-relaxed text-sm mb-6 space-y-2">
+                    <p className="font-semibold text-blue-600">Specialized Operations:</p>
+                    <ul className="grid grid-cols-2 gap-2 text-left px-4">
+                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Surveying</li>
+                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Spraying</li>
+                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> 3D Mapping</li>
+                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Inspections</li>
+                    </ul>
+                  </div>
                   <Button variant="outline" className="border-2 border-blue-200 text-blue-600 hover:bg-blue-50 rounded-xl" asChild>
-                    <Link href="/drone-services">Learn More</Link>
+                    <Link href="/drone-services">Explore Services</Link>
                   </Button>
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-indigo-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
                 </CardContent>
@@ -360,12 +366,18 @@ export default function HomePage() {
                   <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
                     <Settings className="h-10 w-10 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Repair Services</h3>
-                  <p className="text-gray-600 leading-relaxed text-lg mb-6">
-                    Expert repair services and maintenance programs to keep your drones flying at peak performance.
-                  </p>
+                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Drone Care</h3>
+                  <div className="text-gray-600 leading-relaxed text-sm mb-6 space-y-2">
+                    <p className="font-semibold text-purple-600">Maintenance & Repair:</p>
+                    <ul className="text-left px-4 space-y-1">
+                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-purple-500" /> General Checkups</li>
+                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-purple-500" /> Comprehensive Service</li>
+                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-purple-500" /> Firmware Updates</li>
+                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-purple-500" /> Diagnostic Testing</li>
+                    </ul>
+                  </div>
                   <Button variant="outline" className="border-2 border-purple-200 text-purple-600 hover:bg-purple-50 rounded-xl" asChild>
-                    <Link href="/repair-services">Learn More</Link>
+                    <Link href="/repair-services">Book Service</Link>
                   </Button>
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 to-pink-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
                 </CardContent>
@@ -373,17 +385,23 @@ export default function HomePage() {
 
               <Card className="group bg-white border-0 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
                 <CardContent className="p-8 text-center relative">
-                  <div className="w-20 h-20 bg-gradient-to-br from-green-600 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                    <Users className="h-10 w-10 text-white" />
+                  <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <Shield className="h-10 w-10 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Training & Certification</h3>
-                  <p className="text-gray-600 leading-relaxed text-lg mb-6">
-                    Comprehensive training programs and certifications from licensed pilots and aviation experts.
-                  </p>
-                  <Button variant="outline" className="border-2 border-green-200 text-green-600 hover:bg-green-50 rounded-xl" asChild>
-                    <Link href="/training">Learn More</Link>
+                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Custom & Defense</h3>
+                  <div className="text-gray-600 leading-relaxed text-sm mb-6 space-y-2">
+                    <p className="font-semibold text-orange-600">Advanced Solutions:</p>
+                    <ul className="text-left px-4 space-y-1">
+                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-orange-500" /> Defence Applications</li>
+                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-orange-500" /> Custom Drone Building</li>
+                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-orange-500" /> Multi-industry Solutions</li>
+                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-orange-500" /> Tactical Modifications</li>
+                    </ul>
+                  </div>
+                  <Button variant="outline" className="border-2 border-orange-200 text-orange-600 hover:bg-orange-50 rounded-xl" asChild>
+                    <Link href="/repair-services?filter=custom">Custom Solutions</Link>
                   </Button>
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-600 to-emerald-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-red-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
                 </CardContent>
               </Card>
             </div>
@@ -400,9 +418,9 @@ export default function HomePage() {
           <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-4xl mx-auto text-center">
               <div className="w-20 h-20 bg-white/90 rounded-2xl overflow-hidden flex items-center justify-center mx-auto mb-8 backdrop-blur-sm shadow-lg">
-                <img 
-                  src="/WhatsApp Image 2025-10-24 at 09.33.29_68a8851c.jpg" 
-                  alt="AeroHive Logo" 
+                <img
+                  src="/WhatsApp Image 2025-10-24 at 09.33.29_68a8851c.jpg"
+                  alt="AeroHive Logo"
                   className="h-full w-full object-contain p-2"
                 />
               </div>
@@ -412,7 +430,7 @@ export default function HomePage() {
               <p className="text-xl text-blue-100 mb-12 leading-relaxed">
                 Get exclusive access to new drone releases, flight tips, and special offers for pilots
               </p>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto mb-8">
                 <input
                   type="email"
@@ -424,7 +442,7 @@ export default function HomePage() {
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </div>
-              
+
               <p className="text-blue-200">
                 Join 50,000+ drone enthusiasts worldwide. Unsubscribe anytime.
               </p>

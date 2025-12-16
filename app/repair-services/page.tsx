@@ -94,6 +94,14 @@ const repairCenters: RepairCenter[] = [
         estimatedCost: "₹4,150 - ₹8,300",
         estimatedTime: "1 day",
         category: "Diagnostics"
+      },
+      {
+        id: "1-4",
+        name: "General Drone Checkup",
+        description: "Comprehensive 50-point inspection, firmware update, and sensor calibration.",
+        estimatedCost: "₹2,500",
+        estimatedTime: "4 hours",
+        category: "Maintenance"
       }
     ]
   },
@@ -180,6 +188,48 @@ const repairCenters: RepairCenter[] = [
         category: "Navigation"
       }
     ]
+  },
+  {
+    id: "4",
+    name: "AeroDefence Custom Labs",
+    description: "Specialized in custom drone manufacturing for defense, industrial, and specialized multi-industry applications.",
+    address: "Secure Facility, Tech Park",
+    city: "Bangalore",
+    state: "KA",
+    phone: "(555) 999-8888",
+    email: "secure@aerodefence.com",
+    rating: 5.0,
+    reviewCount: 42,
+    isAuthorized: true,
+    isVerified: true,
+    specialties: ["Defence Drones", "Custom Fabrication", "Signal Encryption", "Heavy Lift Builds"],
+    certifications: ["ISO 9001", "Defence Contractor Certified"],
+    brands: ["Custom", "Tactical Systems"],
+    turnaroundTime: "Custom timeline",
+    emergencyService: true,
+    pickupDelivery: true,
+    warrantyOffered: true,
+    distance: 12.4,
+    profileImage: "/placeholder.svg?height=100&width=100&text=AeroDef",
+    gallery: ["/placeholder.svg?height=200&width=300&text=Lab"],
+    services: [
+      {
+        id: "4-1",
+        name: "Custom Defense Build",
+        description: "Bespoke drone design and manufacturing for surveillance and tactical operations",
+        estimatedCost: "Custom Quote",
+        estimatedTime: "4-8 weeks",
+        category: "Assembly"
+      },
+      {
+        id: "4-2",
+        name: "Security Audits & Encryption",
+        description: "Hardening current drone systems against signal jamming and interception",
+        estimatedCost: "₹50,000+",
+        estimatedTime: "1 week",
+        category: "Security"
+      }
+    ]
   }
 ]
 
@@ -195,14 +245,14 @@ export default function RepairServicesPage() {
     let filtered = repairCenters.filter(center => {
       const matchesSearch = center.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         center.specialties.some(spec => spec.toLowerCase().includes(searchTerm.toLowerCase()))
-      
-      const matchesLocation = !locationFilter || 
+
+      const matchesLocation = !locationFilter ||
         center.city.toLowerCase().includes(locationFilter.toLowerCase()) ||
         center.state.toLowerCase().includes(locationFilter.toLowerCase())
-      
+
       const matchesSpecialty = specialtyFilter === "all" ||
         center.specialties.some(spec => spec.toLowerCase().includes(specialtyFilter.toLowerCase()))
-      
+
       const matchesAuthorized = !authorizedOnly || center.isAuthorized
 
       return matchesSearch && matchesLocation && matchesSpecialty && matchesAuthorized
@@ -232,7 +282,7 @@ export default function RepairServicesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <ModernHeader />
-      
+
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 text-white py-20">
         <div className="container mx-auto px-4 text-center">
@@ -240,7 +290,7 @@ export default function RepairServicesPage() {
             Drone Repair Services
           </h1>
           <p className="text-xl mb-8 text-blue-100 max-w-3xl mx-auto">
-            Find certified repair centers and technicians near you. From crash repairs to performance upgrades, 
+            Find certified repair centers and technicians near you. From crash repairs to performance upgrades,
             get your drone back in the air with professional service and warranty coverage.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
@@ -270,7 +320,7 @@ export default function RepairServicesPage() {
                   className="pl-10"
                 />
               </div>
-              
+
               <div className="relative flex-1 max-w-md">
                 <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <Input
@@ -337,10 +387,10 @@ export default function RepairServicesPage() {
                       )}
                     </div>
                   </div>
-                  
+
                   <CardTitle className="text-xl mb-2">{center.name}</CardTitle>
                   <p className="text-gray-600 text-sm mb-3">{center.description}</p>
-                  
+
                   <div className="flex items-center gap-4 text-sm">
                     <div className="flex items-center gap-1">
                       <Star className="w-4 h-4 text-yellow-400 fill-current" />
@@ -355,7 +405,7 @@ export default function RepairServicesPage() {
                     )}
                   </div>
                 </CardHeader>
-                
+
                 <CardContent className="space-y-4">
                   {/* Location and Contact */}
                   <div className="space-y-2 text-sm">
@@ -424,7 +474,7 @@ export default function RepairServicesPage() {
 
                   {/* Actions */}
                   <div className="pt-4 border-t space-y-2">
-                    <Button 
+                    <Button
                       className="w-full bg-blue-600 hover:bg-blue-700"
                       onClick={() => setSelectedCenter(center)}
                     >
@@ -451,7 +501,7 @@ export default function RepairServicesPage() {
               <Wrench className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">No repair centers found</h3>
               <p className="text-gray-500 mb-4">Try adjusting your search criteria or expanding your location range.</p>
-              <Button 
+              <Button
                 variant="outline"
                 onClick={() => {
                   setSearchTerm("")

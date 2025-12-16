@@ -207,6 +207,35 @@ const droneServices: DroneService[] = [
     equipment: ["Multiple Drones", "Live Streaming Setup", "Backup Equipment"],
     turnaroundTime: "24-48 hours",
     features: ["Live streaming", "Multiple angles", "Backup systems", "Professional crew"]
+  },
+  {
+    id: "7",
+    providerId: "1",
+    title: "Advanced 3D Mapping & Modeling",
+    description: "Creation of high-fidelity 3D models and digital twins using photogrammetry and LiDAR for urban planning and architecture.",
+    serviceType: "mapping",
+    priceType: "per_project",
+    basePrice: 55000,
+    minDuration: 3,
+    deliverables: ["3D Mesh Model", "Digital Twin", "Texture Maps", "VR-Ready Asset"],
+    equipment: ["DJI Matrice 300 RTK", "Zenmuse P1", "LiDAR L1"],
+    turnaroundTime: "5-7 business days",
+    features: ["Sub-centimeter accuracy", "BIM integration", "Cloud hosting", "Measurement tools"],
+    sampleWork: ["/placeholder.svg?height=150&width=200&text=3D+Model"]
+  },
+  {
+    id: "8",
+    providerId: "2",
+    title: "Agricultural Drone Spraying",
+    description: "Efficient aerial spraying for large-scale farms using autonomous heavy-lift drones for fertilizer and pesticide application.",
+    serviceType: "spraying",
+    priceType: "per_acre",
+    basePrice: 850,
+    maxCoverage: 5000,
+    deliverables: ["Application Map", "As-Applied Report", "Chemical Usage Log"],
+    equipment: ["DJI Agras T50", "Generators", "Field Support"],
+    turnaroundTime: "Same day (weather permitting)",
+    features: ["Heavy crop penetration", "Drift reduction technology", "Night operation capable", "Variable rate control"]
   }
 ]
 
@@ -223,13 +252,13 @@ export default function DroneServicesPage() {
     if (activeTab === "services") {
       let filtered = droneServices.filter(service => {
         const provider = serviceProviders.find(p => p.id === service.providerId)
-        
+
         const matchesSearch = service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
           service.description.toLowerCase().includes(searchTerm.toLowerCase())
-        
+
         const matchesType = serviceTypeFilter === "all" || service.serviceType === serviceTypeFilter
-        
-        const matchesLocation = !locationFilter || 
+
+        const matchesLocation = !locationFilter ||
           (provider && provider.location.toLowerCase().includes(locationFilter.toLowerCase()))
 
         return matchesSearch && matchesType && matchesLocation
@@ -275,7 +304,7 @@ export default function DroneServicesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
       <ModernHeader />
-      
+
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-900 via-indigo-800 to-purple-900 text-white py-20">
         <div className="container mx-auto px-4 text-center">
@@ -283,7 +312,7 @@ export default function DroneServicesPage() {
             Drone-as-a-Service Marketplace
           </h1>
           <p className="text-xl mb-8 text-blue-100 max-w-3xl mx-auto">
-            Connect with certified drone service providers for mapping, surveillance, spraying, photography, and more. 
+            Connect with certified drone service providers for mapping, surveillance, spraying, photography, and more.
             Professional services delivered by licensed pilots with commercial-grade equipment.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
@@ -380,16 +409,14 @@ export default function DroneServicesPage() {
               return (
                 <div
                   key={category.type}
-                  className={`p-4 rounded-lg text-center cursor-pointer transition-all ${
-                    serviceTypeFilter === category.type 
-                      ? "bg-blue-600 text-white" 
-                      : "bg-white hover:bg-blue-50 text-gray-900"
-                  }`}
+                  className={`p-4 rounded-lg text-center cursor-pointer transition-all ${serviceTypeFilter === category.type
+                    ? "bg-blue-600 text-white"
+                    : "bg-white hover:bg-blue-50 text-gray-900"
+                    }`}
                   onClick={() => setServiceTypeFilter(category.type)}
                 >
-                  <Icon className={`w-8 h-8 mx-auto mb-2 ${
-                    serviceTypeFilter === category.type ? "text-white" : "text-blue-600"
-                  }`} />
+                  <Icon className={`w-8 h-8 mx-auto mb-2 ${serviceTypeFilter === category.type ? "text-white" : "text-blue-600"
+                    }`} />
                   <p className="font-medium text-sm">{category.label}</p>
                   <p className="text-xs opacity-75">{category.count} services</p>
                 </div>
@@ -437,7 +464,7 @@ export default function DroneServicesPage() {
                       <CardTitle className="text-xl mb-2">{service.title}</CardTitle>
                       <p className="text-gray-600 text-sm">{service.description}</p>
                     </CardHeader>
-                    
+
                     <CardContent className="space-y-4">
                       {/* Provider Info */}
                       {provider && (
@@ -552,22 +579,22 @@ export default function DroneServicesPage() {
                         </div>
                       )}
                     </div>
-                    
+
                     <CardTitle className="text-xl mb-2">{provider.companyName}</CardTitle>
                     <p className="text-gray-600 text-sm mb-3">{provider.description}</p>
-                    
+
                     <div className="flex items-center justify-center gap-1 mb-2">
                       <Star className="w-4 h-4 text-yellow-400 fill-current" />
                       <span className="font-medium">{provider.rating}</span>
                       <span className="text-sm text-gray-500">({provider.reviewCount} reviews)</span>
                     </div>
-                    
+
                     <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
                       <MapPin className="w-4 h-4" />
                       {provider.location}
                     </div>
                   </CardHeader>
-                  
+
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
@@ -636,24 +663,24 @@ export default function DroneServicesPage() {
             </div>
           )}
 
-          {((activeTab === "services" && filteredServices.length === 0) || 
+          {((activeTab === "services" && filteredServices.length === 0) ||
             (activeTab === "providers" && filteredProviders.length === 0)) && (
-            <div className="text-center py-12">
-              <Plane className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No {activeTab} found</h3>
-              <p className="text-gray-500 mb-4">Try adjusting your search criteria or expanding your location range.</p>
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  setSearchTerm("")
-                  setLocationFilter("")
-                  setServiceTypeFilter("all")
-                }}
-              >
-                Clear Filters
-              </Button>
-            </div>
-          )}
+              <div className="text-center py-12">
+                <Plane className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No {activeTab} found</h3>
+                <p className="text-gray-500 mb-4">Try adjusting your search criteria or expanding your location range.</p>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSearchTerm("")
+                    setLocationFilter("")
+                    setServiceTypeFilter("all")
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            )}
         </div>
       </section>
 

@@ -694,6 +694,12 @@ export const getDronePilots = async (filters?: {
 }
 
 export const createDronePilot = async (pilotData: Omit<DronePilot, 'id' | 'rating' | 'completed_jobs' | 'is_verified' | 'is_active' | 'created_at' | 'updated_at'>) => {
+  // Check for placeholder URL before attempting request
+  if (supabaseUrl.includes('placeholder')) {
+    console.error('Supabase URL is not configured.')
+    throw new Error('Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL in .env.local and restart the server.')
+  }
+
   const { data, error } = await supabase
     .from('drone_pilots')
     .insert(pilotData)
