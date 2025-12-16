@@ -179,29 +179,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('🔍 Fetching user profile...', authUser?.email)
 
       if (authUser) {
-        // Get user profile from users table with retry logic
-        const { data: userProfile, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', authUser.id)
-          .single()
+        // Fetch user profile via Server API (Bypasses RLS issues)
+        console.log('🔍 Fetching profile via API...', authUser.email)
 
-        if (error) {
-          console.error('❌ Error fetching user profile:', error)
+        const profileResponse = await fetch('/api/user/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: authUser.id,
+            email: authUser.email
+          })
+        })
 
-          // Retry once on connection issues
-          if (retryCount < 1 && (error.message?.includes('Failed to fetch') || error.message?.includes('network'))) {
-            console.log('🔄 Retrying profile fetch...')
-            await new Promise(resolve => setTimeout(resolve, 1000))
-            return fetchUserProfile(retryCount + 1)
-          }
+        const profileResult = await profileResponse.json()
 
-          // If profile doesn't exist, user might need to complete registration
-          return
+        if (profileResponse.ok && profileResult.profile) {
+          console.log('✅ User profile loaded:', profileResult.profile.email)
+          setUser(profileResult.profile)
+        } else {
+          console.error('❌ Failed to load profile:', profileResult.error)
+          // Don't set user to null immediately if just profile failed, 
+          // keeps them "logged in" but maybe with limited data? 
+          // For now, let's keep behavior consistent: if no profile, no valid app user.
+          console.log('❌ No valid profile found')
+          setUser(null)
         }
-
-        console.log('✅ User profile loaded:', userProfile?.email)
-        setUser(userProfile)
       } else {
         console.log('❌ No auth user found')
         setUser(null)
@@ -293,16 +295,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Fetch user profile to check role
       if (data.user) {
-        const { data: userProfile, error: profileError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', data.user.id)
-          .single()
+        // Fetch user profile via Server API (Bypasses RLS issues)
+        console.log('🔍 Fetching profile via API...')
+        const profileResponse = await fetch('/api/user/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: data.user.id,
+            email: data.user.email,
+            firstName: data.user.user_metadata?.first_name,
+            lastName: data.user.user_metadata?.last_name
+          })
+        })
 
-        if (!profileError && userProfile) {
+        const profileResult = await profileResponse.json()
+
+        if (profileResponse.ok && profileResult.profile) {
+          const userProfile = profileResult.profile
           setUser(userProfile)
 
-          // Show welcome toast immediately
           toast({
             title: userProfile.is_admin ? "Welcome back, Admin!" : "Welcome back!",
             description: `Signed in as ${userProfile.first_name} ${userProfile.last_name}`,
@@ -310,46 +321,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             duration: 3000,
           })
 
-          // Redirect based on user role
-          if (userProfile.is_admin) {
-            router.push('/admin')
-          } else {
-            router.push('/')
-          }
+          router.push(userProfile.is_admin ? '/admin' : '/')
         } else {
-          // If profile doesn't exist, create it
-          const { error: createProfileError } = await supabase
-            .from('users')
-            .insert({
-              id: data.user.id,
-              email: data.user.email!,
-              password_hash: 'managed_by_supabase_auth',
-              first_name: data.user.user_metadata?.first_name || 'User',
-              last_name: data.user.user_metadata?.last_name || '',
-              is_admin: data.user.email === 'admin1@gmail.com' || data.user.email === 'admin@aerohive.com',
-              is_active: true
-            })
-
-          if (!createProfileError) {
-            // Fetch the newly created profile
-            const { data: newProfile } = await supabase
-              .from('users')
-              .select('*')
-              .eq('id', data.user.id)
-              .single()
-
-            if (newProfile) {
-              setUser(newProfile)
-              router.push(newProfile.is_admin ? '/admin' : '/')
-            }
-          } else {
-            console.error('Failed to load or create profile:', createProfileError)
-            toast({
-              title: "Profile Error",
-              description: "Could not load user profile. Please contact support.",
-              variant: "destructive",
-            })
-          }
+          console.error('Failed to load profile:', profileResult.error)
+          toast({
+            title: "Profile Error",
+            description: profileResult.error || "Could not load user profile",
+            variant: "destructive",
+          })
         }
       } else {
         // No user object returned from Supabase auth (rare)
