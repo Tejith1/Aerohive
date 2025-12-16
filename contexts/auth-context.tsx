@@ -343,7 +343,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               router.push(newProfile.is_admin ? '/admin' : '/')
             }
           }
+        } else {
+          console.error('Failed to load or create profile:', createProfileError)
+          toast({
+            title: "Profile Error",
+            description: "Could not load user profile. Please contact support.",
+            variant: "destructive",
+          })
         }
+      } else {
+        // No user object returned from Supabase auth (rare)
+        throw new Error('Authentication succeeded but no user returned')
       }
     } catch (error: any) {
       console.error('Login error:', error)
