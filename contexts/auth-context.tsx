@@ -222,6 +222,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true)
 
+      // CHECK FOR DEMO MODE (Missing connection)
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://placeholder.supabase.co') {
+        console.warn('⚠️ Demo Mode: Simulating login...')
+        const demoUser: User = {
+          id: 'demo-user-id',
+          email: email,
+          first_name: 'Demo',
+          last_name: 'User',
+          is_admin: email.includes('admin'),
+          phone: '',
+          is_active: true
+        }
+        setUser(demoUser)
+        toast({
+          title: "Demo Login Successful",
+          description: "You are logged in via Demo Mode (No backend connected)",
+          className: "border-yellow-200 bg-yellow-50 text-yellow-900",
+        })
+        router.push(demoUser.is_admin ? '/admin' : '/')
+        return
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password

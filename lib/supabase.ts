@@ -1,25 +1,21 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
 
 console.log('🔧 Supabase Configuration:')
-console.log('URL:', supabaseUrl ? '✅ Set' : '❌ Missing')
-console.log('URL Value:', supabaseUrl)
-console.log('Anon Key:', supabaseAnonKey ? '✅ Set' : '❌ Missing')
-console.log('Anon Key Length:', supabaseAnonKey?.length)
+console.log('URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? '✅ Set' : '❌ Missing (Using placeholder)')
+console.log('Anon Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '✅ Set' : '❌ Missing (Using placeholder)')
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('❌ CRITICAL: Missing Supabase environment variables!')
-  console.error('Please ensure .env.local exists with:')
-  console.error('NEXT_PUBLIC_SUPABASE_URL=your_url')
-  console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key')
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  console.warn('⚠️ WARNING: Missing Supabase environment variables! App running in demo/offline mode.')
+  console.warn('Authentication and database features will not work.')
 }
 
 // Custom storage adapter with better error handling
 const getStorage = () => {
   if (typeof window === 'undefined') return undefined
-  
+
   try {
     // Test if localStorage is available and working
     const testKey = '__supabase_test__'
@@ -159,7 +155,7 @@ export const signUp = async (email: string, password: string, firstName: string,
       }
     }
   })
-  
+
   if (error) throw error
   return data
 }
@@ -169,7 +165,7 @@ export const signIn = async (email: string, password: string) => {
     email,
     password
   })
-  
+
   if (error) throw error
   return data
 }
@@ -203,26 +199,26 @@ export const getProducts = async (filters?: {
     if (filters?.category) {
       query = query.eq('category.slug', filters.category)
     }
-    
+
     if (filters?.featured !== undefined) {
       query = query.eq('is_featured', filters.featured)
     }
-    
+
     if (filters?.active !== undefined) {
       query = query.eq('is_active', filters.active)
     }
-    
+
     if (filters?.limit) {
       query = query.limit(filters.limit)
     }
 
     const { data, error } = await query
-    
+
     if (error) {
       console.error('❌ Database query error:', error)
       throw error
     }
-    
+
     return data as Product[]
   } catch (error: any) {
     // Retry on network/connection errors
@@ -251,7 +247,7 @@ export const getProductBySlug = async (slug: string) => {
 
 export const createProduct = async (product: any) => {
   console.log('Creating product with data:', JSON.stringify(product, null, 2))
-  
+
   try {
     const { data, error } = await supabase
       .from('products')
@@ -268,7 +264,7 @@ export const createProduct = async (product: any) => {
       })
       throw new Error(`Database error: ${error.message || 'Unknown database error'}`)
     }
-    
+
     console.log('Product created successfully:', data)
     return data
   } catch (error) {
@@ -552,12 +548,12 @@ export const createStorageBucket = async (bucketName: string = 'product-images')
       allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'],
       fileSizeLimit: 5242880 // 5MB
     })
-    
+
     if (error && error.message.includes('already exists')) {
       console.log('Bucket already exists')
       return true
     }
-    
+
     if (error) throw error
     console.log('Bucket created successfully:', data)
     return true
@@ -572,7 +568,7 @@ export const uploadImage = async (file: File, bucket: string = 'product-images')
     // Ensure bucket exists
     console.log('Ensuring bucket exists...')
     await createStorageBucket(bucket)
-    
+
     const fileExt = file.name.split('.').pop()
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
     const filePath = `${fileName}`
@@ -612,7 +608,7 @@ export const deleteImage = async (url: string, bucket: string = 'product-images'
     // Extract file path from URL
     const urlParts = url.split('/')
     const filePath = urlParts[urlParts.length - 1]
-    
+
     const { error } = await supabase.storage
       .from(bucket)
       .remove([filePath])
@@ -663,17 +659,17 @@ export const getDronePilots = async (filters?: {
   if (filters?.location && filters.location !== 'All Locations') {
     query = query.eq('location', filters.location)
   }
-  
+
   if (filters?.area && filters.area !== 'All Areas') {
     query = query.eq('area', filters.area)
   }
-  
+
   if (filters?.search) {
     query = query.or(`full_name.ilike.%${filters.search}%,specializations.ilike.%${filters.search}%`)
   }
 
   const { data, error } = await query
-  
+
   if (error) throw error
   return data as DronePilot[]
 }
