@@ -138,6 +138,16 @@ npm run dev
 \`\`\`
 
 Visit `http://localhost:3000` to see the application.
+ 
+## Development Features
+
+### 🛠️ Demo Mode
+The application includes a built-in **Demo Mode** for local testing without Supabase credentials.
+- Auto-activates when `.env.local` is missing or contains placeholder values.
+- Allows "Sign Up" and "Login" with mock data.
+- **Note**: Does not persist data to a real database.
+
+To enable **Realtime Data Mode**, configure your `.env.local` with valid Supabase keys.
 
 ## Environment Variables
 
