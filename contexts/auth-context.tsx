@@ -108,436 +108,435 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           await supabase.auth.refreshSession()
         }
       }
-    }
     }, 5000) // Check every 5 seconds (High Performance Mode)
 
-  return () => {
-    data.subscription.unsubscribe()
-    clearInterval(heartbeat)
-  }
-}, [])
+    return () => {
+      data.subscription.unsubscribe()
+      clearInterval(heartbeat)
+    }
+  }, [])
 
-const initializeAuth = async () => {
-  try {
-    console.log('🔄 Initializing auth...')
-    console.log('🔍 Checking localStorage for session...')
+  const initializeAuth = async () => {
+    try {
+      console.log('🔄 Initializing auth...')
+      console.log('🔍 Checking localStorage for session...')
 
-    // Check if we have a stored session
-    const storedSession = typeof window !== 'undefined'
-      ? localStorage.getItem('sb-aerohive-auth-token')
-      : null
-    console.log('💾 Stored session:', storedSession ? 'Found' : 'Not found')
+      // Check if we have a stored session
+      const storedSession = typeof window !== 'undefined'
+        ? localStorage.getItem('sb-aerohive-auth-token')
+        : null
+      console.log('💾 Stored session:', storedSession ? 'Found' : 'Not found')
 
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
-    if (sessionError) {
-      console.error('❌ Session error:', sessionError)
-      console.error('❌ Error details:', JSON.stringify(sessionError, null, 2))
+      if (sessionError) {
+        console.error('❌ Session error:', sessionError)
+        console.error('❌ Error details:', JSON.stringify(sessionError, null, 2))
 
-      // Try to refresh the session if we have a stored token
-      if (storedSession) {
-        console.log('🔄 Attempting session refresh...')
-        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
-        if (!refreshError && refreshData.session) {
-          console.log('✅ Session refreshed successfully')
-          await fetchUserProfile()
-          return
+        // Try to refresh the session if we have a stored token
+        if (storedSession) {
+          console.log('🔄 Attempting session refresh...')
+          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+          if (!refreshError && refreshData.session) {
+            console.log('✅ Session refreshed successfully')
+            await fetchUserProfile()
+            return
+          }
         }
+
+        setUser(null)
+        setIsLoading(false)
+        return
       }
 
-      setUser(null)
-      setIsLoading(false)
-      return
-    }
-
-    if (session?.user) {
-      console.log('✅ Session found:', session.user.email)
-      console.log('🔑 Session expires at:', new Date(session.expires_at! * 1000).toLocaleString())
-      await fetchUserProfile()
-    } else {
-      console.log('ℹ️ No active session')
-      setUser(null)
-    }
-  } catch (error) {
-    console.error('❌ Auth initialization error:', error)
-    console.error('❌ Full error:', JSON.stringify(error, null, 2))
-    setUser(null)
-  } finally {
-    setIsLoading(false)
-  }
-}
-
-const fetchUserProfile = async (retryCount = 0) => {
-  try {
-    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
-
-    if (authError) {
-      console.error('❌ Auth user error:', authError)
-      setUser(null)
-      return
-    }
-
-    console.log('🔍 Fetching user profile...', authUser?.email)
-
-    if (authUser) {
-      // Fetch user profile via Server API (Bypasses RLS issues)
-      console.log('🔍 Fetching profile via API...', authUser.email)
-
-      const profileResponse = await fetch('/api/user/profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: authUser.id,
-          email: authUser.email
-        })
-      })
-
-      const profileResult = await profileResponse.json()
-
-      if (profileResponse.ok && profileResult.profile) {
-        console.log('✅ User profile loaded:', profileResult.profile.email)
-        setUser(profileResult.profile)
+      if (session?.user) {
+        console.log('✅ Session found:', session.user.email)
+        console.log('🔑 Session expires at:', new Date(session.expires_at! * 1000).toLocaleString())
+        await fetchUserProfile()
       } else {
-        console.error('❌ Failed to load profile:', profileResult.error)
-        // Don't set user to null immediately if just profile failed, 
-        // keeps them "logged in" but maybe with limited data? 
-        // For now, let's keep behavior consistent: if no profile, no valid app user.
-        console.log('❌ No valid profile found')
+        console.log('ℹ️ No active session')
         setUser(null)
       }
-    } else {
-      console.log('❌ No auth user found')
+    } catch (error) {
+      console.error('❌ Auth initialization error:', error)
+      console.error('❌ Full error:', JSON.stringify(error, null, 2))
       setUser(null)
-    }
-  } catch (error) {
-    console.error('❌ Error fetching user profile:', error)
-
-    // Retry once on network errors
-    if (retryCount < 1) {
-      console.log('🔄 Retrying profile fetch due to error...')
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      return fetchUserProfile(retryCount + 1)
+    } finally {
+      setIsLoading(false)
     }
   }
-}
 
-const login = async (email: string, password: string) => {
-  try {
-    setIsLoading(true)
+  const fetchUserProfile = async (retryCount = 0) => {
+    try {
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
 
-    // CHECK FOR DEMO MODE (Missing connection or Placeholder values)
-    const isDemoConfig =
-      !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-      !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-      process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://placeholder.supabase.co' ||
-      process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-project-id') ||
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('your-anon-key');
-
-    if (isDemoConfig) {
-      console.warn('⚠️ Demo Mode: Simulating login...')
-      const demoUser: User = {
-        id: 'demo-user-id',
-        email: email,
-        first_name: 'Demo',
-        last_name: 'User',
-        is_admin: email.includes('admin'),
-        phone: '',
-        is_active: true
+      if (authError) {
+        console.error('❌ Auth user error:', authError)
+        setUser(null)
+        return
       }
-      setUser(demoUser)
-      toast({
-        title: "Demo Login Successful",
-        description: "You are logged in via Demo Mode (No backend connected)",
-        className: "border-yellow-200 bg-yellow-50 text-yellow-900",
-      })
-      router.push(demoUser.is_admin ? '/admin' : '/')
-      return
-    }
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    })
+      console.log('🔍 Fetching user profile...', authUser?.email)
 
-    if (error) {
-      console.error('Login error details:', error)
+      if (authUser) {
+        // Fetch user profile via Server API (Bypasses RLS issues)
+        console.log('🔍 Fetching profile via API...', authUser.email)
 
-      // Special handling for email not confirmed
-      if (error.message === 'Email not confirmed') {
-        toast({
-          title: "Email Not Confirmed",
-          description: "Please check your email and click the confirmation link. If you don't see the email, contact support.",
-          variant: "destructive",
+        const profileResponse = await fetch('/api/user/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: authUser.id,
+            email: authUser.email
+          })
         })
 
-        // For admin accounts, show additional help
-        if (email === 'admin1@gmail.com' || email === 'admin@aerohive.com') {
+        const profileResult = await profileResponse.json()
+
+        if (profileResponse.ok && profileResult.profile) {
+          console.log('✅ User profile loaded:', profileResult.profile.email)
+          setUser(profileResult.profile)
+        } else {
+          console.error('❌ Failed to load profile:', profileResult.error)
+          // Don't set user to null immediately if just profile failed, 
+          // keeps them "logged in" but maybe with limited data? 
+          // For now, let's keep behavior consistent: if no profile, no valid app user.
+          console.log('❌ No valid profile found')
+          setUser(null)
+        }
+      } else {
+        console.log('❌ No auth user found')
+        setUser(null)
+      }
+    } catch (error) {
+      console.error('❌ Error fetching user profile:', error)
+
+      // Retry once on network errors
+      if (retryCount < 1) {
+        console.log('🔄 Retrying profile fetch due to error...')
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        return fetchUserProfile(retryCount + 1)
+      }
+    }
+  }
+
+  const login = async (email: string, password: string) => {
+    try {
+      setIsLoading(true)
+
+      // CHECK FOR DEMO MODE (Missing connection or Placeholder values)
+      const isDemoConfig =
+        !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+        !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+        process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://placeholder.supabase.co' ||
+        process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-project-id') ||
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('your-anon-key');
+
+      if (isDemoConfig) {
+        console.warn('⚠️ Demo Mode: Simulating login...')
+        const demoUser: User = {
+          id: 'demo-user-id',
+          email: email,
+          first_name: 'Demo',
+          last_name: 'User',
+          is_admin: email.includes('admin'),
+          phone: '',
+          is_active: true
+        }
+        setUser(demoUser)
+        toast({
+          title: "Demo Login Successful",
+          description: "You are logged in via Demo Mode (No backend connected)",
+          className: "border-yellow-200 bg-yellow-50 text-yellow-900",
+        })
+        router.push(demoUser.is_admin ? '/admin' : '/')
+        return
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+
+      if (error) {
+        console.error('Login error details:', error)
+
+        // Special handling for email not confirmed
+        if (error.message === 'Email not confirmed') {
           toast({
-            title: "Admin Account Issue",
-            description: "Admin email needs to be confirmed in Supabase dashboard. Contact the system administrator.",
+            title: "Email Not Confirmed",
+            description: "Please check your email and click the confirmation link. If you don't see the email, contact support.",
+            variant: "destructive",
+          })
+
+          // For admin accounts, show additional help
+          if (email === 'admin1@gmail.com' || email === 'admin@aerohive.com') {
+            toast({
+              title: "Admin Account Issue",
+              description: "Admin email needs to be confirmed in Supabase dashboard. Contact the system administrator.",
+              variant: "destructive",
+            })
+          }
+        } else if (error.message === 'Invalid login credentials') {
+          toast({
+            title: "Invalid Credentials",
+            description: "The email or password you entered is incorrect. Please try again.",
+            variant: "destructive",
+          })
+        } else {
+          toast({
+            title: "Login Failed",
+            description: error.message || "An unexpected error occurred during login.",
             variant: "destructive",
           })
         }
-      } else if (error.message === 'Invalid login credentials') {
-        toast({
-          title: "Invalid Credentials",
-          description: "The email or password you entered is incorrect. Please try again.",
-          variant: "destructive",
+        throw error
+      }
+
+      // Fetch user profile to check role
+      if (data.user) {
+        // Fetch user profile via Server API (Bypasses RLS issues)
+        console.log('🔍 Fetching profile via API...')
+        const profileResponse = await fetch('/api/user/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: data.user.id,
+            email: data.user.email,
+            firstName: data.user.user_metadata?.first_name,
+            lastName: data.user.user_metadata?.last_name
+          })
         })
+
+        const profileResult = await profileResponse.json()
+
+        if (profileResponse.ok && profileResult.profile) {
+          const userProfile = profileResult.profile
+          setUser(userProfile)
+
+          toast({
+            title: userProfile.is_admin ? "Welcome back, Admin!" : "Welcome back!",
+            description: `Signed in as ${userProfile.first_name} ${userProfile.last_name}`,
+            className: "border-green-200 bg-green-50 text-green-900",
+            duration: 3000,
+          })
+
+          router.push(userProfile.is_admin ? '/admin' : '/')
+        } else {
+          console.error('Failed to load profile:', profileResult.error)
+          toast({
+            title: "Profile Error",
+            description: profileResult.error || "Could not load user profile",
+            variant: "destructive",
+          })
+        }
       } else {
+        // No user object returned from Supabase auth (rare)
+        throw new Error('Authentication succeeded but no user returned')
+      }
+    } catch (error: any) {
+      console.error('Login error:', error)
+      if (error.message !== 'Email not confirmed') {
         toast({
           title: "Login Failed",
-          description: error.message || "An unexpected error occurred during login.",
+          description: error.message || "Invalid email or password",
           variant: "destructive",
         })
       }
       throw error
+    } finally {
+      setIsLoading(false)
     }
+  }
 
-    // Fetch user profile to check role
-    if (data.user) {
-      // Fetch user profile via Server API (Bypasses RLS issues)
-      console.log('🔍 Fetching profile via API...')
-      const profileResponse = await fetch('/api/user/profile', {
+  const register = async (email: string, password: string, firstName: string, lastName: string, phone?: string) => {
+    try {
+      setIsLoading(true)
+      console.log('🔵 Auth Context: Starting server-side signup...')
+      console.log('📧 Email:', email)
+      console.log('👤 User data:', { first_name: firstName, last_name: lastName, phone })
+
+      // Call our server-side API endpoint instead of Supabase directly
+      // This bypasses CORS issues
+      const response = await fetch('/api/auth/signup', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          userId: data.user.id,
-          email: data.user.email,
-          firstName: data.user.user_metadata?.first_name,
-          lastName: data.user.user_metadata?.last_name
+          email,
+          password,
+          firstName,
+          lastName,
+          phone
         })
       })
 
-      const profileResult = await profileResponse.json()
+      const result = await response.json()
 
-      if (profileResponse.ok && profileResult.profile) {
-        const userProfile = profileResult.profile
-        setUser(userProfile)
+      console.log('📦 Server signup response:', result)
 
-        toast({
-          title: userProfile.is_admin ? "Welcome back, Admin!" : "Welcome back!",
-          description: `Signed in as ${userProfile.first_name} ${userProfile.last_name}`,
-          className: "border-green-200 bg-green-50 text-green-900",
-          duration: 3000,
+      if (!response.ok || result.error) {
+        console.error('❌ Server Signup Error Details:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: result.error,
+          details: result.details
         })
+        const error = new Error(result.error || 'Registration failed')
 
-        router.push(userProfile.is_admin ? '/admin' : '/')
-      } else {
-        console.error('Failed to load profile:', profileResult.error)
-        toast({
-          title: "Profile Error",
-          description: profileResult.error || "Could not load user profile",
-          variant: "destructive",
-        })
+        // Handle specific error cases with user-friendly messages
+        if (error.message.includes('User already registered')) {
+          toast({
+            title: "Email Already Registered",
+            description: "This email is already registered. Please try logging in instead.",
+            variant: "destructive",
+          })
+        } else if (error.message.includes('Invalid email') || error.message.includes('email_address_invalid')) {
+          toast({
+            title: "Invalid Email Address",
+            description: "Please use a real email address (Gmail, Outlook, Yahoo, etc.). Test emails like @example.com are not allowed.",
+            variant: "destructive",
+          })
+        } else if (error.message.includes('Password')) {
+          toast({
+            title: "Weak Password",
+            description: "Password must be at least 6 characters long.",
+            variant: "destructive",
+          })
+        } else {
+          toast({
+            title: "Registration Failed",
+            description: error.message || "Unable to create account. Please try again.",
+            variant: "destructive",
+          })
+        }
+        throw error
       }
-    } else {
-      // No user object returned from Supabase auth (rare)
-      throw new Error('Authentication succeeded but no user returned')
-    }
-  } catch (error: any) {
-    console.error('Login error:', error)
-    if (error.message !== 'Email not confirmed') {
+
+      // Success! User created and auto-confirmed
+      console.log('✅ Registration successful!')
+
       toast({
-        title: "Login Failed",
-        description: error.message || "Invalid email or password",
+        title: "Account Created! 🎉",
+        description: result.message || "Welcome to AeroHive! Logging you in...",
+        className: "border-green-200 bg-green-50 text-green-900",
+      })
+
+      // Now log them in
+      await login(email, password)
+    } catch (error: any) {
+      console.error('Registration error:', error)
+      toast({
+        title: "Registration Failed",
+        description: error.message || "Failed to create account",
+        variant: "destructive",
+      })
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const logout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+
+      setUser(null)
+      router.push('/')
+      toast({
+        title: "Logged Out",
+        description: "You've been successfully logged out.",
+        className: "border-blue-200 bg-blue-50 text-blue-900",
+      })
+    } catch (error: any) {
+      console.error('Logout error:', error)
+      toast({
+        title: "Logout Failed",
+        description: error.message || "Failed to logout",
         variant: "destructive",
       })
     }
-    throw error
-  } finally {
-    setIsLoading(false)
   }
-}
 
-const register = async (email: string, password: string, firstName: string, lastName: string, phone?: string) => {
-  try {
-    setIsLoading(true)
-    console.log('🔵 Auth Context: Starting server-side signup...')
-    console.log('📧 Email:', email)
-    console.log('👤 User data:', { first_name: firstName, last_name: lastName, phone })
-
-    // Call our server-side API endpoint instead of Supabase directly
-    // This bypasses CORS issues
-    const response = await fetch('/api/auth/signup', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email,
-        password,
-        firstName,
-        lastName,
-        phone
+  // Google Sign-In
+  const signInWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
       })
-    })
 
-    const result = await response.json()
-
-    console.log('📦 Server signup response:', result)
-
-    if (!response.ok || result.error) {
-      console.error('❌ Server Signup Error Details:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: result.error,
-        details: result.details
+      if (error) throw error
+    } catch (error: any) {
+      console.error('Google sign-in error:', error)
+      toast({
+        title: "Sign-in Failed",
+        description: "Failed to sign in with Google. Please try again.",
+        variant: "destructive",
       })
-      const error = new Error(result.error || 'Registration failed')
-
-      // Handle specific error cases with user-friendly messages
-      if (error.message.includes('User already registered')) {
-        toast({
-          title: "Email Already Registered",
-          description: "This email is already registered. Please try logging in instead.",
-          variant: "destructive",
-        })
-      } else if (error.message.includes('Invalid email') || error.message.includes('email_address_invalid')) {
-        toast({
-          title: "Invalid Email Address",
-          description: "Please use a real email address (Gmail, Outlook, Yahoo, etc.). Test emails like @example.com are not allowed.",
-          variant: "destructive",
-        })
-      } else if (error.message.includes('Password')) {
-        toast({
-          title: "Weak Password",
-          description: "Password must be at least 6 characters long.",
-          variant: "destructive",
-        })
-      } else {
-        toast({
-          title: "Registration Failed",
-          description: error.message || "Unable to create account. Please try again.",
-          variant: "destructive",
-        })
-      }
       throw error
     }
-
-    // Success! User created and auto-confirmed
-    console.log('✅ Registration successful!')
-
-    toast({
-      title: "Account Created! 🎉",
-      description: result.message || "Welcome to AeroHive! Logging you in...",
-      className: "border-green-200 bg-green-50 text-green-900",
-    })
-
-    // Now log them in
-    await login(email, password)
-  } catch (error: any) {
-    console.error('Registration error:', error)
-    toast({
-      title: "Registration Failed",
-      description: error.message || "Failed to create account",
-      variant: "destructive",
-    })
-    throw error
-  } finally {
-    setIsLoading(false)
   }
-}
 
-const logout = async () => {
-  try {
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
-
-    setUser(null)
-    router.push('/')
-    toast({
-      title: "Logged Out",
-      description: "You've been successfully logged out.",
-      className: "border-blue-200 bg-blue-50 text-blue-900",
-    })
-  } catch (error: any) {
-    console.error('Logout error:', error)
-    toast({
-      title: "Logout Failed",
-      description: error.message || "Failed to logout",
-      variant: "destructive",
-    })
+  // Email sign-in (alias for login)
+  const signInWithEmail = async (email: string, password: string) => {
+    try {
+      await login(email, password)
+      return { error: null }
+    } catch (error) {
+      return { error }
+    }
   }
-}
 
-// Google Sign-In
-const signInWithGoogle = async () => {
-  try {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
-      },
-    })
-
-    if (error) throw error
-  } catch (error: any) {
-    console.error('Google sign-in error:', error)
-    toast({
-      title: "Sign-in Failed",
-      description: "Failed to sign in with Google. Please try again.",
-      variant: "destructive",
-    })
-    throw error
+  // Email sign-up (wrapper for register)
+  const signUpWithEmail = async (email: string, password: string, fullName: string) => {
+    try {
+      const [firstName, ...lastNameParts] = fullName.split(' ')
+      const lastName = lastNameParts.join(' ') || firstName
+      await register(email, password, firstName, lastName)
+      return { error: null }
+    } catch (error) {
+      return { error }
+    }
   }
-}
 
-// Email sign-in (alias for login)
-const signInWithEmail = async (email: string, password: string) => {
-  try {
-    await login(email, password)
-    return { error: null }
-  } catch (error) {
-    return { error }
+  // Sign out (alias for logout)
+  const signOut = async () => {
+    await logout()
   }
-}
 
-// Email sign-up (wrapper for register)
-const signUpWithEmail = async (email: string, password: string, fullName: string) => {
-  try {
-    const [firstName, ...lastNameParts] = fullName.split(' ')
-    const lastName = lastNameParts.join(' ') || firstName
-    await register(email, password, firstName, lastName)
-    return { error: null }
-  } catch (error) {
-    return { error }
+  const refreshUser = async () => {
+    await fetchUserProfile()
   }
-}
 
-// Sign out (alias for logout)
-const signOut = async () => {
-  await logout()
-}
+  const value: AuthContextType = {
+    user,
+    isLoading,
+    isAuthenticated,
+    isAdmin,
+    login,
+    signInWithEmail,
+    signInWithGoogle,
+    signUpWithEmail,
+    register,
+    logout,
+    signOut,
+    refreshUser
+  }
 
-const refreshUser = async () => {
-  await fetchUserProfile()
-}
-
-const value: AuthContextType = {
-  user,
-  isLoading,
-  isAuthenticated,
-  isAdmin,
-  login,
-  signInWithEmail,
-  signInWithGoogle,
-  signUpWithEmail,
-  register,
-  logout,
-  signOut,
-  refreshUser
-}
-
-return (
-  <AuthContext.Provider value={value}>
-    {children}
-  </AuthContext.Provider>
-)
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export function useAuth() {
