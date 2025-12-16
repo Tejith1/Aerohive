@@ -222,8 +222,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true)
 
-      // CHECK FOR DEMO MODE (Missing connection)
-      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://placeholder.supabase.co') {
+      // CHECK FOR DEMO MODE (Missing connection or Placeholder values)
+      const isDemoConfig =
+        !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+        !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+        process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://placeholder.supabase.co' ||
+        process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-project-id') ||
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('your-anon-key');
+
+      if (isDemoConfig) {
         console.warn('⚠️ Demo Mode: Simulating login...')
         const demoUser: User = {
           id: 'demo-user-id',

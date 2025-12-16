@@ -26,9 +26,17 @@ export async function POST(request: NextRequest) {
   try {
     console.log('🔵 Signup API called')
 
-    // Validate environment variables
-    if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('❌ Missing Supabase environment variables')
+    // Validate environment variables or check for placeholder/demo values
+    const isMockCreds = supabaseUrl?.includes('your-project-id') ||
+      supabaseServiceKey?.includes('your-service-role-key') ||
+      supabaseUrl?.includes('placeholder')
+
+    if (!supabaseUrl || !supabaseServiceKey || isMockCreds) {
+      if (isMockCreds) {
+        console.warn('⚠️ Demo Mode: Placeholder credentials detected')
+      } else {
+        console.error('❌ Missing Supabase environment variables')
+      }
       console.warn('⚠️ Demo Mode: Missing Supabase environment variables')
       console.log('⚠️ Simulating successful signup for demo...')
 
