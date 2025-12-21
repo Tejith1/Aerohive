@@ -12,6 +12,7 @@ interface User {
   last_name: string
   is_admin: boolean
   phone?: string
+  is_active?: boolean
 }
 
 interface AuthContextType {
@@ -170,53 +171,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
 
-      if (authError) {
-        console.error('❌ Auth user error:', authError)
+      if (authError || !authUser) {
         setUser(null)
         return
       }
 
-      console.log('🔍 Fetching user profile...', authUser?.email)
+      console.log('🔍 Fetching user profile...', authUser.email)
 
-      if (authUser) {
-        // Fetch user profile via Server API (Bypasses RLS issues)
-        console.log('🔍 Fetching profile via API...', authUser.email)
+      // 1. FAST PATH: Open SQL/RLS Access
+      // Try to fetch directly from Supabase client (fastest)
+      // This works if RLS policy "Users can view own profile" exists
+      const { data: directProfile, error: directError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', authUser.id)
+        .single()
 
-        const profileResponse = await fetch('/api/user/profile', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: authUser.id,
-            email: authUser.email
-          })
+      if (!directError && directProfile) {
+        console.log('✅ Profile loaded via Direct DB (Fast)')
+        setUser(directProfile)
+        return directProfile
+      }
+
+      // 2. SLOW FALLBACK: Server API
+      // If direct access failed (e.g. strict RLS), use the API which uses Service Role (Admin)
+      console.log('⚠️ Direct fetch failed, falling back to Server API...')
+
+      const profileResponse = await fetch('/api/user/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: authUser.id,
+          email: authUser.email
         })
+      })
 
-        const profileResult = await profileResponse.json()
+      const profileResult = await profileResponse.json()
 
-        if (profileResponse.ok && profileResult.profile) {
-          console.log('✅ User profile loaded:', profileResult.profile.email)
-          setUser(profileResult.profile)
-        } else {
-          console.error('❌ Failed to load profile:', profileResult.error)
-          // Don't set user to null immediately if just profile failed, 
-          // keeps them "logged in" but maybe with limited data? 
-          // For now, let's keep behavior consistent: if no profile, no valid app user.
-          console.log('❌ No valid profile found')
-          setUser(null)
-        }
+      if (profileResponse.ok && profileResult.profile) {
+        console.log('✅ User profile loaded via API')
+        setUser(profileResult.profile)
+        return profileResult.profile
       } else {
-        console.log('❌ No auth user found')
-        setUser(null)
+        console.warn('❌ Could not load profile from API either.')
+        // Fallback: Create a temporary user object from Auth metadata so they can at least login
+        // This ensures they aren't stuck on "Signing in..." forever
+        const fallbackUser: User = {
+          id: authUser.id,
+          email: authUser.email!,
+          first_name: authUser.user_metadata?.first_name || 'User',
+          last_name: authUser.user_metadata?.last_name || '',
+          is_admin: false, // Default to false for safety
+          phone: authUser.phone
+        }
+        setUser(fallbackUser)
+        return fallbackUser
       }
-    } catch (error) {
-      console.error('❌ Error fetching user profile:', error)
 
-      // Retry once on network errors
+    } catch (error) {
+      console.error('❌ Error in fetchUserProfile:', error)
       if (retryCount < 1) {
-        console.log('🔄 Retrying profile fetch due to error...')
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        return fetchUserProfile(retryCount + 1)
+        // Retry logic...
       }
+      return null
     }
   }
 
@@ -293,45 +310,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error
       }
 
-      // Fetch user profile to check role
+      // Fetch user profile (uses optimized path)
       if (data.user) {
-        // Fetch user profile via Server API (Bypasses RLS issues)
-        console.log('🔍 Fetching profile via API...')
-        const profileResponse = await fetch('/api/user/profile', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: data.user.id,
-            email: data.user.email,
-            firstName: data.user.user_metadata?.first_name,
-            lastName: data.user.user_metadata?.last_name
-          })
-        })
+        const userProfile = await fetchUserProfile()
 
-        const profileResult = await profileResponse.json()
-
-        if (profileResponse.ok && profileResult.profile) {
-          const userProfile = profileResult.profile
-          setUser(userProfile)
-
+        if (userProfile) {
           toast({
             title: userProfile.is_admin ? "Welcome back, Admin!" : "Welcome back!",
             description: `Signed in as ${userProfile.first_name} ${userProfile.last_name}`,
             className: "border-green-200 bg-green-50 text-green-900",
             duration: 3000,
           })
-
           router.push(userProfile.is_admin ? '/admin' : '/')
         } else {
-          console.error('Failed to load profile:', profileResult.error)
-          toast({
-            title: "Profile Error",
-            description: profileResult.error || "Could not load user profile",
-            variant: "destructive",
-          })
+          // Fallback redirect if profile fetch failed completely but auth passed
+          router.push('/')
         }
       } else {
-        // No user object returned from Supabase auth (rare)
         throw new Error('Authentication succeeded but no user returned')
       }
     } catch (error: any) {

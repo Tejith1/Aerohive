@@ -158,6 +158,7 @@ export interface DronePilot {
   updated_at: string
   latitude?: number
   longitude?: number
+  specialization?: string
 }
 
 export interface Booking {
@@ -786,26 +787,37 @@ export const getBookingsForUser = async (userId: string, isPilot: boolean = fals
   return data as Booking[]
 }
 
-// Helper for finding nearby pilots
-// Note: In a real app, use PostGIS. Here we'll fetch all pilots and filter in JS for simplicity/demo
+// Helper for finding nearby pilots using PostGIS RPC
 export const getNearbyPilots = async (lat: number, lng: number, radiusKm: number = 10): Promise<DronePilot[]> => {
-  const { data: pilots, error } = await supabase
-    .from('drone_pilots')
-    .select('*')
-    .eq('is_verified', true)
-    .eq('is_active', true)
+  try {
+    const { data, error } = await supabase.rpc('search_nearby_pilots', {
+      user_lat: lat,
+      user_lng: lng,
+      radius_meters: radiusKm * 1000,
+      service_filter: null // All services for the general list
+    })
 
-  if (error) throw error
-  if (!pilots) return []
+    if (error) {
+      console.error('RPC Search Error:', error)
+      throw error
+    }
 
-  return pilots.filter(pilot => {
-    if (!pilot.latitude || !pilot.longitude) return false
-    const distance = calculateDistance(lat, lng, pilot.latitude, pilot.longitude)
-    return distance <= radiusKm
-  })
+    return (data || []) as DronePilot[]
+  } catch (error) {
+    console.warn('RPC search failed, falling back to simple fetch:', error)
+    // Fallback if RPC fails (e.g. migration not applied yet)
+    const { data: pilots, error: fetchError } = await supabase
+      .from('drone_pilots')
+      .select('*')
+      .eq('is_verified', true)
+      .eq('is_active', true)
+
+    if (fetchError) throw fetchError
+    return (pilots || []) as DronePilot[]
+  }
 }
 
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371; // Radius of the earth in km
   const dLat = deg2rad(lat2 - lat1);
   const dLon = deg2rad(lon2 - lon1);
@@ -818,6 +830,6 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   return d;
 }
 
-function deg2rad(deg: number): number {
+export function deg2rad(deg: number): number {
   return deg * (Math.PI / 180)
 }

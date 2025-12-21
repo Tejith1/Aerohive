@@ -1,13 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, MapPin, Clock, Star, Camera, Plane, Droplets, Map, DollarSign, Calendar, Shield, Award } from "lucide-react"
+import { Search, MapPin, Clock, Star, Camera, Plane, Droplets, Map, DollarSign, Calendar, Shield, Award, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
+import { calculateDistance } from "@/lib/supabase"
 
 interface ServiceProvider {
   id: string
@@ -31,6 +32,8 @@ interface ServiceProvider {
     email: string
     website?: string
   }
+  lat?: number
+  lng?: number
 }
 
 interface DroneService {
@@ -72,7 +75,9 @@ const serviceProviders: ServiceProvider[] = [
       phone: "(555) 123-4567",
       email: "projects@skymapperpro.com",
       website: "www.skymapperpro.com"
-    }
+    },
+    lat: 39.7392,
+    lng: -104.9903
   },
   {
     id: "2",
@@ -94,7 +99,9 @@ const serviceProviders: ServiceProvider[] = [
     contactInfo: {
       phone: "(555) 234-5678",
       email: "services@agrispraysolutions.com"
-    }
+    },
+    lat: 36.7378,
+    lng: -119.7871
   },
   {
     id: "3",
@@ -117,7 +124,9 @@ const serviceProviders: ServiceProvider[] = [
       phone: "(555) 345-6789",
       email: "bookings@aerialvisionstudios.com",
       website: "www.aerialvisionstudios.com"
-    }
+    },
+    lat: 34.0522,
+    lng: -118.2437
   }
 ]
 
@@ -247,6 +256,8 @@ export default function DroneServicesPage() {
   const [priceRangeFilter, setPriceRangeFilter] = useState<string>("all")
   const [filteredServices, setFilteredServices] = useState(droneServices)
   const [filteredProviders, setFilteredProviders] = useState(serviceProviders)
+  const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null)
+  const [isLocating, setIsLocating] = useState(false)
 
   useEffect(() => {
     if (activeTab === "services") {
@@ -261,19 +272,75 @@ export default function DroneServicesPage() {
         const matchesLocation = !locationFilter ||
           (provider && provider.location.toLowerCase().includes(locationFilter.toLowerCase()))
 
-        return matchesSearch && matchesType && matchesLocation
+        // Distance filter if user location is set and "Current Location" is in box
+        let matchesDistance = true
+        if (userLocation && locationFilter === "Current Location" && provider?.lat && provider?.lng) {
+          const distance = calculateDistance(userLocation.lat, userLocation.lng, provider.lat, provider.lng)
+          matchesDistance = distance <= 500 // 500km radius for now
+        }
+
+        return matchesSearch && matchesType && matchesLocation && matchesDistance
       })
 
       setFilteredServices(filtered)
     } else {
-      const filtered = serviceProviders.filter(provider =>
-        provider.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        provider.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        provider.location.toLowerCase().includes(locationFilter.toLowerCase())
-      )
+      const filtered = serviceProviders.filter(provider => {
+        const matchesText = provider.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          provider.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          provider.location.toLowerCase().includes(locationFilter.toLowerCase())
+
+        let matchesDistance = true
+        if (userLocation && locationFilter === "Current Location" && provider.lat && provider.lng) {
+          const distance = calculateDistance(userLocation.lat, userLocation.lng, provider.lat, provider.lng)
+          matchesDistance = distance <= 500
+        }
+
+        if (locationFilter === "Current Location") {
+          return matchesDistance && (provider.companyName.toLowerCase().includes(searchTerm.toLowerCase()) || provider.description.toLowerCase().includes(searchTerm.toLowerCase()))
+        }
+
+        return matchesText
+      })
       setFilteredProviders(filtered)
     }
-  }, [activeTab, searchTerm, serviceTypeFilter, locationFilter, priceRangeFilter])
+  }, [activeTab, searchTerm, serviceTypeFilter, locationFilter, priceRangeFilter, userLocation])
+
+  const handleUseMyLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser")
+      return
+    }
+
+    setIsLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords
+        setUserLocation({ lat: latitude, lng: longitude })
+        setLocationFilter("Current Location")
+
+        try {
+          // Optional: Reverse geocode to show city name
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+          const data = await response.json()
+          if (data.address && (data.address.city || data.address.town || data.address.state)) {
+            const city = data.address.city || data.address.town || ""
+            const state = data.address.state || ""
+            const locString = city && state ? `${city}, ${state}` : (city || state)
+            if (locString) setLocationFilter(locString)
+          }
+        } catch (e) {
+          console.error("Reverse geocoding failed", e)
+        }
+
+        setIsLocating(false)
+      },
+      (error) => {
+        console.error(error)
+        setIsLocating(false)
+        alert("Unable to retrieve your location")
+      }
+    )
+  }
 
   const getProviderById = (id: string) => {
     return serviceProviders.find(provider => provider.id === id)
@@ -369,8 +436,18 @@ export default function DroneServicesPage() {
                   placeholder="Location"
                   value={locationFilter}
                   onChange={(e) => setLocationFilter(e.target.value)}
-                  className="pl-10 w-48"
+                  className="pl-10 w-48 pr-8"
                 />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 text-gray-400 hover:text-blue-600"
+                  onClick={handleUseMyLocation}
+                  disabled={isLocating}
+                  title="Use my location"
+                >
+                  {isLocating ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
+                </Button>
               </div>
 
               {activeTab === "services" && (
