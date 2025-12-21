@@ -408,35 +408,50 @@ export default function Chatbot() {
     return (
         <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end">
             {isOpen && (
-                <Card className="w-[350px] mb-4 shadow-xl border-primary/20 animate-in slide-in-from-bottom-5 bg-white">
-                    <div className="p-3 border-b flex items-center justify-between bg-primary text-primary-foreground rounded-t-lg">
-                        <div className="flex items-center gap-2">
-                            <div className="bg-white/20 p-1 rounded-full"><MessageCircle className="h-4 w-4" /></div>
-                            <span className="font-semibold text-sm">AeroHive Support</span>
+                <Card className="w-[380px] mb-4 shadow-2xl border-primary/10 animate-in slide-in-from-bottom-5 bg-white/80 backdrop-blur-lg overflow-hidden flex flex-col">
+                    <div className="p-4 border-b flex items-center justify-between bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
+                        <div className="flex items-center gap-3">
+                            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm shadow-inner"><MessageCircle className="h-4 w-4" /></div>
+                            <div>
+                                <span className="font-bold text-sm block leading-none">AeroHive AI</span>
+                                <span className="text-[10px] text-primary-foreground/70 uppercase tracking-widest font-medium">Principal Architect</span>
+                            </div>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 text-primary-foreground hover:bg-primary-foreground/20" onClick={() => setIsOpen(false)}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-primary-foreground hover:bg-white/10 rounded-full transition-colors" onClick={() => setIsOpen(false)}>
                             <X className="h-4 w-4" />
                         </Button>
                     </div>
 
-                    <CardContent className="p-0">
-                        <ScrollArea className="h-[400px] p-4">
-                            <div className="flex flex-col gap-4">
+                    <CardContent className="p-0 flex flex-col h-[480px]">
+                        <ScrollArea className="flex-1 p-4">
+                            <div className="flex flex-col gap-5">
                                 {messages.map(msg => (
                                     <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                        <div className={`max-w-[85%] rounded-lg p-3 text-sm ${msg.role === 'user'
+                                        <div className={`max-w-[88%] rounded-2xl p-3.5 text-sm shadow-sm transition-all duration-200 ${msg.role === 'user'
                                             ? 'bg-primary text-primary-foreground rounded-br-none'
-                                            : 'bg-muted text-foreground rounded-bl-none'
+                                            : 'bg-muted/50 text-foreground rounded-bl-none border border-border/50'
                                             }`}>
                                             {msg.content}
                                         </div>
                                     </div>
                                 ))}
+                                {['SEARCHING', 'BOOKING'].includes(chatState) && (
+                                    <div className="flex justify-start">
+                                        <div className="bg-muted/50 rounded-2xl px-4 py-2 border border-border/50 flex items-center gap-2">
+                                            <span className="flex gap-1">
+                                                <span className="w-1.5 h-1.5 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                                <span className="w-1.5 h-1.5 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                                <span className="w-1.5 h-1.5 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                            </span>
+                                            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">AI Processing...</span>
+                                        </div>
+                                    </div>
+                                )}
                                 <div ref={scrollRef} />
                             </div>
                         </ScrollArea>
 
-                        <div className="p-3 border-t bg-background mt-auto">
+                        <div className="p-4 border-t bg-white/50 backdrop-blur-md">
                             <form
                                 className="flex gap-2"
                                 onSubmit={(e) => {
@@ -445,7 +460,8 @@ export default function Chatbot() {
                                 }}
                             >
                                 <Input
-                                    placeholder="Type a message..."
+                                    placeholder="Consult with Mission Coordinator..."
+                                    className="bg-muted/30 border-none shadow-inner focus-visible:ring-1 focus-visible:ring-primary h-11"
                                     value={inputValue}
                                     onChange={e => setInputValue(e.target.value)}
                                     disabled={['SEARCHING', 'BOOKING'].includes(chatState)}
@@ -453,9 +469,10 @@ export default function Chatbot() {
                                 <Button
                                     type="submit"
                                     size="icon"
+                                    className="h-11 w-11 shrink-0 rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all"
                                     disabled={!inputValue.trim() || ['SEARCHING', 'BOOKING'].includes(chatState)}
                                 >
-                                    <Send className="h-4 w-4" />
+                                    <Send className="h-5 w-5" />
                                 </Button>
                             </form>
                         </div>
@@ -466,9 +483,10 @@ export default function Chatbot() {
             <Button
                 onClick={() => isOpen ? setIsOpen(false) : handleOpen()}
                 size="lg"
-                className="h-14 w-14 rounded-full shadow-lg p-0 hover:scale-110 transition-transform"
+                className="h-16 w-16 rounded-[22px] shadow-2xl p-0 hover:scale-110 active:scale-90 transition-all duration-300 bg-primary group overflow-hidden"
             >
-                {isOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-7 w-7" />}
+                <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                {isOpen ? <X className="h-7 w-7" /> : <MessageCircle className="h-8 w-8" />}
             </Button>
         </div>
     )

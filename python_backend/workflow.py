@@ -35,24 +35,35 @@ if url and key:
 class ChatWorkflow:
     def __init__(self):
         self.system_prompt = """
-        You are the AeroHive Principal AI Architect, orchestrating a production-grade drone booking system.
-        You must guide the user through the exact sequence: 
-        Intent -> Location -> Service Details -> Radius (10/20/50km) -> Pilot Selection -> Slot -> Contact -> Payment -> Confirm.
+        You are the AeroHive Principal AI Architect, a high-level mission coordinator for a premium drone ecosystem.
+        Your tone is professional, efficient, and technologically advanced. 
+        
+        Your Mission: Guide users through the AeroHive ecosystem, from selecting drone categories to finalizing missions.
+        
+        Available Categories: 
+        - Agriculture (Crop monitoring, spraying)
+        - Photography (Professional cinematography, events)
+        - Mapping (3D surveying, construction)
+        - Repair (Maintenance, hardware fixes)
+        - Search & Rescue (Emergency response, thermal scanning)
+        - Infrastructure (Bridge/tower inspections)
+
+        The User Flow: Intent -> Location -> Service Details -> Radius (10/20/50km) -> Pilot Selection -> Slot -> Contact -> Payment -> Confirm.
 
         Current App State: {state}
         User Context: {context}
         
         Analyze the user message and respond with a STRICT JSON object:
         1. "intent": ["greet", "list_services", "provide_requirements", "provide_location", "select_radius", "select_pilot", "select_slot", "provide_contact", "confirm_booking", "unknown"]
-        2. "category": ["Agriculture", "Photography", "Mapping", "Repair"]
-        3. "radius_km": [10, 20, 50] (Extract if user mentions distance)
-        4. "requirements": JSON object with land_size, crop_type, photo_hours, or problem_description.
+        2. "category": ["Agriculture", "Photography", "Mapping", "Repair", "Search & Rescue", "Infrastructure"]
+        3. "radius_km": [10, 20, 50]
+        4. "requirements": JSON object with specific details (e.g., acres, hours, problem type).
         5. "location_name": Extracted city/area.
-        6. "response_text": Professional, concise response guiding to the next step.
+        6. "response_text": Professional, concise response. If you're recommending a drone, maintain the AeroHive authority.
         7. "next_state": [INIT, REQUIREMENTS, LOCATION, RADIUS, RESULTS, SLOT, CONTACT, PAYMENT, CONFIRM, SUCCESS]
-        8. "action": ["request_location", "show_results", "request_radius", "process_booking", "null"]
+        8. "action": ["request_location", "show_results", "request_radius", "process_booking", "typing", "null"]
 
-        CRITICAL: Never expose internal technical details. Be efficient.
+        CRITICAL: Never expose internal technical details. Be efficient. Focus on mission success.
         """
 
     def generate_booking_id(self, service: str) -> str:
@@ -98,11 +109,12 @@ class ChatWorkflow:
                     "response_text": "Welcome to AeroHive! I'm your Production Mission Coordinator. Do you need Agriculture, Photography, Mapping, or Repair services today?",
                     "next_state": "REQUIREMENTS"
                 }
-            elif state == "REQUIREMENTS" or "mapping" in msg or "agri" in msg or "photo" in msg:
+            elif state == "REQUIREMENTS" or any(x in msg for x in ["map", "agri", "photo", "repair", "rescue", "infra"]):
+                 category = "Mapping" if "map" in msg else "Agriculture" if "agri" in msg else "Photography" if "photo" in msg else "Repair" if "repair" in msg else "Search & Rescue" if "rescue" in msg else "Infrastructure"
                  ai_data = {
                     "intent": "provide_requirements",
-                    "category": "Mapping" if "map" in msg else "Agriculture",
-                    "response_text": "Got it. I'll search for qualified pilots. First, I need to know your project location. Please use the button below to share coordinates.",
+                    "category": category,
+                    "response_text": f"Initializing {category} mission protocols. To find the best pilots for your {category} project, I need to know the mission location. Please share your coordinates.",
                     "next_state": "LOCATION",
                     "action": "request_location"
                 }
