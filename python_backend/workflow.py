@@ -35,35 +35,54 @@ if url and key:
 class ChatWorkflow:
     def __init__(self):
         self.system_prompt = """
-        You are the AeroHive Principal AI Architect, a high-level mission coordinator for a premium drone ecosystem.
-        Your tone is professional, efficient, and technologically advanced. 
-        
-        Your Mission: Guide users through the AeroHive ecosystem, from selecting drone categories to finalizing missions.
-        
-        Available Categories: 
-        - Agriculture (Crop monitoring, spraying)
-        - Photography (Professional cinematography, events)
-        - Mapping (3D surveying, construction)
-        - Repair (Maintenance, hardware fixes)
-        - Search & Rescue (Emergency response, thermal scanning)
-        - Infrastructure (Bridge/tower inspections)
+ROLE:
+You are "AeroBot", the expert AI Assistant for Aerohive Drones (aerohive.co.in).
+Your goal is to sell products AND facilitate service bookings.
 
-        The User Flow: Intent -> Location -> Service Details -> Radius (10/20/50km) -> Pilot Selection -> Slot -> Contact -> Payment -> Confirm.
+### 1. PRODUCT SALES
+When users ask about drones or products, help them find the right drone for their needs.
+Be knowledgeable about drone features, specifications, and use cases.
 
-        Current App State: {state}
-        User Context: {context}
-        
-        Analyze the user message and respond with a STRICT JSON object:
-        1. "intent": ["greet", "list_services", "provide_requirements", "provide_location", "select_radius", "select_pilot", "select_slot", "provide_contact", "confirm_booking", "unknown"]
-        2. "category": ["Agriculture", "Photography", "Mapping", "Repair", "Search & Rescue", "Infrastructure"]
-        3. "radius_km": [10, 20, 50]
-        4. "requirements": JSON object with specific details (e.g., acres, hours, problem type).
-        5. "location_name": Extracted city/area.
-        6. "response_text": Professional, concise response. If you're recommending a drone, maintain the AeroHive authority.
-        7. "next_state": [INIT, REQUIREMENTS, LOCATION, RADIUS, RESULTS, SLOT, CONTACT, PAYMENT, CONFIRM, SUCCESS]
-        8. "action": ["request_location", "show_results", "request_radius", "process_booking", "typing", "null"]
+### 2. SERVICE CATALOG (Bookings)
+Use these EXACT categories from the website when users ask for help:
 
-        CRITICAL: Never expose internal technical details. Be efficient. Focus on mission success.
+**A. Pilot Services (Hire a Pilot):**
+1. Surveying (Land mapping, construction)
+2. Spraying (Agricultural crop spraying)
+3. 3D Mapping (Topographical data)
+4. Inspections (Towers, solar panels, bridges)
+
+**B. Drone Care (Maintenance):**
+1. General Checkup
+2. Firmware Updates
+3. Diagnostic Testing
+4. Repair Services
+
+### 3. BOOKING PROTOCOL
+If a user wants to book a service or pilot:
+1. **Identify Category:** Ask which specific service they need (e.g., "Do you need a pilot for Spraying or Surveying?").
+2. **Collect Details:** Once they choose, ask for their **Name, Phone Number, and Location**.
+3. **Confirm:** Say "Thank you. Our team will contact you at [Phone Number] to schedule your [Service Name] in [Location]."
+
+### BEHAVIORAL RULES
+- If the user asks "What services do you have?", list the headers under "Pilot Services" and "Drone Care".
+- Keep answers professional and concise.
+- Do not make up services that are not listed here.
+
+Current App State: {state}
+User Context: {context}
+
+Analyze the user message and respond with a STRICT JSON object:
+1. "intent": ["greet", "list_services", "provide_requirements", "provide_location", "select_radius", "select_pilot", "select_slot", "provide_contact", "confirm_booking", "unknown"]
+2. "category": ["Surveying", "Spraying", "3D Mapping", "Inspections", "General Checkup", "Firmware Updates", "Diagnostic Testing", "Repair Services"]
+3. "radius_km": [10, 20, 50]
+4. "requirements": JSON object with specific details (e.g., acres, hours, problem type).
+5. "location_name": Extracted city/area.
+6. "response_text": Professional, concise response.
+7. "next_state": [INIT, REQUIREMENTS, LOCATION, RADIUS, RESULTS, SLOT, CONTACT, PAYMENT, CONFIRM, SUCCESS]
+8. "action": ["request_location", "show_results", "request_radius", "process_booking", "typing", "null"]
+
+CRITICAL: Never expose internal technical details. Be efficient and professional.
         """
 
     def generate_booking_id(self, service: str) -> str:
@@ -99,22 +118,28 @@ class ChatWorkflow:
             ai_data = {
                 "intent": "unknown",
                 "next_state": state,
-                "response_text": "I'm currently in Demo Mode. How can I assist?",
+                "response_text": "I'm AeroBot, your Aerohive assistant. How can I help you today?",
                 "action": "null"
             }
 
-            if state == "INIT" or "hello" in msg or "hi" in msg:
+            if state == "INIT" or "hello" in msg or "hi" in msg or "hey" in msg:
                 ai_data = {
                     "intent": "greet",
-                    "response_text": "Welcome to AeroHive! I'm your Production Mission Coordinator. Do you need Agriculture, Photography, Mapping, or Repair services today?",
+                    "response_text": "Hello! I'm AeroBot, your Aerohive assistant. I can help you with:\n\n**Pilot Services:** Surveying, Spraying, 3D Mapping, Inspections\n**Drone Care:** General Checkup, Firmware Updates, Diagnostic Testing, Repair Services\n\nWhat can I assist you with today?",
                     "next_state": "REQUIREMENTS"
                 }
-            elif state == "REQUIREMENTS" or any(x in msg for x in ["map", "agri", "photo", "repair", "rescue", "infra"]):
-                 category = "Mapping" if "map" in msg else "Agriculture" if "agri" in msg else "Photography" if "photo" in msg else "Repair" if "repair" in msg else "Search & Rescue" if "rescue" in msg else "Infrastructure"
+            elif "service" in msg or "what do you" in msg or "what can" in msg:
+                ai_data = {
+                    "intent": "list_services",
+                    "response_text": "We offer:\n\n**Pilot Services (Hire a Pilot):**\n• Surveying - Land mapping, construction\n• Spraying - Agricultural crop spraying\n• 3D Mapping - Topographical data\n• Inspections - Towers, solar panels, bridges\n\n**Drone Care (Maintenance):**\n• General Checkup\n• Firmware Updates\n• Diagnostic Testing\n• Repair Services\n\nWhich service interests you?",
+                    "next_state": "REQUIREMENTS"
+                }
+            elif state == "REQUIREMENTS" or any(x in msg for x in ["survey", "spray", "mapping", "3d", "inspect", "checkup", "firmware", "diagnostic", "repair"]):
+                 category = "Surveying" if "survey" in msg else "Spraying" if "spray" in msg else "3D Mapping" if ("mapping" in msg or "3d" in msg) else "Inspections" if "inspect" in msg else "General Checkup" if "checkup" in msg else "Firmware Updates" if "firmware" in msg else "Diagnostic Testing" if "diagnostic" in msg else "Repair Services"
                  ai_data = {
                     "intent": "provide_requirements",
                     "category": category,
-                    "response_text": f"Initializing {category} mission protocols. To find the best pilots for your {category} project, I need to know the mission location. Please share your coordinates.",
+                    "response_text": f"Great choice! For {category}, I'll need a few details to connect you with the right professional. Could you please share your location?",
                     "next_state": "LOCATION",
                     "action": "request_location"
                 }
@@ -123,7 +148,7 @@ class ChatWorkflow:
                 coords = {"lat": 17.5169, "lng": 78.3856} # Nizampet area
                 ai_data = {
                     "intent": "provide_location",
-                    "response_text": f"Location captured for {message}! We offer precision matching. What search radius should I use?",
+                    "response_text": f"Location captured! What search radius should I use to find professionals near you?",
                     "next_state": "RADIUS",
                     "action": "request_radius",
                     "data": coords
@@ -132,7 +157,7 @@ class ChatWorkflow:
                 ai_data = {
                     "intent": "select_radius",
                     "radius_km": 10 if "10" in msg else 20 if "20" in msg else 50,
-                    "response_text": "Searching for nearby pilots...",
+                    "response_text": "Searching for professionals near you...",
                     "next_state": "RESULTS",
                     "action": "show_results"
                 }
@@ -193,22 +218,44 @@ class ChatWorkflow:
             return {"message": "I encountered a technical glitch in my neuro-pathways. Re-trying...", "next_state": state}
 
     def _search_production_pilots(self, lat: float, lng: float, radius_km: int, category: str = None) -> List[Dict]:
-        """Calls the PostGIS function search_nearby_pilots via Supabase RPC."""
-        if not supabase: return []
+        """Queries drone_pilots table from Supabase and returns up to 3 available pilots."""
+        if not supabase: 
+            print("DEBUG: Supabase not connected, returning empty pilot list")
+            return []
         try:
-            # radius_km to meters
-            radius_meters = radius_km * 1000
-            print(f"DEBUG: Proximity Search {lat}, {lng}, {radius_meters}m, {category}")
+            print(f"DEBUG: Searching pilots - lat: {lat}, lng: {lng}, radius: {radius_km}km, category: {category}")
             
-            # Using RPC to call the database function
-            response = supabase.rpc('search_nearby_pilots', {
-                'user_lat': lat,
-                'user_lng': lng,
-                'radius_meters': radius_meters,
-                'service_filter': category
-            }).execute()
+            # Build query for verified and active pilots
+            query = supabase.table('drone_pilots').select('*').eq('is_verified', True).eq('is_active', True)
             
-            return response.data or []
+            # Filter by specialization if category provided
+            if category:
+                query = query.ilike('specializations', f'%{category}%')
+            
+            # Order by rating descending and limit to 3
+            query = query.order('rating', desc=True).limit(3)
+            
+            response = query.execute()
+            
+            pilots = response.data or []
+            print(f"DEBUG: Found {len(pilots)} pilots from database")
+            
+            # Format pilot data for the chatbot
+            formatted_pilots = []
+            for pilot in pilots:
+                formatted_pilots.append({
+                    "id": pilot.get("id"),
+                    "full_name": pilot.get("full_name"),
+                    "specialization": pilot.get("specializations"),
+                    "hourly_rate": pilot.get("hourly_rate"),
+                    "rating": float(pilot.get("rating", 0)),
+                    "location": pilot.get("location"),
+                    "area": pilot.get("area"),
+                    "experience": pilot.get("experience"),
+                    "completed_jobs": pilot.get("completed_jobs", 0)
+                })
+            
+            return formatted_pilots
         except Exception as e:
             print(f"SEARCH ERROR: {e}")
             return []
