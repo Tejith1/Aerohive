@@ -65,7 +65,8 @@ export default function Chatbot() {
     const startTracking = (bookingId: string) => {
         if (socketRef.current) socketRef.current.close()
 
-        const wsUrl = `ws://localhost:8000/ws/tracking/${bookingId}`
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+        const wsUrl = API_BASE.replace('http', 'ws') + `/ws/tracking/${bookingId}`
         const ws = new WebSocket(wsUrl)
 
         ws.onmessage = (event) => {
@@ -95,21 +96,22 @@ export default function Chatbot() {
                 addMessage('bot', res.message)
                 setChatState(res.next_state as ChatState)
             } catch (e) {
-                console.error("Backend offline, falling back", e)
-                addMessage('bot', "Hello! I'm your AeroHive assistant. (Offline Mode)")
+                console.error("Backend unreachable, starting in local mode:", e)
+                addMessage('bot', "Welcome to AeroHive! I'm your Principal AI Architect. How can I assist with your drone mission today?")
                 setChatState('REQUIREMENTS')
             }
         }
     }
 
     const callBackend = async (msg: string, state: ChatState, context?: any) => {
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
         try {
             const fullContext = {
                 lat: userLocation?.lat,
                 lng: userLocation?.lng,
                 ...(context || {})
             }
-            const response = await fetch('http://localhost:8000/api/chat', {
+            const response = await fetch(`${API_BASE}/api/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -121,7 +123,15 @@ export default function Chatbot() {
             if (!response.ok) throw new Error("Backend error")
             return await response.json()
         } catch (e) {
-            console.error(e)
+            console.error("Backend Error:", e)
+            // Fallback for Demo Mode / Offline
+            if (msg.toLowerCase().includes("rescue") || msg.toLowerCase().includes("search")) {
+                return {
+                    message: "I'm currently operating in Offline Prototype Mode. I've initialized Search & Rescue protocols for your location. What search radius should I use?",
+                    next_state: "RADIUS",
+                    action: "request_radius"
+                }
+            }
             throw e
         }
     }

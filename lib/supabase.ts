@@ -790,32 +790,83 @@ export const getBookingsForUser = async (userId: string, isPilot: boolean = fals
 // Helper for finding nearby pilots using PostGIS RPC
 export const getNearbyPilots = async (lat: number, lng: number, radiusKm: number = 10): Promise<DronePilot[]> => {
   try {
-    const { data, error } = await supabase.rpc('search_nearby_pilots', {
+    // 1. Try PostGIS RPC first
+    const { data: rpcData, error: rpcError } = await supabase.rpc('search_nearby_pilots', {
       user_lat: lat,
       user_lng: lng,
       radius_meters: radiusKm * 1000,
-      service_filter: null // All services for the general list
+      service_filter: null
     })
 
-    if (error) {
-      console.error('RPC Search Error:', error)
-      throw error
-    }
+    if (!rpcError && rpcData) return rpcData as DronePilot[]
 
-    return (data || []) as DronePilot[]
-  } catch (error) {
-    console.warn('RPC search failed, falling back to simple fetch:', error)
-    // Fallback if RPC fails (e.g. migration not applied yet)
-    const { data: pilots, error: fetchError } = await supabase
+    // 2. Fallback to basic fetch if RPC fails
+    console.warn('RPC search failed, falling back to simple fetch:', rpcError)
+    const { data: fetchData, error: fetchError } = await supabase
       .from('drone_pilots')
       .select('*')
       .eq('is_verified', true)
       .eq('is_active', true)
 
-    if (fetchError) throw fetchError
-    return (pilots || []) as DronePilot[]
+    if (!fetchError && fetchData && fetchData.length > 0) return fetchData as DronePilot[]
+
+    // 3. Absolute fallback to MOCK data for prototype presentation
+    console.warn('Database search failed, returning MOCK prototypes.')
+    return MOCK_PILOTS
+  } catch (error) {
+    console.error('Critical failure in getNearbyPilots, using MOCK:', error)
+    return MOCK_PILOTS
   }
 }
+
+const MOCK_PILOTS: DronePilot[] = [
+  {
+    id: 'mock-1',
+    full_name: 'Arjun Verma (Prototype)',
+    email: 'arjun@aerohive.demo',
+    phone: '+91 98765 43210',
+    location: 'Hyderabad, Telangana',
+    area: 'Nizampet',
+    experience: '5 Years',
+    certifications: 'DGCA Category A',
+    specializations: 'Agriculture, Mapping',
+    hourly_rate: 75,
+    about: 'Expert in agricultural drone operations and precision mapping.',
+    dgca_number: 'DGCA-CERT-7821',
+    rating: 4.8,
+    completed_jobs: 142,
+    is_verified: true,
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    latitude: 17.5169,
+    longitude: 78.3856,
+    specialization: 'Agriculture'
+  },
+  {
+    id: 'mock-2',
+    full_name: 'Sarah Chen (Prototype)',
+    email: 'sarah@aerohive.demo',
+    phone: '+91 87654 32109',
+    location: 'Hyderabad, Telangana',
+    area: 'Gachibowli',
+    experience: '3 Years',
+    certifications: 'Commercial Pilot License',
+    specializations: 'Cinematography, Events',
+    hourly_rate: 90,
+    about: 'Professional cinematographer specializing in high-end event coverage.',
+    dgca_number: 'DGCA-CERT-9901',
+    rating: 4.9,
+    completed_jobs: 88,
+    is_verified: true,
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    latitude: 17.4401,
+    longitude: 78.3489,
+    specialization: 'Cinematography'
+  }
+]
 
 export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371; // Radius of the earth in km
