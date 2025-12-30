@@ -168,8 +168,8 @@ export default function HomePage() {
           description="From advanced racing drones to professional aerial photography systems, discover our complete range of cutting-edge drones designed for enthusiasts and professionals alike."
           primaryButtonText="Explore Drones"
           primaryButtonHref="/products"
-          secondaryButtonText="Watch Demo"
-          secondaryButtonHref="/demo"
+          secondaryButtonText="Our Services"
+          secondaryButtonHref="/drone-services"
           backgroundImage="/WhatsApp Image 2025-10-24 at 09.33.29_68a8851c.jpg"
           stats={[
             { label: "Drone Models", value: "200+" },
