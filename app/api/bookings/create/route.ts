@@ -6,13 +6,10 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null
 
-// Generate booking ID
-function generateBookingId(service: string): string {
-    const prefix = "DRN"
-    const svc = service ? service.substring(0, 3).toUpperCase() : "GEN"
-    const year = new Date().getFullYear()
-    const rand = Math.random().toString(36).substring(2, 6).toUpperCase()
-    return `${prefix}-${svc}-${year}-${rand}`
+// Generate booking ID with hashtag format
+function generateBookingId(): string {
+    const num = Math.floor(1000 + Math.random() * 9000)
+    return `#AH-${num}`
 }
 
 // Generate random 4-digit OTP
@@ -44,17 +41,27 @@ export async function POST(request: NextRequest) {
             service_type,
             lat,
             lng,
+            location_name,
             scheduled_at,
             duration_hours,
             payment_method,
-            requirements
+            requirements,
+            user_name,
+            user_phone
         } = body
 
         // Generate booking details
-        const bookingId = generateBookingId(service_type)
+        const bookingId = generateBookingId()
         const otp = generateOTP()
         const pilotName = generatePilotName()
         const pilotPhone = generateMobileNumber()
+        const locationDisplay = location_name || `Lat ${lat}, Lng ${lng}`
+        const dateTimeDisplay = scheduled_at ? new Date(scheduled_at).toLocaleString('en-IN', {
+            dateStyle: 'medium',
+            timeStyle: 'short'
+        }) : 'ASAP'
+        const userName = user_name || 'Valued Customer'
+        const userPhone = user_phone || 'Not provided'
 
         // Try to insert into database if available
         if (supabase) {
@@ -62,7 +69,6 @@ export async function POST(request: NextRequest) {
                 const { error } = await supabase
                     .from('bookings')
                     .insert({
-                        id: bookingId,
                         client_id,
                         pilot_id,
                         service_type,
@@ -73,7 +79,8 @@ export async function POST(request: NextRequest) {
                         requirements,
                         client_location_lat: lat,
                         client_location_lng: lng,
-                        otp_code: otp
+                        otp_code: otp,
+                        booking_reference: bookingId
                     })
 
                 if (error) {
@@ -86,11 +93,11 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Generate confirmation messages as per the booking protocol
-        const clientMessage = `Hello,
+        // Generate confirmation messages as per the EXACT booking protocol
+        const clientMessage = `Hello ${userName},
 Your booking for **${service_type}** is confirmed!
-📍 Location: Your shared coordinates
-📅 Slot: ${new Date(scheduled_at).toLocaleString()}
+📍 Location: ${locationDisplay}
+📅 Slot: ${dateTimeDisplay}
 
 Your Pilot Details:
 👨‍✈️ **${pilotName}** (Rating: 4.9⭐)
@@ -100,9 +107,12 @@ Your Pilot Details:
         const pilotMessage = `**NEW JOB ASSIGNMENT**
 🆔 Job ID: ${bookingId}
 🛠 Service: ${service_type}
-📍 Site: Lat ${lat}, Lng ${lng}
-📅 Time: ${new Date(scheduled_at).toLocaleString()}
+📍 Site: ${locationDisplay}
+📅 Time: ${dateTimeDisplay}
 
+Client Details:
+👤 ${userName}
+📞 ${userPhone}
 ⚠️ Status: PENDING. Verify OTP **${otp}** upon arrival.`
 
         return NextResponse.json({
@@ -124,3 +134,4 @@ Your Pilot Details:
         )
     }
 }
+
