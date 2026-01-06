@@ -44,32 +44,32 @@ export function Footer() {
             <h3 className="font-semibold text-white text-lg">Drone Categories</h3>
             <ul className="space-y-3 text-sm">
               <li>
-                <Link href="/categories?filter=racing" className="text-blue-200 hover:text-white transition-colors flex items-center space-x-2">
+                <Link href="/products?category=racing" className="text-blue-200 hover:text-white transition-colors flex items-center space-x-2">
                   <span>Racing Drones</span>
                 </Link>
               </li>
               <li>
-                <Link href="/categories?filter=photography" className="text-blue-200 hover:text-white transition-colors flex items-center space-x-2">
+                <Link href="/products?category=photography" className="text-blue-200 hover:text-white transition-colors flex items-center space-x-2">
                   <span>Photography Drones</span>
                 </Link>
               </li>
               <li>
-                <Link href="/categories?filter=surveillance" className="text-blue-200 hover:text-white transition-colors flex items-center space-x-2">
+                <Link href="/products?category=surveillance" className="text-blue-200 hover:text-white transition-colors flex items-center space-x-2">
                   <span>Surveillance Drones</span>
                 </Link>
               </li>
               <li>
-                <Link href="/categories?filter=agricultural" className="text-blue-200 hover:text-white transition-colors flex items-center space-x-2">
+                <Link href="/products?category=agricultural" className="text-blue-200 hover:text-white transition-colors flex items-center space-x-2">
                   <span>Agricultural Drones</span>
                 </Link>
               </li>
               <li>
-                <Link href="/categories?filter=mapping" className="text-blue-200 hover:text-white transition-colors flex items-center space-x-2">
+                <Link href="/products?category=mapping" className="text-blue-200 hover:text-white transition-colors flex items-center space-x-2">
                   <span>Mapping Drones</span>
                 </Link>
               </li>
               <li>
-                <Link href="/categories?filter=beginner" className="text-blue-200 hover:text-white transition-colors flex items-center space-x-2">
+                <Link href="/products?category=beginner" className="text-blue-200 hover:text-white transition-colors flex items-center space-x-2">
                   <span>Beginner Drones</span>
                 </Link>
               </li>
@@ -91,17 +91,17 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/support" className="text-blue-200 hover:text-white transition-colors">
+                <Link href="/contact" className="text-blue-200 hover:text-white transition-colors">
                   24/7 Support
                 </Link>
               </li>
               <li>
-                <Link href="/warranty" className="text-blue-200 hover:text-white transition-colors">
+                <Link href="/contact" className="text-blue-200 hover:text-white transition-colors">
                   Warranty & Insurance
                 </Link>
               </li>
               <li>
-                <Link href="/shipping" className="text-blue-200 hover:text-white transition-colors">
+                <Link href="/contact" className="text-blue-200 hover:text-white transition-colors">
                   Shipping & Returns
                 </Link>
               </li>
@@ -173,16 +173,16 @@ export function Footer() {
         <div className="mt-12 pt-8 border-t border-white/20">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="flex flex-wrap items-center gap-6 text-sm text-blue-200">
-              <Link href="/privacy" className="hover:text-white transition-colors">
+              <Link href="/contact" className="hover:text-white transition-colors">
                 Privacy Policy
               </Link>
-              <Link href="/terms" className="hover:text-white transition-colors">
+              <Link href="/contact" className="hover:text-white transition-colors">
                 Terms of Service
               </Link>
-              <Link href="/cookies" className="hover:text-white transition-colors">
+              <Link href="/contact" className="hover:text-white transition-colors">
                 Cookie Policy
               </Link>
-              <Link href="/regulations" className="hover:text-white transition-colors">
+              <Link href="/contact" className="hover:text-white transition-colors">
                 Drone Regulations
               </Link>
             </div>

@@ -1,15 +1,17 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 console.log('🔧 Supabase Configuration:')
-console.log('URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? '✅ Set' : '❌ Missing (Using placeholder)')
-console.log('Anon Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '✅ Set' : '❌ Missing (Using placeholder)')
+console.log('URL:', supabaseUrl ? '✅ Set' : '❌ Missing')
+console.log('Anon Key:', supabaseAnonKey ? '✅ Set' : '❌ Missing')
 
-if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-  console.warn('⚠️ WARNING: Missing Supabase environment variables! App running in demo/offline mode.')
-  console.warn('Authentication and database features will not work.')
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('❌ CRITICAL: Missing Supabase environment variables!')
+  console.error('Please ensure .env.local exists with:')
+  console.error('NEXT_PUBLIC_SUPABASE_URL=your_url')
+  console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key')
 }
 
 // Custom storage adapter with better error handling
@@ -28,6 +30,52 @@ const getStorage = () => {
   }
 }
 
+// Custom fetch with timeout and retry logic for connection resilience
+const customFetch = async (url: RequestInfo | URL, options?: RequestInit): Promise<Response> => {
+  const maxRetries = 3
+  const timeoutMs = 30000 // 30 seconds timeout
+  let lastError: Error | null = null
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => {
+        controller.abort()
+        console.warn(`⏱️ Request timeout after ${timeoutMs}ms`)
+      }, timeoutMs)
+
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      })
+
+      clearTimeout(timeoutId)
+
+      // If we get a response, return it (even if it's an error status)
+      return response
+    } catch (error: any) {
+      lastError = error
+
+      // Don't retry on abort errors (user cancelled) or if we're offline
+      if (error.name === 'AbortError' && typeof navigator !== 'undefined' && !navigator.onLine) {
+        console.warn('📴 Offline - not retrying')
+        throw error
+      }
+
+      // Log retry attempt
+      if (attempt < maxRetries - 1) {
+        const delay = 1000 * Math.pow(2, attempt) // Exponential backoff: 1s, 2s, 4s
+        console.warn(`🔄 Request failed (attempt ${attempt + 1}/${maxRetries}), retrying in ${delay}ms...`)
+        await new Promise(resolve => setTimeout(resolve, delay))
+      } else {
+        console.error(`❌ Request failed after ${maxRetries} attempts`)
+      }
+    }
+  }
+
+  throw lastError || new Error('Request failed after maximum retries')
+}
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
@@ -38,23 +86,49 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     flowType: 'pkce',
     debug: process.env.NODE_ENV === 'development',
   },
+  global: {
+    fetch: customFetch,
+    headers: {
+      'x-client-info': 'aerohive-web',
+    },
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
+  },
+  db: {
+    schema: 'public',
+  },
 })
 
-export const getSupabaseAdmin = () => {
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+// Server-side admin client for bypassing RLS (only use on server-side)
+let supabaseAdmin: ReturnType<typeof createClient> | null = null
 
-  if (!url || !serviceRoleKey || serviceRoleKey.includes('your-service-role-key')) {
-    console.error('❌ Cannot create admin client: Missing Service Role Key')
+export const getSupabaseAdmin = () => {
+  // Only create admin client on server-side
+  if (typeof window !== 'undefined') {
+    console.warn('⚠️ getSupabaseAdmin should only be used on server-side')
     return null
   }
 
-  return createClient(url, serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
+  if (!supabaseAdmin) {
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!serviceRoleKey) {
+      console.error('❌ Missing SUPABASE_SERVICE_ROLE_KEY for admin operations')
+      // Fallback to using the regular client if no service key
+      return supabase
     }
-  })
+
+    supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    })
+  }
+
+  return supabaseAdmin
 }
 
 // Database types
@@ -154,28 +228,11 @@ export interface DronePilot {
   completed_jobs: number
   is_verified: boolean
   is_active: boolean
+  latitude?: number | null
+  longitude?: number | null
+  distance_km?: number | null
   created_at: string
   updated_at: string
-  latitude?: number
-  longitude?: number
-  specialization?: string
-}
-
-export interface Booking {
-  id: string
-  client_id: string
-  pilot_id: string
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled'
-  scheduled_at: string
-  duration_hours: number
-  client_location_lat: number
-  client_location_lng: number
-  client_notes?: string
-  total_amount: number
-  created_at: string
-  updated_at: string
-  pilot?: DronePilot
-  client?: User
 }
 
 // Auth functions
@@ -712,12 +769,6 @@ export const getDronePilots = async (filters?: {
 }
 
 export const createDronePilot = async (pilotData: Omit<DronePilot, 'id' | 'rating' | 'completed_jobs' | 'is_verified' | 'is_active' | 'created_at' | 'updated_at'>) => {
-  // Check for placeholder URL before attempting request
-  if (supabaseUrl.includes('placeholder')) {
-    console.error('Supabase URL is not configured.')
-    throw new Error('Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL in .env.local and restart the server.')
-  }
-
   const { data, error } = await supabase
     .from('drone_pilots')
     .insert(pilotData)
@@ -743,14 +794,92 @@ export const updateDronePilot = async (id: string, updates: Partial<DronePilot>)
   return data as DronePilot
 }
 
-// Duplicate fragment removed
+export const getDronePilotById = async (id: string) => {
+  const { data, error } = await supabase
+    .from('drone_pilots')
+    .select('*')
+    .eq('id', id)
+    .single()
 
-// Booking functions
-export const createBooking = async (bookingData: Omit<Booking, 'id' | 'created_at' | 'updated_at' | 'pilot' | 'client'>) => {
-  console.log('Creating booking:', bookingData)
+  if (error) throw error
+  return data as DronePilot
+}
+
+// Get nearby pilots within a radius (for chatbot)
+export const getNearbyPilots = async (lat: number, lng: number, radiusKm: number = 50): Promise<DronePilot[]> => {
+  try {
+    // First get all active pilots
+    const { data: pilots, error } = await supabase
+      .from('drone_pilots')
+      .select('*')
+      .eq('is_verified', true)
+      .eq('is_active', true)
+      .order('rating', { ascending: false })
+
+    if (error) throw error
+    if (!pilots) return []
+
+    // Filter by distance (simple haversine calculation)
+    const filteredPilots = pilots.filter(pilot => {
+      if (!pilot.latitude || !pilot.longitude) return true // Include pilots without location
+      const distance = calculateDistance(lat, lng, pilot.latitude, pilot.longitude)
+      return distance <= radiusKm
+    }).map(pilot => ({
+      ...pilot,
+      distance_km: pilot.latitude && pilot.longitude
+        ? Math.round(calculateDistance(lat, lng, pilot.latitude, pilot.longitude) * 10) / 10
+        : null
+    }))
+
+    return filteredPilots as DronePilot[]
+  } catch (error) {
+    console.error('Error getting nearby pilots:', error)
+    return []
+  }
+}
+
+// Haversine distance calculation - exported for use in other components
+export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371 // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLon = (lon2 - lon1) * Math.PI / 180
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return R * c
+}
+
+// Booking interface
+export interface Booking {
+  id?: string
+  client_id: string
+  pilot_id: string
+  service_type: string
+  latitude: number
+  longitude: number
+  // Aliases for backward compatibility with notifications
+  client_location_lat?: number
+  client_location_lng?: number
+  scheduled_at: string
+  duration_hours: number
+  payment_method?: string
+  requirements?: Record<string, any>
+  status?: string
+  total_amount?: number
+  created_at?: string
+}
+
+// Create a booking
+export const createBooking = async (bookingData: Omit<Booking, 'id' | 'created_at'>): Promise<Booking> => {
   const { data, error } = await supabase
     .from('bookings')
-    .insert(bookingData)
+    .insert({
+      ...bookingData,
+      status: 'pending',
+      created_at: new Date().toISOString()
+    })
     .select()
     .single()
 
@@ -758,129 +887,6 @@ export const createBooking = async (bookingData: Omit<Booking, 'id' | 'created_a
     console.error('Error creating booking:', error)
     throw error
   }
+
   return data as Booking
-}
-
-export const getBookingsForUser = async (userId: string, isPilot: boolean = false) => {
-  let query = supabase
-    .from('bookings')
-    .select(`
-      *,
-      pilot:drone_pilots(*),
-      client:users(*)
-    `)
-    .order('scheduled_at', { ascending: true })
-
-  if (isPilot) {
-    // For pilots, we need to find bookings where the pilot_id matches a pilot record owned by this user
-    // This complex query is better handled by RLS, but for client-side filtering (if RLS allows reading all):
-    // Actually, simple way: get pilot ID first
-    const { data: pilot } = await supabase.from('drone_pilots').select('id').eq('user_id', userId).single()
-    if (!pilot) return []
-    query = query.eq('pilot_id', pilot.id)
-  } else {
-    query = query.eq('client_id', userId)
-  }
-
-  const { data, error } = await query
-  if (error) throw error
-  return data as Booking[]
-}
-
-// Helper for finding nearby pilots using PostGIS RPC
-export const getNearbyPilots = async (lat: number, lng: number, radiusKm: number = 10): Promise<DronePilot[]> => {
-  try {
-    // 1. Try PostGIS RPC first
-    const { data: rpcData, error: rpcError } = await supabase.rpc('search_nearby_pilots', {
-      user_lat: lat,
-      user_lng: lng,
-      radius_meters: radiusKm * 1000,
-      service_filter: null
-    })
-
-    if (!rpcError && rpcData) return rpcData as DronePilot[]
-
-    // 2. Fallback to basic fetch if RPC fails
-    console.warn('RPC search failed, falling back to simple fetch:', rpcError)
-    const { data: fetchData, error: fetchError } = await supabase
-      .from('drone_pilots')
-      .select('*')
-      .eq('is_verified', true)
-      .eq('is_active', true)
-
-    if (!fetchError && fetchData && fetchData.length > 0) return fetchData as DronePilot[]
-
-    // 3. Absolute fallback to MOCK data for prototype presentation
-    console.warn('Database search failed, returning MOCK prototypes.')
-    return MOCK_PILOTS
-  } catch (error) {
-    console.error('Critical failure in getNearbyPilots, using MOCK:', error)
-    return MOCK_PILOTS
-  }
-}
-
-const MOCK_PILOTS: DronePilot[] = [
-  {
-    id: 'mock-1',
-    full_name: 'Arjun Verma (Prototype)',
-    email: 'arjun@aerohive.demo',
-    phone: '+91 98765 43210',
-    location: 'Hyderabad, Telangana',
-    area: 'Nizampet',
-    experience: '5 Years',
-    certifications: 'DGCA Category A',
-    specializations: 'Agriculture, Mapping',
-    hourly_rate: 75,
-    about: 'Expert in agricultural drone operations and precision mapping.',
-    dgca_number: 'DGCA-CERT-7821',
-    rating: 4.8,
-    completed_jobs: 142,
-    is_verified: true,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    latitude: 17.5169,
-    longitude: 78.3856,
-    specialization: 'Agriculture'
-  },
-  {
-    id: 'mock-2',
-    full_name: 'Sarah Chen (Prototype)',
-    email: 'sarah@aerohive.demo',
-    phone: '+91 87654 32109',
-    location: 'Hyderabad, Telangana',
-    area: 'Gachibowli',
-    experience: '3 Years',
-    certifications: 'Commercial Pilot License',
-    specializations: 'Cinematography, Events',
-    hourly_rate: 90,
-    about: 'Professional cinematographer specializing in high-end event coverage.',
-    dgca_number: 'DGCA-CERT-9901',
-    rating: 4.9,
-    completed_jobs: 88,
-    is_verified: true,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    latitude: 17.4401,
-    longitude: 78.3489,
-    specialization: 'Cinematography'
-  }
-]
-
-export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371; // Radius of the earth in km
-  const dLat = deg2rad(lat2 - lat1);
-  const dLon = deg2rad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const d = R * c; // Distance in km
-  return d;
-}
-
-export function deg2rad(deg: number): number {
-  return deg * (Math.PI / 180)
 }

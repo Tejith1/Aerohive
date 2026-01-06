@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProductCard } from "@/components/product/product-card"
 import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
+import { ModernFooter } from "@/components/layout/modern-footer"
 import { getAllProducts } from "@/lib/products-data"
 
 // Get products from shared data
@@ -19,7 +19,7 @@ const products = getAllProducts()
 // Categories for filtering
 const categories = [
   "Racing Drones",
-  "Photography Drones", 
+  "Photography Drones",
   "Surveillance Drones",
   "Agricultural Drones",
   "Delivery Drones",
@@ -76,12 +76,12 @@ export default function ProductsPage() {
   // Filter products based on current filters
   const filteredProducts = products.filter(product => {
     // Search query filter
-    const matchesSearch = !searchQuery || 
+    const matchesSearch = !searchQuery ||
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.category.toLowerCase().includes(searchQuery.toLowerCase())
 
     // Category filter
-    const matchesCategory = selectedCategories.length === 0 || 
+    const matchesCategory = selectedCategories.length === 0 ||
       selectedCategories.includes(product.category)
 
     // Feature filter  
@@ -114,7 +114,7 @@ export default function ProductsPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50">
       <Header />
-      
+
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white">
@@ -219,7 +219,7 @@ export default function ProductsPage() {
                           <Checkbox
                             id={category}
                             checked={selectedCategories.includes(category)}
-                            onCheckedChange={(checked) => 
+                            onCheckedChange={(checked) =>
                               handleCategoryChange(category, checked as boolean)
                             }
                           />
@@ -240,7 +240,7 @@ export default function ProductsPage() {
                           <Checkbox
                             id={feature}
                             checked={selectedFeatures.includes(feature)}
-                            onCheckedChange={(checked) => 
+                            onCheckedChange={(checked) =>
                               handleFeatureChange(feature, checked as boolean)
                             }
                           />
@@ -263,7 +263,7 @@ export default function ProductsPage() {
                           type="number"
                           placeholder="0"
                           value={priceRange.min}
-                          onChange={(e) => setPriceRange({...priceRange, min: e.target.value})}
+                          onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
                         />
                       </div>
                       <div>
@@ -273,7 +273,7 @@ export default function ProductsPage() {
                           type="number"
                           placeholder="10000"
                           value={priceRange.max}
-                          onChange={(e) => setPriceRange({...priceRange, max: e.target.value})}
+                          onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
                         />
                       </div>
                     </div>
@@ -293,11 +293,10 @@ export default function ProductsPage() {
           </div>
 
           {/* Products Grid */}
-          <div className={`${
-            viewMode === "grid" 
-              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
+          <div className={`${viewMode === "grid"
+              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
               : "space-y-4"
-          }`}>
+            }`}>
             {sortedProducts.map(product => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -350,7 +349,7 @@ export default function ProductsPage() {
         </section>
       </main>
 
-      <Footer />
+      <ModernFooter />
     </div>
   )
 }

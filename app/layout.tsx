@@ -32,11 +32,12 @@ export default function RootLayout({
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
         <AuthProvider>
           <Suspense fallback={null}>{children}</Suspense>
-          <Toaster />
           <Chatbot />
+          <Toaster />
         </AuthProvider>
         <Analytics />
       </body>
     </html>
   )
 }
+

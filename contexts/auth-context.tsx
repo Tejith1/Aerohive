@@ -12,7 +12,6 @@ interface User {
   last_name: string
   is_admin: boolean
   phone?: string
-  is_active?: boolean
 }
 
 interface AuthContextType {
@@ -45,10 +44,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const handleVisibilityChange = async () => {
       if (document.visibilityState === 'visible') {
         console.log('👁️ Tab became visible, checking session...')
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session && !user) {
-          console.log('🔄 Session exists but user not loaded, refreshing...')
-          await initializeAuth()
+        try {
+          const { data: { session } } = await supabase.auth.getSession()
+          if (session && !user) {
+            console.log('🔄 Session exists but user not loaded, refreshing...')
+            await initializeAuth()
+          }
+        } catch (error) {
+          console.error('❌ Error checking session on visibility change:', error)
         }
       }
     }
@@ -56,6 +59,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [user])
+
+  // Handle online/offline status for connection recovery
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const handleOnline = async () => {
+      console.log('🌐 Network restored, refreshing connection...')
+      try {
+        // Refresh the session first
+        const { data, error } = await supabase.auth.refreshSession()
+        if (error) {
+          console.error('❌ Session refresh failed:', error)
+          // Try to reinitialize auth
+          await initializeAuth()
+        } else if (data.session) {
+          console.log('✅ Session refreshed successfully')
+          await fetchUserProfile()
+        }
+      } catch (error) {
+        console.error('❌ Error recovering connection:', error)
+      }
+    }
+
+    const handleOffline = () => {
+      console.log('📴 Network lost - app will retry when connection is restored')
+    }
+
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
 
   // Initialize auth state
   useEffect(() => {
@@ -109,7 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           await supabase.auth.refreshSession()
         }
       }
-    }, 5000) // Check every 5 seconds (High Performance Mode)
+    }, 30000) // Check every 30 seconds
 
     return () => {
       data.subscription.unsubscribe()
@@ -171,104 +209,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
 
-      if (authError || !authUser) {
+      if (authError) {
+        console.error('❌ Auth user error:', authError)
         setUser(null)
         return
       }
 
-      console.log('🔍 Fetching user profile...', authUser.email)
+      console.log('🔍 Fetching user profile...', authUser?.email)
 
-      // 1. FAST PATH: Open SQL/RLS Access
-      // Try to fetch directly from Supabase client (fastest)
-      // This works if RLS policy "Users can view own profile" exists
-      const { data: directProfile, error: directError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', authUser.id)
-        .single()
+      if (authUser) {
+        // Get user profile from users table with retry logic
+        const { data: userProfile, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', authUser.id)
+          .single()
 
-      if (!directError && directProfile) {
-        console.log('✅ Profile loaded via Direct DB (Fast)')
-        setUser(directProfile)
-        return directProfile
-      }
+        if (error) {
+          console.error('❌ Error fetching user profile:', error)
 
-      // 2. SLOW FALLBACK: Server API
-      // If direct access failed (e.g. strict RLS), use the API which uses Service Role (Admin)
-      console.log('⚠️ Direct fetch failed, falling back to Server API...')
+          // Retry once on connection issues
+          if (retryCount < 1 && (error.message?.includes('Failed to fetch') || error.message?.includes('network'))) {
+            console.log('🔄 Retrying profile fetch...')
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            return fetchUserProfile(retryCount + 1)
+          }
 
-      const profileResponse = await fetch('/api/user/profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: authUser.id,
-          email: authUser.email
-        })
-      })
-
-      const profileResult = await profileResponse.json()
-
-      if (profileResponse.ok && profileResult.profile) {
-        console.log('✅ User profile loaded via API')
-        setUser(profileResult.profile)
-        return profileResult.profile
-      } else {
-        console.warn('❌ Could not load profile from API either.')
-        // Fallback: Create a temporary user object from Auth metadata so they can at least login
-        // This ensures they aren't stuck on "Signing in..." forever
-        const fallbackUser: User = {
-          id: authUser.id,
-          email: authUser.email!,
-          first_name: authUser.user_metadata?.first_name || 'User',
-          last_name: authUser.user_metadata?.last_name || '',
-          is_admin: false, // Default to false for safety
-          phone: authUser.phone
+          // If profile doesn't exist, user might need to complete registration
+          return
         }
-        setUser(fallbackUser)
-        return fallbackUser
-      }
 
-    } catch (error) {
-      console.error('❌ Error in fetchUserProfile:', error)
-      if (retryCount < 1) {
-        // Retry logic...
+        console.log('✅ User profile loaded:', userProfile?.email)
+        setUser(userProfile)
+      } else {
+        console.log('❌ No auth user found')
+        setUser(null)
       }
-      return null
+    } catch (error) {
+      console.error('❌ Error fetching user profile:', error)
+
+      // Retry once on network errors
+      if (retryCount < 1) {
+        console.log('🔄 Retrying profile fetch due to error...')
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        return fetchUserProfile(retryCount + 1)
+      }
     }
   }
 
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true)
-
-      // CHECK FOR DEMO MODE (Missing connection or Placeholder values)
-      const isDemoConfig =
-        !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-        !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-        process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://placeholder.supabase.co' ||
-        process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-project-id') ||
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('your-anon-key');
-
-      if (isDemoConfig) {
-        console.warn('⚠️ Demo Mode: Simulating login...')
-        const demoUser: User = {
-          id: 'demo-user-id',
-          email: email,
-          first_name: 'Demo',
-          last_name: 'User',
-          is_admin: email.includes('admin'),
-          phone: '',
-          is_active: true
-        }
-        setUser(demoUser)
-        toast({
-          title: "Demo Login Successful",
-          description: "You are logged in via Demo Mode (No backend connected)",
-          className: "border-yellow-200 bg-yellow-50 text-yellow-900",
-        })
-        router.push(demoUser.is_admin ? '/admin' : '/')
-        return
-      }
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -310,24 +301,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error
       }
 
-      // Fetch user profile (uses optimized path)
+      // Fetch user profile to check role
       if (data.user) {
-        const userProfile = await fetchUserProfile()
+        const { data: userProfile, error: profileError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', data.user.id)
+          .single()
 
-        if (userProfile) {
+        if (!profileError && userProfile) {
+          setUser(userProfile)
+
+          // Show welcome toast immediately
           toast({
             title: userProfile.is_admin ? "Welcome back, Admin!" : "Welcome back!",
             description: `Signed in as ${userProfile.first_name} ${userProfile.last_name}`,
             className: "border-green-200 bg-green-50 text-green-900",
             duration: 3000,
           })
-          router.push(userProfile.is_admin ? '/admin' : '/')
+
+          // Redirect based on user role
+          if (userProfile.is_admin) {
+            router.push('/admin')
+          } else {
+            router.push('/')
+          }
         } else {
-          // Fallback redirect if profile fetch failed completely but auth passed
-          router.push('/')
+          // If profile doesn't exist, create it
+          const { error: createProfileError } = await supabase
+            .from('users')
+            .insert({
+              id: data.user.id,
+              email: data.user.email!,
+              password_hash: 'managed_by_supabase_auth',
+              first_name: data.user.user_metadata?.first_name || 'User',
+              last_name: data.user.user_metadata?.last_name || '',
+              is_admin: data.user.email === 'admin1@gmail.com' || data.user.email === 'admin@aerohive.com',
+              is_active: true
+            })
+
+          if (!createProfileError) {
+            // Fetch the newly created profile
+            const { data: newProfile } = await supabase
+              .from('users')
+              .select('*')
+              .eq('id', data.user.id)
+              .single()
+
+            if (newProfile) {
+              setUser(newProfile)
+              router.push(newProfile.is_admin ? '/admin' : '/')
+            }
+          }
         }
-      } else {
-        throw new Error('Authentication succeeded but no user returned')
       }
     } catch (error: any) {
       console.error('Login error:', error)
@@ -461,7 +487,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',

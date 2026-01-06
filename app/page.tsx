@@ -168,9 +168,9 @@ export default function HomePage() {
           description="From advanced racing drones to professional aerial photography systems, discover our complete range of cutting-edge drones designed for enthusiasts and professionals alike."
           primaryButtonText="Explore Drones"
           primaryButtonHref="/products"
-          secondaryButtonText="Our Services"
-          secondaryButtonHref="/drone-services"
-          backgroundImage="/WhatsApp Image 2025-10-24 at 09.33.29_68a8851c.jpg"
+          secondaryButtonText="Watch Demo"
+          secondaryButtonHref="/demo"
+          backgroundImage="/hero-drone.jpg"
           stats={[
             { label: "Drone Models", value: "200+" },
             { label: "Pilots Served", value: "25K+" },
@@ -344,18 +344,12 @@ export default function HomePage() {
                       className="h-full w-full object-contain p-2"
                     />
                   </div>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Pilot Services</h3>
-                  <div className="text-gray-600 leading-relaxed text-sm mb-6 space-y-2">
-                    <p className="font-semibold text-blue-600">Specialized Operations:</p>
-                    <ul className="grid grid-cols-2 gap-2 text-left px-4">
-                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Surveying</li>
-                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Spraying</li>
-                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> 3D Mapping</li>
-                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Inspections</li>
-                    </ul>
-                  </div>
+                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Drone Services</h3>
+                  <p className="text-gray-600 leading-relaxed text-lg mb-6">
+                    Professional drone services including aerial photography, mapping, surveying, and custom operations.
+                  </p>
                   <Button variant="outline" className="border-2 border-blue-200 text-blue-600 hover:bg-blue-50 rounded-xl" asChild>
-                    <Link href="/drone-services">Explore Services</Link>
+                    <Link href="/drone-services">Learn More</Link>
                   </Button>
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-indigo-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
                 </CardContent>
@@ -366,18 +360,12 @@ export default function HomePage() {
                   <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
                     <Settings className="h-10 w-10 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Drone Care</h3>
-                  <div className="text-gray-600 leading-relaxed text-sm mb-6 space-y-2">
-                    <p className="font-semibold text-purple-600">Maintenance & Repair:</p>
-                    <ul className="text-left px-4 space-y-1">
-                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-purple-500" /> General Checkups</li>
-                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-purple-500" /> Comprehensive Service</li>
-                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-purple-500" /> Firmware Updates</li>
-                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-purple-500" /> Diagnostic Testing</li>
-                    </ul>
-                  </div>
+                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Repair Services</h3>
+                  <p className="text-gray-600 leading-relaxed text-lg mb-6">
+                    Expert repair services and maintenance programs to keep your drones flying at peak performance.
+                  </p>
                   <Button variant="outline" className="border-2 border-purple-200 text-purple-600 hover:bg-purple-50 rounded-xl" asChild>
-                    <Link href="/repair-services">Book Service</Link>
+                    <Link href="/repair-services">Learn More</Link>
                   </Button>
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 to-pink-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
                 </CardContent>
@@ -385,23 +373,17 @@ export default function HomePage() {
 
               <Card className="group bg-white border-0 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
                 <CardContent className="p-8 text-center relative">
-                  <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                    <Shield className="h-10 w-10 text-white" />
+                  <div className="w-20 h-20 bg-gradient-to-br from-green-600 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <Users className="h-10 w-10 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Custom & Defense</h3>
-                  <div className="text-gray-600 leading-relaxed text-sm mb-6 space-y-2">
-                    <p className="font-semibold text-orange-600">Advanced Solutions:</p>
-                    <ul className="text-left px-4 space-y-1">
-                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-orange-500" /> Defence Applications</li>
-                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-orange-500" /> Custom Drone Building</li>
-                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-orange-500" /> Multi-industry Solutions</li>
-                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-orange-500" /> Tactical Modifications</li>
-                    </ul>
-                  </div>
-                  <Button variant="outline" className="border-2 border-orange-200 text-orange-600 hover:bg-orange-50 rounded-xl" asChild>
-                    <Link href="/repair-services?filter=custom">Custom Solutions</Link>
+                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Training & Certification</h3>
+                  <p className="text-gray-600 leading-relaxed text-lg mb-6">
+                    Comprehensive training programs and certifications from licensed pilots and aviation experts.
+                  </p>
+                  <Button variant="outline" className="border-2 border-green-200 text-green-600 hover:bg-green-50 rounded-xl" asChild>
+                    <Link href="/training">Learn More</Link>
                   </Button>
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-red-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-600 to-emerald-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
                 </CardContent>
               </Card>
             </div>

@@ -3,7 +3,7 @@ import { CheckCircle, Package, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
+import { ModernFooter } from "@/components/layout/modern-footer"
 
 export default function CheckoutSuccessPage() {
   // In a real app, you'd get the order details from the URL params or API
@@ -78,7 +78,7 @@ export default function CheckoutSuccessPage() {
         </div>
       </main>
 
-      <Footer />
+      <ModernFooter />
     </div>
   )
 }

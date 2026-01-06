@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
+import { ModernFooter } from "@/components/layout/modern-footer"
 import Link from "next/link"
 import { getProducts, Product } from "@/lib/supabase"
 import { notFound } from "next/navigation"
@@ -32,11 +32,11 @@ export default function ProductDetailPage() {
       setIsLoading(true)
       const products = await getProducts({ active: true })
       const foundProduct = products.find(p => p.slug === params.slug)
-      
+
       if (!foundProduct) {
         notFound()
       }
-      
+
       setProduct(foundProduct)
     } catch (error) {
       console.error('Error loading product:', error)
@@ -67,7 +67,7 @@ export default function ProductDetailPage() {
             </div>
           </div>
         </main>
-        <Footer />
+        <ModernFooter />
       </div>
     )
   }
@@ -156,18 +156,17 @@ export default function ProductDetailPage() {
                 </Badge>
               )}
             </div>
-            
+
             {allImages.length > 1 && (
               <div className="grid grid-cols-4 gap-2">
                 {allImages.map((image, index) => (
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
-                    className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                      selectedImage === index
+                    className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${selectedImage === index
                         ? "border-primary shadow-md"
                         : "border-gray-200 hover:border-gray-300"
-                    }`}
+                      }`}
                   >
                     <img
                       src={image || "/placeholder.svg"}
@@ -193,11 +192,10 @@ export default function ProductDetailPage() {
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star
                       key={star}
-                      className={`h-4 w-4 ${
-                        star <= (product.average_rating || 4.5)
+                      className={`h-4 w-4 ${star <= (product.average_rating || 4.5)
                           ? "text-yellow-400 fill-current"
                           : "text-gray-300"
-                      }`}
+                        }`}
                     />
                   ))}
                   <span className="text-sm text-muted-foreground ml-2">
@@ -205,9 +203,9 @@ export default function ProductDetailPage() {
                   </span>
                 </div>
               </div>
-              
+
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
-              
+
               <p className="text-gray-600 mb-4">
                 {product.short_description || product.description}
               </p>
@@ -419,7 +417,7 @@ export default function ProductDetailPage() {
                       <div className="flex justify-between items-center py-3 border-b border-gray-200">
                         <span className="text-gray-600">Dimensions</span>
                         <span className="font-semibold text-gray-900">
-                          {product.dimensions && (product.dimensions.length && product.dimensions.width && product.dimensions.height) 
+                          {product.dimensions && (product.dimensions.length && product.dimensions.width && product.dimensions.height)
                             ? `${product.dimensions.length}mm × ${product.dimensions.width}mm × ${product.dimensions.height}mm`
                             : product.specifications?.dimensions || 'N/A'
                           }
@@ -522,13 +520,13 @@ export default function ProductDetailPage() {
                     <div className="grid md:grid-cols-3 gap-4">
                       {Object.entries(product.specifications).map(([key, value]) => {
                         // Skip already displayed fields
-                        const skipFields = ['flight_time', 'max_speed', 'range', 'max_altitude', 'wind_resistance', 
-                                          'battery_capacity', 'charging_time', 'dimensions', 'camera_resolution', 
-                                          'video_resolution', 'gimbal_type', 'photo_modes', 'return_to_home', 
-                                          'follow_me_mode', 'intelligent_flight_modes', 'controller_range', 'operating_temperature'];
-                        
+                        const skipFields = ['flight_time', 'max_speed', 'range', 'max_altitude', 'wind_resistance',
+                          'battery_capacity', 'charging_time', 'dimensions', 'camera_resolution',
+                          'video_resolution', 'gimbal_type', 'photo_modes', 'return_to_home',
+                          'follow_me_mode', 'intelligent_flight_modes', 'controller_range', 'operating_temperature'];
+
                         if (skipFields.includes(key)) return null;
-                        
+
                         return (
                           <div key={key} className="bg-gray-50 p-4 rounded-lg">
                             <div className="text-sm text-gray-600 mb-1">
@@ -597,7 +595,7 @@ export default function ProductDetailPage() {
         </Tabs>
       </main>
 
-      <Footer />
+      <ModernFooter />
     </div>
   )
 }

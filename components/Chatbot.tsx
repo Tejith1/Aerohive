@@ -348,7 +348,7 @@ export default function Chatbot() {
                 body: JSON.stringify({
                     client_id: currentUser.id,
                     pilot_id: pilot.id,
-                    service_type: pilot.specialization || pilot.specializations || "General",
+                    service_type: pilot.specializations || "General",
                     lat: userLocation.lat,
                     lng: userLocation.lng,
                     scheduled_at: new Date().toISOString(),

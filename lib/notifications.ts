@@ -1,12 +1,12 @@
 import { Booking, DronePilot, User } from './supabase'
 
 export const sendBookingNotification = async (booking: Booking, pilot: DronePilot, clientDetails: { name: string, phone: string }) => {
-    // In a real application, this would call an API like Twilio or a server-side route
-    // For now, we simulate this by logging to the console (which would appear in server logs if this were server-side)
+  // In a real application, this would call an API like Twilio or a server-side route
+  // For now, we simulate this by logging to the console (which would appear in server logs if this were server-side)
 
-    const formattedDate = new Date(booking.scheduled_at).toLocaleString()
+  const formattedDate = new Date(booking.scheduled_at).toLocaleString()
 
-    const clientMessage = `
+  const clientMessage = `
   🚁 DRONE SERVICE BOOKING CONFIRMED!
   
   Hello ${clientDetails.name},
@@ -20,7 +20,7 @@ export const sendBookingNotification = async (booking: Booking, pilot: DronePilo
   You will meet at your requested location.
   `
 
-    const pilotMessage = `
+  const pilotMessage = `
   🚁 NEW JOB ALERT!
   
   Hello ${pilot.full_name},
@@ -29,16 +29,16 @@ export const sendBookingNotification = async (booking: Booking, pilot: DronePilo
   👤 Client: ${clientDetails.name}
   📅 Date: ${formattedDate}
   ⏱ Duration: ${booking.duration_hours} hours
-  📍 Location: ${booking.client_location_lat}, ${booking.client_location_lng}
+  📍 Location: ${booking.latitude}, ${booking.longitude}
   💰 Earning: $${booking.total_amount}
   
   Please accept via your dashboard.
   `
 
-    console.log('--- MOCK WHATSAPP/SMS NOTIFICATION SERVICE ---')
-    console.log(`TO CLIENT (${clientDetails.phone}):\n${clientMessage}`)
-    console.log(`TO PILOT (${pilot.phone}):\n${pilotMessage}`)
-    console.log('----------------------------------------------')
+  console.log('--- MOCK WHATSAPP/SMS NOTIFICATION SERVICE ---')
+  console.log(`TO CLIENT (${clientDetails.phone}):\n${clientMessage}`)
+  console.log(`TO PILOT (${pilot.phone}):\n${pilotMessage}`)
+  console.log('----------------------------------------------')
 
-    return { success: true, timestamp: new Date().toISOString() }
+  return { success: true, timestamp: new Date().toISOString() }
 }

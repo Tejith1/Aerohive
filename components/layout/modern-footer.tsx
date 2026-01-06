@@ -4,14 +4,14 @@ import React from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { 
-  ArrowRight, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Facebook, 
-  Twitter, 
-  Instagram, 
+import {
+  ArrowRight,
+  Mail,
+  Phone,
+  MapPin,
+  Facebook,
+  Twitter,
+  Instagram,
   Youtube,
   Linkedin,
   Plane,
@@ -26,31 +26,31 @@ export function ModernFooter() {
   const footerLinks = {
     products: [
       { href: "/products", label: "All Drones" },
-      { href: "/categories/professional", label: "Professional Drones" },
-      { href: "/categories/racing", label: "Racing Drones" },
-      { href: "/categories/photography", label: "Photography Drones" },
-      { href: "/categories/accessories", label: "Accessories" },
+      { href: "/products?category=professional", label: "Professional Drones" },
+      { href: "/products?category=racing", label: "Racing Drones" },
+      { href: "/products?category=photography", label: "Photography Drones" },
+      { href: "/products?category=accessories", label: "Accessories" },
     ],
     services: [
       { href: "/drone-services", label: "Drone Services" },
       { href: "/repair-services", label: "Repair & Maintenance" },
       { href: "/training", label: "Training Programs" },
-      { href: "/support", label: "Technical Support" },
-      { href: "/warranty", label: "Warranty" },
+      { href: "/contact", label: "Technical Support" },
+      { href: "/contact", label: "Warranty Inquiries" },
     ],
     company: [
       { href: "/about", label: "About AeroHive" },
       { href: "/contact", label: "Contact Us" },
-      { href: "/careers", label: "Careers" },
-      { href: "/press", label: "Press Kit" },
-      { href: "/blog", label: "Blog" },
+      { href: "/drone-pilots", label: "Become a Pilot" },
+      { href: "/drone-pilots/register", label: "Partner With Us" },
+      { href: "/products", label: "Our Products" },
     ],
     support: [
-      { href: "/help", label: "Help Center" },
-      { href: "/shipping", label: "Shipping Info" },
-      { href: "/returns", label: "Returns & Refunds" },
-      { href: "/privacy", label: "Privacy Policy" },
-      { href: "/terms", label: "Terms of Service" },
+      { href: "/contact", label: "Help Center" },
+      { href: "/contact", label: "Shipping Info" },
+      { href: "/contact", label: "Returns & Refunds" },
+      { href: "/contact", label: "Privacy Policy" },
+      { href: "/contact", label: "Terms of Service" },
     ],
   }
 
@@ -77,7 +77,7 @@ export function ModernFooter() {
             <p className="text-xl text-gray-300 mb-8 leading-relaxed">
               Get exclusive access to new drone releases, expert tips, and special offers for aviation enthusiasts.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto mb-6">
               <Input
                 type="email"
@@ -89,7 +89,7 @@ export function ModernFooter() {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
-            
+
             <p className="text-sm text-gray-400">
               Join 50,000+ drone pilots worldwide. Unsubscribe anytime.
             </p>
@@ -113,9 +113,9 @@ export function ModernFooter() {
                 <span className="text-sm text-gray-400 font-medium -mt-1">Professional Drones</span>
               </div>
             </div>
-            
+
             <p className="text-gray-300 leading-relaxed mb-6">
-              Leading provider of professional-grade drones and aviation solutions. 
+              Leading provider of professional-grade drones and aviation solutions.
               Trusted by pilots worldwide for cutting-edge technology and exceptional support.
             </p>
 
@@ -157,8 +157,8 @@ export function ModernFooter() {
             <h3 className="font-bold text-lg mb-6 text-white">Products</h3>
             <ul className="space-y-3">
               {footerLinks.products.map((link) => (
-                <li key={link.href}>
-                  <Link 
+                <li key={link.label}>
+                  <Link
                     href={link.href}
                     className="text-gray-300 hover:text-blue-400 transition-colors duration-200 text-sm"
                   >
@@ -174,8 +174,8 @@ export function ModernFooter() {
             <h3 className="font-bold text-lg mb-6 text-white">Services</h3>
             <ul className="space-y-3">
               {footerLinks.services.map((link) => (
-                <li key={link.href}>
-                  <Link 
+                <li key={link.label}>
+                  <Link
                     href={link.href}
                     className="text-gray-300 hover:text-blue-400 transition-colors duration-200 text-sm"
                   >
@@ -191,8 +191,8 @@ export function ModernFooter() {
             <h3 className="font-bold text-lg mb-6 text-white">Company</h3>
             <ul className="space-y-3">
               {footerLinks.company.map((link) => (
-                <li key={link.href}>
-                  <Link 
+                <li key={link.label}>
+                  <Link
                     href={link.href}
                     className="text-gray-300 hover:text-blue-400 transition-colors duration-200 text-sm"
                   >
@@ -208,8 +208,8 @@ export function ModernFooter() {
             <h3 className="font-bold text-lg mb-6 text-white">Support</h3>
             <ul className="space-y-3">
               {footerLinks.support.map((link) => (
-                <li key={link.href}>
-                  <Link 
+                <li key={link.label}>
+                  <Link
                     href={link.href}
                     className="text-gray-300 hover:text-blue-400 transition-colors duration-200 text-sm"
                   >
@@ -253,17 +253,17 @@ export function ModernFooter() {
 
           {/* Additional Links */}
           <div className="flex flex-wrap justify-center md:justify-start gap-6 mt-6 pt-6 border-t border-gray-800">
-            <Link href="/sitemap" className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
-              Sitemap
+            <Link href="/products" className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
+              Products
             </Link>
-            <Link href="/accessibility" className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
-              Accessibility
+            <Link href="/drone-services" className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
+              Services
             </Link>
-            <Link href="/security" className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
-              Security
+            <Link href="/about" className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
+              About Us
             </Link>
-            <Link href="/cookies" className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
-              Cookie Policy
+            <Link href="/contact" className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
+              Contact
             </Link>
           </div>
         </div>
