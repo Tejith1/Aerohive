@@ -9,7 +9,7 @@ const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabase
 // Generate booking ID with hashtag format
 function generateBookingId(): string {
     const num = Math.floor(1000 + Math.random() * 9000)
-    return `#AH-${num}`
+    return `AH-${num}`
 }
 
 // Generate random 4-digit OTP

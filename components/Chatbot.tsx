@@ -64,7 +64,9 @@ export default function Chatbot() {
     const startTracking = (bookingId: string) => {
         if (socketRef.current) socketRef.current.close()
 
-        const wsUrl = `ws://localhost:8000/ws/tracking/${bookingId}`
+        // Sanitize bookingId to remove any '#' or fragments that might break WebSocket construction
+        const sanitizedId = bookingId.replace('#', '')
+        const wsUrl = `ws://localhost:8000/ws/tracking/${sanitizedId}`
         const ws = new WebSocket(wsUrl)
 
         ws.onmessage = (event) => {
@@ -379,11 +381,17 @@ export default function Chatbot() {
                         </div>
 
                         <div className="h-[220px] w-full rounded-md overflow-hidden border bg-muted/20">
-                            <MissionMap
-                                pilotLocation={trackingData || { lat: pilot.latitude || 28.6139, lng: pilot.longitude || 77.2090 }}
-                                clientLocation={userLocation}
-                                bookingId={bookingDataRes.booking_id}
-                            />
+                            {userLocation && (trackingData || (pilot.latitude && pilot.longitude) || (pilot.latitude === undefined && pilot.longitude === undefined)) ? (
+                                <MissionMap
+                                    pilotLocation={trackingData || { lat: pilot.latitude || 17.3850, lng: pilot.longitude || 78.4867 }}
+                                    clientLocation={userLocation}
+                                    bookingId={bookingDataRes.booking_id}
+                                />
+                            ) : (
+                                <div className="h-full w-full flex items-center justify-center text-[10px] text-muted-foreground animate-pulse">
+                                    Establishing Secure Uplink...
+                                </div>
+                            )}
                         </div>
 
                         <Button variant="outline" size="sm" className="w-full flex items-center gap-2" onClick={() => setIsOpen(false)}>

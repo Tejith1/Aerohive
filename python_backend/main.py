@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
-from workflow import workflow_engine, supabase
+from workflow import workflow_engine, supabase, model
 import json
 import asyncio
 from datetime import datetime
@@ -145,17 +145,54 @@ manager = ConnectionManager()
 async def tracking_websocket(websocket: WebSocket, booking_id: str):
     # Production Auth Check would go here
     await manager.connect(websocket, booking_id)
+    
+    # Pre-select some random mock locations for simulation (moving slightly)
+    # Start near common user areas
+    base_lat, base_lng = 17.5169, 78.3856 # Default Nizampet
+    
+    simulation_task = None
+    
+    async def simulate_movement():
+        try:
+            curr_lat, curr_lng = base_lat, base_lng
+            while True:
+                # Move drone slightly closer or around
+                curr_lat += (random.random() - 0.5) * 0.001
+                curr_lng += (random.random() - 0.5) * 0.001
+                
+                await manager.broadcast_tracking(booking_id, {
+                    "booking_id": booking_id,
+                    "timestamp": datetime.now().isoformat(),
+                    "location": {"lat": curr_lat, "lng": curr_lng},
+                    "status": "in_transit"
+                })
+                await asyncio.sleep(3) # Update every 3 seconds
+        except asyncio.CancelledError:
+            pass
+        except Exception as e:
+            print(f"Simulation Error: {e}")
+
+    # Start simulation in background
+    import random
+    simulation_task = asyncio.create_task(simulate_movement())
+    
     try:
         while True:
-            # Wait for pilot pings (in a real app, this might come from a different source)
+            # Wait for any incoming messages (like client manual pings)
             data = await websocket.receive_text()
-            # Simple simulation: echo back with timestamps
-            await manager.broadcast_tracking(booking_id, {
-                "booking_id": booking_id,
-                "timestamp": datetime.now().isoformat(),
-                "location": json.loads(data)
-            })
+            try:
+                location = json.loads(data)
+                await manager.broadcast_tracking(booking_id, {
+                    "booking_id": booking_id,
+                    "timestamp": datetime.now().isoformat(),
+                    "location": location,
+                    "status": "custom_ping"
+                })
+            except json.JSONDecodeError:
+                pass # Ignore malformed pings
     except WebSocketDisconnect:
+        if simulation_task:
+            simulation_task.cancel()
         manager.disconnect(websocket, booking_id)
 
 @app.get("/api/health")
