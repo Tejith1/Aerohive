@@ -116,7 +116,9 @@ async function searchPilots(lat: number, lng: number, radiusKm: number, category
             location: pilot.location,
             area: pilot.area,
             experience: pilot.experience,
-            completed_jobs: pilot.completed_jobs || 0
+            completed_jobs: pilot.completed_jobs || 0,
+            latitude: pilot.latitude,
+            longitude: pilot.longitude
         }))
     } catch (error) {
         console.error('SEARCH ERROR:', error)

@@ -56,7 +56,7 @@ const insurancePlans: InsurancePlan[] = [
     },
     benefits: [
       "Accidental damage coverage",
-      "Fire and natural disaster protection", 
+      "Fire and natural disaster protection",
       "Basic water damage protection",
       "Email support within 48h"
     ],
@@ -74,7 +74,7 @@ const insurancePlans: InsurancePlan[] = [
   {
     id: "standard",
     name: "Standard Shield",
-    type: "standard", 
+    type: "standard",
     pricePercentage: 8,
     duration: 12,
     coverage: {
@@ -96,7 +96,7 @@ const insurancePlans: InsurancePlan[] = [
       "Phone support during business hours"
     ],
     exclusions: [
-      "Commercial use", 
+      "Commercial use",
       "International coverage",
       "Data recovery services"
     ],
@@ -220,21 +220,19 @@ export default function DroneInsurance({ dronePrice, onInsuranceSelect }: DroneI
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">Protect Your Investment</h2>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Choose comprehensive insurance coverage to safeguard your drone against accidents, theft, and damage. 
+          Choose comprehensive insurance coverage to safeguard your drone against accidents, theft, and damage.
           Get peace of mind with professional support and quick claims processing.
         </p>
       </div>
 
       {/* No Insurance Option */}
-      <Card className={`mb-6 cursor-pointer transition-all duration-200 ${
-        selectedPlan === null ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-      }`} onClick={() => handlePlanSelect(null)}>
+      <Card className={`mb-6 cursor-pointer transition-all duration-200 ${selectedPlan === null ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+        }`} onClick={() => handlePlanSelect(null)}>
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                selectedPlan === null ? "border-red-500 bg-red-500" : "border-gray-300"
-              }`}>
+              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedPlan === null ? "border-red-500 bg-red-500" : "border-gray-300"
+                }`}>
                 {selectedPlan === null && <div className="w-2 h-2 bg-white rounded-full" />}
               </div>
               <div>
@@ -257,11 +255,10 @@ export default function DroneInsurance({ dronePrice, onInsuranceSelect }: DroneI
           const monthlyPrice = Math.round((dronePrice * plan.pricePercentage) / 100 / plan.duration)
 
           return (
-            <Card 
+            <Card
               key={plan.id}
-              className={`relative cursor-pointer transition-all duration-200 ${
-                isSelected ? getSelectedColor(plan.type) : getPlanColor(plan.type)
-              } hover:shadow-lg`}
+              className={`relative cursor-pointer transition-all duration-200 ${isSelected ? getSelectedColor(plan.type) : getPlanColor(plan.type)
+                } hover:shadow-lg`}
               onClick={() => handlePlanSelect(plan.id)}
             >
               {plan.popular && (
@@ -273,23 +270,22 @@ export default function DroneInsurance({ dronePrice, onInsuranceSelect }: DroneI
               )}
 
               <CardHeader className="text-center pb-4">
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mx-auto mb-3 ${
-                  isSelected 
+                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mx-auto mb-3 ${isSelected
                     ? plan.type === 'basic' ? "border-gray-500 bg-gray-500"
                       : plan.type === 'standard' ? "border-blue-500 bg-blue-500"
-                      : plan.type === 'premium' ? "border-purple-500 bg-purple-500"
-                      : "border-yellow-500 bg-yellow-500"
+                        : plan.type === 'premium' ? "border-purple-500 bg-purple-500"
+                          : "border-yellow-500 bg-yellow-500"
                     : "border-gray-300"
-                }`}>
+                  }`}>
                   {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
                 </div>
-                
+
                 <CardTitle className="text-xl mb-2">{plan.name}</CardTitle>
                 <div className="text-3xl font-bold text-gray-900">
                   {formatPrice(plan.pricePercentage)}
                 </div>
                 <div className="text-sm text-gray-500">
-                  ${monthlyPrice}/month for {plan.duration} months
+                  ₹{monthlyPrice}/month for {plan.duration} months
                 </div>
               </CardHeader>
 
@@ -339,7 +335,7 @@ export default function DroneInsurance({ dronePrice, onInsuranceSelect }: DroneI
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Deductible</span>
-                      <span className="font-medium">${plan.deductible}</span>
+                      <span className="font-medium">₹{plan.deductible}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Response Time</span>

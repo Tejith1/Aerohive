@@ -235,6 +235,17 @@ export interface DronePilot {
   updated_at: string
 }
 
+export interface Notification {
+  id: string
+  user_id: string
+  title: string
+  message: string
+  type: 'info' | 'success' | 'warning' | 'error' | 'booking' | 'order'
+  link?: string | null
+  is_read: boolean
+  created_at: string
+}
+
 // Auth functions
 export const signUp = async (email: string, password: string, firstName: string, lastName: string, phone?: string) => {
   const { data, error } = await supabase.auth.signUp({
@@ -857,17 +868,16 @@ export interface Booking {
   client_id: string
   pilot_id: string
   service_type: string
-  latitude: number
-  longitude: number
-  // Aliases for backward compatibility with notifications
-  client_location_lat?: number
-  client_location_lng?: number
+  client_location_lat: number
+  client_location_lng: number
   scheduled_at: string
   duration_hours: number
   payment_method?: string
   requirements?: Record<string, any>
   status?: string
   total_amount?: number
+  booking_reference: string
+  otp_code?: string
   created_at?: string
 }
 
@@ -877,7 +887,7 @@ export const createBooking = async (bookingData: Omit<Booking, 'id' | 'created_a
     .from('bookings')
     .insert({
       ...bookingData,
-      status: 'pending',
+      status: 'confirmed',
       created_at: new Date().toISOString()
     })
     .select()
@@ -888,5 +898,78 @@ export const createBooking = async (bookingData: Omit<Booking, 'id' | 'created_a
     throw error
   }
 
+  // Create an automatic notification for the booking
+  try {
+    await createNotification({
+      user_id: bookingData.client_id,
+      title: 'Booking Confirmed!',
+      message: `Your mission for ${bookingData.service_type} has been scheduled for ${new Date(bookingData.scheduled_at).toLocaleString()}.`,
+      type: 'booking',
+      link: `/account/bookings`
+    })
+  } catch (notifyError) {
+    console.error('Failed to create booking notification:', notifyError)
+    // Don't throw, we don't want to break the booking if notification fails
+  }
+
   return data as Booking
+}
+
+// Notification functions
+export const getNotifications = async (userId: string, limit: number = 20) => {
+  const { data, error } = await supabase
+    .from('notifications')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+
+  if (error) {
+    console.error('Error fetching notifications:', error)
+    return []
+  }
+  return data as Notification[]
+}
+
+export const markNotificationAsRead = async (id: string) => {
+  const { error } = await supabase
+    .from('notifications')
+    .update({ is_read: true })
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error marking notification as read:', error)
+    throw error
+  }
+}
+
+export const markAllNotificationsAsRead = async (userId: string) => {
+  const { error } = await supabase
+    .from('notifications')
+    .update({ is_read: true })
+    .eq('user_id', userId)
+    .eq('is_read', false)
+
+  if (error) {
+    console.error('Error marking all notifications as read:', error)
+    throw error
+  }
+}
+
+export const createNotification = async (notification: Omit<Notification, 'id' | 'created_at' | 'is_read'>) => {
+  const { data, error } = await supabase
+    .from('notifications')
+    .insert({
+      ...notification,
+      is_read: false,
+      created_at: new Date().toISOString()
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating notification:', error)
+    throw error
+  }
+  return data as Notification
 }

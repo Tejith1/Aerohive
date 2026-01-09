@@ -84,7 +84,6 @@ async def create_booking(req: BookingRequest):
         if supabase:
             # 1. Insert Booking
             res = supabase.table('bookings').insert({
-                "id": booking_id,
                 "client_id": req.client_id,
                 "pilot_id": req.pilot_id,
                 "service_type": req.service_type,
@@ -92,7 +91,10 @@ async def create_booking(req: BookingRequest):
                 "scheduled_at": req.scheduled_at,
                 "duration_hours": req.duration_hours,
                 "payment_method": req.payment_method,
-                "requirements": req.requirements
+                "requirements": req.requirements,
+                "client_location_lat": req.lat,
+                "client_location_lng": req.lng,
+                "booking_reference": booking_id
             }).execute()
 
             # 2. Trigger Notifications (In background)

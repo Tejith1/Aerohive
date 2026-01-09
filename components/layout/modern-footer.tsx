@@ -143,11 +143,11 @@ export function ModernFooter() {
               </div>
               <div className="flex items-center space-x-3 text-gray-300">
                 <Phone className="h-5 w-5 text-green-400" />
-                <span>+1 (555) 123-4567</span>
+                <span>+91 7075894588, +91 9032390289</span>
               </div>
               <div className="flex items-center space-x-3 text-gray-300">
                 <MapPin className="h-5 w-5 text-red-400" />
-                <span>San Francisco, CA</span>
+                <span>HYDERABAD, TELANGANA, INDIA - 500090</span>
               </div>
             </div>
           </div>

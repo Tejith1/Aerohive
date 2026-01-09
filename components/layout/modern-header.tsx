@@ -5,12 +5,12 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { 
-  ShoppingCart, 
-  User, 
-  LogOut, 
-  Menu, 
-  X, 
+import {
+  ShoppingCart,
+  User,
+  LogOut,
+  Menu,
+  X,
   ChevronDown,
   Search,
   Bell,
@@ -20,6 +20,7 @@ import {
 } from "lucide-react"
 import { useCartStore } from "@/lib/cart-store"
 import { useAuth } from "@/contexts/auth-context"
+import { NotificationDropdown } from "./notification-dropdown"
 
 export function ModernHeader() {
   const { getTotalItems } = useCartStore()
@@ -53,23 +54,23 @@ export function ModernHeader() {
   }
 
   const navigationLinks = [
-    { 
-      href: "/products", 
+    {
+      href: "/products",
       label: "Products",
       description: "Browse our drone collection"
     },
-    { 
-      href: "/categories", 
+    {
+      href: "/categories",
       label: "Categories",
       description: "Shop by category"
     },
-    { 
-      href: "/drone-pilots", 
+    {
+      href: "/drone-pilots",
       label: "Drone Pilots",
       description: "Find certified drone operators"
     },
-    { 
-      href: "#", 
+    {
+      href: "#",
       label: "Services",
       hasDropdown: true,
       dropdownItems: [
@@ -78,42 +79,41 @@ export function ModernHeader() {
         { href: "/training", label: "Training", icon: User }
       ]
     },
-    { 
-      href: "/about", 
+    {
+      href: "/about",
       label: "About",
       description: "Our story and mission"
     },
-    { 
-      href: "/contact", 
+    {
+      href: "/contact",
       label: "Contact",
       description: "Get in touch"
     }
   ]
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      scrolled 
-        ? 'bg-white/95 backdrop-blur-lg shadow-lg border-b border-gray-200/50' 
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
+        ? 'bg-white/95 backdrop-blur-lg shadow-lg border-b border-gray-200/50'
         : 'bg-white/80 backdrop-blur-md'
-    }`}>
+      }`}>
       <div className="container mx-auto px-4">
         <div className="flex h-20 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center group">
             <div className="relative">
               <div className="h-12 w-12 rounded-2xl overflow-hidden shadow-lg group-hover:shadow-xl transition-all duration-300 bg-white">
-                <img 
-                  src="/WhatsApp Image 2025-10-24 at 13.04.00_647ae0e3.jpg" 
-                  alt="AeroHive Logo" 
+                <img
+                  src="/WhatsApp Image 2025-10-24 at 13.04.00_647ae0e3.jpg"
+                  alt="AeroHive Logo"
                   className="h-full w-full object-contain p-1"
                 />
               </div>
               <div className="absolute -inset-0.5 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl opacity-0 group-hover:opacity-20 blur transition-all duration-300"></div>
             </div>
             <div className="flex items-center -ml-8">
-              <img 
-                src="/Aerohive text logo scaled up.png" 
-                alt="AeroHive" 
+              <img
+                src="/Aerohive text logo scaled up.png"
+                alt="AeroHive"
                 className="w-auto object-contain"
                 style={{ filter: 'none', height: '140px' }}
               />
@@ -132,8 +132,8 @@ export function ModernHeader() {
                   <DropdownMenuContent className="bg-white border rounded-md shadow-md p-1" sideOffset={5}>
                     {link.dropdownItems?.map((item) => (
                       <DropdownMenuItem key={item.href} asChild>
-                        <Link 
-                          href={item.href} 
+                        <Link
+                          href={item.href}
                           className="flex items-center space-x-2 w-full px-3 py-2 text-sm hover:bg-gray-100 rounded cursor-pointer"
                         >
                           <item.icon className="h-4 w-4 text-gray-500" />
@@ -162,9 +162,9 @@ export function ModernHeader() {
           {/* Right side actions */}
           <div className="flex items-center space-x-3">
             {/* Search */}
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               className="hidden md:flex h-10 w-10 rounded-xl hover:bg-gray-100 text-gray-600 hover:text-gray-800 transition-all duration-200"
             >
               <Search className="h-5 w-5" />
@@ -174,20 +174,11 @@ export function ModernHeader() {
             {isAuthenticated ? (
               <div className="flex items-center space-x-2">
                 {/* Notifications */}
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className="relative h-10 w-10 rounded-xl hover:bg-gray-100 text-gray-600 hover:text-gray-800 transition-all duration-200"
-                >
-                  <Bell className="h-5 w-5" />
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-gradient-to-r from-red-500 to-pink-500 border-0">
-                    2
-                  </Badge>
-                </Button>
+                <NotificationDropdown />
 
                 {/* Wishlist */}
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="icon"
                   className="hidden md:flex h-10 w-10 rounded-xl hover:bg-gray-100 text-gray-600 hover:text-gray-800 transition-all duration-200"
                   asChild
@@ -263,7 +254,7 @@ export function ModernHeader() {
                     )}
 
                     <div className="border-t border-gray-200 mt-2 pt-2">
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={handleLogout}
                         className="flex items-center space-x-3 w-full px-3 py-3 hover:bg-red-50 rounded-xl text-red-600 cursor-pointer transition-all duration-200"
                       >
@@ -279,15 +270,15 @@ export function ModernHeader() {
               </div>
             ) : (
               <div className="flex items-center space-x-3">
-                <Button 
-                  variant="ghost" 
-                  asChild 
+                <Button
+                  variant="ghost"
+                  asChild
                   className="hidden md:flex hover:bg-gray-100 text-gray-700 hover:text-gray-900 font-medium rounded-xl px-4 py-2 transition-all duration-200"
                 >
                   <Link href="/login">Sign In</Link>
                 </Button>
-                <Button 
-                  asChild 
+                <Button
+                  asChild
                   className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl rounded-xl px-6 py-2 font-medium transition-all duration-300 hover:scale-105"
                 >
                   <Link href="/register">Get Started</Link>
@@ -296,10 +287,10 @@ export function ModernHeader() {
             )}
 
             {/* Cart Button */}
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              asChild 
+            <Button
+              variant="ghost"
+              size="icon"
+              asChild
               className="relative h-10 w-10 rounded-xl hover:bg-gray-100 text-gray-600 hover:text-gray-800 transition-all duration-200"
             >
               <Link href="/cart">
@@ -357,7 +348,7 @@ export function ModernHeader() {
                   </Link>
                 )
               ))}
-              
+
               {!isAuthenticated && (
                 <div className="pt-4 border-t border-gray-200/50 space-y-2">
                   <Link

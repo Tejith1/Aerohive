@@ -16,7 +16,7 @@ const customers = [
     id: 1,
     name: "John Doe",
     email: "john@example.com",
-    phone: "+1 (555) 123-4567",
+    phone: "+91 7075894588",
     orders: 12,
     totalSpent: 1250.0,
     status: "active",

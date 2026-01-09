@@ -131,7 +131,7 @@ export default function UsersManagement() {
         is_admin: false
       })
       setIsCreateDialogOpen(false)
-      
+
       // Refresh users list
       fetchUsers()
 
@@ -236,7 +236,7 @@ export default function UsersManagement() {
                     type="tel"
                     value={newUserForm.phone}
                     onChange={(e) => handleFormChange('phone', e.target.value)}
-                    placeholder="+1 (555) 123-4567"
+                    placeholder="+91 7075894588"
                   />
                 </div>
                 <div className="flex items-center space-x-2">

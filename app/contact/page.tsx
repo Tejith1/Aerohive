@@ -26,15 +26,15 @@ const contactInfo = [
   {
     icon: Phone,
     title: "Phone Support",
-    details: ["+1 (555) 123-AERO", "+1 (555) 123-2376"],
+    details: ["+91 7075894588", "+91 9032390289"],
     description: "24/7 technical support available",
     color: "text-green-600",
     bgColor: "bg-green-50"
   },
   {
     icon: MapPin,
-    title: "Global Headquarters",
-    details: ["1250 Aviation Blvd", "San Francisco, CA 94128"],
+    title: "Headquarters",
+    details: ["HYDERABAD, TELANGANA, INDIA", "Pincode: 500090"],
     description: "Visit our innovation center",
     color: "text-purple-600",
     bgColor: "bg-purple-50"
@@ -86,13 +86,13 @@ const supportChannels = [
 
 const offices = [
   {
-    city: "San Francisco",
-    country: "USA",
-    address: "1250 Aviation Blvd, San Francisco, CA 94128",
-    phone: "+1 (555) 123-AERO",
-    email: "usa@aerohive.com",
+    city: "Hyderabad",
+    country: "India",
+    address: "HYDERABAD, TELANGANA, INDIA - 500090",
+    phone: "+91 7075894588",
+    email: "india@aerohive.com",
     type: "Global Headquarters",
-    timezone: "PST",
+    timezone: "IST",
     specialties: ["R&D", "Engineering", "Innovation"]
   },
   {
@@ -171,13 +171,13 @@ export default function ContactPage() {
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000))
-      
+
       setSubmitSuccess(true)
       toast({
         title: "Message Sent Successfully!",
         description: "We'll get back to you within 2 hours.",
       })
-      
+
       // Reset form
       setFormData({
         name: "",
@@ -236,7 +236,7 @@ export default function ContactPage() {
               <p className="text-xl md:text-2xl text-blue-100 mb-8 leading-relaxed">
                 Get in touch with our world-class support team. We're here to help you soar.
               </p>
-              
+
               {/* Quick Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
                 <div className="text-center">
@@ -264,7 +264,7 @@ export default function ContactPage() {
                 </Button>
                 <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary px-8 py-4 text-lg font-semibold">
                   <Phone className="h-5 w-5 mr-2" />
-                  Call Now: +1 (555) 123-AERO
+                  Call Now: +91 7075894588
                 </Button>
               </div>
             </div>
@@ -367,7 +367,7 @@ export default function ContactPage() {
                               type="tel"
                               value={formData.phone}
                               onChange={(e) => handleInputChange('phone', e.target.value)}
-                              placeholder="+1 (555) 123-4567"
+                              placeholder="+91 7075894588"
                               className="h-12"
                             />
                           </div>
@@ -583,7 +583,7 @@ export default function ContactPage() {
                       <h3 className="text-xl font-bold text-gray-900">{office.city}</h3>
                       <p className="text-gray-600">{office.country}</p>
                     </div>
-                    
+
                     <div className="space-y-3 text-sm">
                       <div className="flex items-start gap-3">
                         <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />

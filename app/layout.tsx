@@ -6,6 +6,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/contexts/auth-context"
+import { NotificationProvider } from "@/contexts/notification-context"
 import Chatbot from "@/components/Chatbot"
 import "./globals.css"
 
@@ -31,9 +32,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
         <AuthProvider>
-          <Suspense fallback={null}>{children}</Suspense>
-          <Chatbot />
-          <Toaster />
+          <NotificationProvider>
+            <Suspense fallback={null}>{children}</Suspense>
+            <Chatbot />
+            <Toaster />
+          </NotificationProvider>
         </AuthProvider>
         <Analytics />
       </body>

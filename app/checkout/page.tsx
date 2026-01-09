@@ -124,25 +124,22 @@ export default function CheckoutPage() {
                 return (
                   <div key={step.id} className="flex items-center">
                     <div
-                      className={`flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all duration-300 ${
-                        isCompleted
+                      className={`flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all duration-300 ${isCompleted
                           ? "bg-gradient-to-r from-green-500 to-green-600 border-green-500 text-white shadow-lg"
                           : isActive
                             ? "bg-gradient-to-r from-blue-500 to-purple-600 border-blue-500 text-white shadow-lg"
                             : "border-slate-300 text-slate-400 bg-white"
-                      }`}
+                        }`}
                     >
                       {isCompleted ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
                     </div>
-                    <span className={`ml-3 font-medium transition-colors ${
-                      isActive ? "text-blue-600" : isCompleted ? "text-green-600" : "text-slate-500"
-                    }`}>
+                    <span className={`ml-3 font-medium transition-colors ${isActive ? "text-blue-600" : isCompleted ? "text-green-600" : "text-slate-500"
+                      }`}>
                       {step.name}
                     </span>
                     {index < steps.length - 1 && (
-                      <div className={`w-16 h-1 mx-6 rounded-full transition-colors ${
-                        isCompleted ? "bg-gradient-to-r from-green-500 to-green-400" : "bg-slate-200"
-                      }`} />
+                      <div className={`w-16 h-1 mx-6 rounded-full transition-colors ${isCompleted ? "bg-gradient-to-r from-green-500 to-green-400" : "bg-slate-200"
+                        }`} />
                     )}
                   </div>
                 )
@@ -275,7 +272,7 @@ export default function CheckoutPage() {
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => handleInputChange("phone", e.target.value)}
-                        placeholder="+1 (555) 123-4567"
+                        placeholder="+91 7075894588"
                         required
                       />
                     </div>

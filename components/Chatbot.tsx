@@ -17,12 +17,14 @@ interface Message {
     id: string
     role: 'bot' | 'user'
     content: string | React.ReactNode
+    type?: 'text' | 'action_request' | 'pilot_list' | 'booking_details' | 'booking_confirm' | 'booking_success' | 'error_box'
+    data?: any
 }
 
 import type { MissionMapProps } from './MissionMap'
 
 // Dynamic import for Leaflet (SSR safe)
-const MissionMap = dynamic<MissionMapProps>(() => import('./MissionMap'), {
+const MissionMap = dynamic(() => import('./MissionMap'), {
     ssr: false,
     loading: () => <div className="h-[200px] w-full bg-muted animate-pulse rounded-md flex items-center justify-center text-xs">Initializing Mission Map...</div>
 })
@@ -83,8 +85,8 @@ export default function Chatbot() {
         socketRef.current = ws
     }
 
-    const addMessage = (role: 'bot' | 'user', content: string | React.ReactNode) => {
-        setMessages(prev => [...prev, { id: Math.random().toString(36), role, content }])
+    const addMessage = (role: 'bot' | 'user', content: string | React.ReactNode, type?: Message['type'], data?: any) => {
+        setMessages(prev => [...prev, { id: Math.random().toString(36), role, content, type, data }])
     }
 
     const handleOpen = async () => {
@@ -186,7 +188,7 @@ export default function Chatbot() {
                                     <div className="min-w-0">
                                         <p className="font-semibold text-sm truncate">{pilot.full_name}</p>
                                         <p className="text-[10px] text-muted-foreground truncate">{pilot.specialization || pilot.specializations}</p>
-                                        <p className="text-xs font-medium mt-1">${pilot.hourly_rate}/hr • {pilot.rating} ★</p>
+                                        <p className="text-xs font-medium mt-1">₹{pilot.hourly_rate}/hr • {pilot.rating} ★</p>
                                         {pilot.distance_km != null && <p className="text-[10px] text-muted-foreground">{pilot.distance_km}km away</p>}
                                     </div>
                                 </CardContent>
@@ -294,7 +296,7 @@ export default function Chatbot() {
                                     <div className="min-w-0">
                                         <p className="font-semibold text-sm truncate">{pilot.full_name}</p>
                                         <p className="text-[10px] text-muted-foreground truncate">{pilot.specialization || pilot.specializations}</p>
-                                        <p className="text-xs font-medium mt-1">${pilot.hourly_rate}/hr • {pilot.rating} ★</p>
+                                        <p className="text-xs font-medium mt-1">₹{pilot.hourly_rate}/hr • {pilot.rating} ★</p>
                                         {pilot.distance_km != null && <p className="text-[10px] text-muted-foreground">{pilot.distance_km}km away</p>}
                                     </div>
                                 </CardContent>
@@ -320,7 +322,7 @@ export default function Chatbot() {
                     <div className="flex items-center gap-2"><Calendar className="h-4 w-4" /> Date: Today (ASAP)</div>
                     <div className="flex items-center gap-2"><Clock className="h-4 w-4" /> Duration: 2 Hours</div>
                     <div className="flex items-center gap-2"><MapPin className="h-4 w-4" /> Location: {userAddress || "Your shared location"}</div>
-                    <div className="border-t pt-2 mt-2 font-bold">Total Estimate: ${pilot.hourly_rate * 2}</div>
+                    <div className="border-t pt-2 mt-2 font-bold">Total Estimate: ₹{pilot.hourly_rate * 2}</div>
                 </div>
                 {!currentUser ? (
                     <Button variant="destructive" className="w-full mt-2" onClick={() => window.location.href = '/login'}>
@@ -366,40 +368,10 @@ export default function Chatbot() {
             setChatState('SUCCESS')
             startTracking(bookingDataRes.booking_id)
 
-            addMessage('bot', (
-                <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-green-600 font-bold">
-                        <CheckCircle className="h-5 w-5" /> Mission Hub Initialized
-                    </div>
-                    <p className="text-xs">Mission <strong>{bookingDataRes.booking_id}</strong> is active. Our Pilot is receiving the coordinates.</p>
-
-                    <div className="space-y-3 mt-2">
-                        <div className="p-3 bg-muted rounded-md text-xs space-y-1">
-                            <p><strong>Pilot:</strong> {pilot.full_name}</p>
-                            <p><strong>System ID:</strong> {bookingDataRes.booking_id}</p>
-                            <p className="text-[10px] text-blue-600 font-medium">✨ Live tracking active - Leaflet OSM</p>
-                        </div>
-
-                        <div className="h-[220px] w-full rounded-md overflow-hidden border bg-muted/20">
-                            {userLocation && (trackingData || (pilot.latitude && pilot.longitude) || (pilot.latitude === undefined && pilot.longitude === undefined)) ? (
-                                <MissionMap
-                                    pilotLocation={trackingData || { lat: pilot.latitude || 17.3850, lng: pilot.longitude || 78.4867 }}
-                                    clientLocation={userLocation}
-                                    bookingId={bookingDataRes.booking_id}
-                                />
-                            ) : (
-                                <div className="h-full w-full flex items-center justify-center text-[10px] text-muted-foreground animate-pulse">
-                                    Establishing Secure Uplink...
-                                </div>
-                            )}
-                        </div>
-
-                        <Button variant="outline" size="sm" className="w-full flex items-center gap-2" onClick={() => setIsOpen(false)}>
-                            Minimize Hub
-                        </Button>
-                    </div>
-                </div>
-            ))
+            addMessage('bot', "Mission Hub Initialized", 'booking_success', {
+                booking_id: bookingDataRes.booking_id,
+                pilot: pilot
+            })
 
         } catch (e: any) {
             console.error(e)
@@ -413,88 +385,131 @@ export default function Chatbot() {
     }
 
     return (
-        <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end">
+        <>
+            {/* Separate Backdrop Layer - Highlights Chatbot section when open */}
             {isOpen && (
-                <Card className="w-[380px] mb-4 shadow-2xl border-primary/10 animate-in slide-in-from-bottom-5 bg-white/80 backdrop-blur-lg overflow-hidden flex flex-col">
-                    <div className="p-4 border-b flex items-center justify-between bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
-                        <div className="flex items-center gap-3">
-                            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm shadow-inner"><MessageCircle className="h-4 w-4" /></div>
-                            <div>
-                                <span className="font-bold text-sm block leading-none">AeroHive AI</span>
-                                <span className="text-[10px] text-primary-foreground/70 uppercase tracking-widest font-medium">Principal Architect</span>
-                            </div>
-                        </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-primary-foreground hover:bg-white/10 rounded-full transition-colors" onClick={() => setIsOpen(false)}>
-                            <X className="h-4 w-4" />
-                        </Button>
-                    </div>
-
-                    <CardContent className="p-0 flex flex-col h-[480px]">
-                        <ScrollArea className="flex-1 p-4">
-                            <div className="flex flex-col gap-5">
-                                {messages.map(msg => (
-                                    <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                        <div className={`max-w-[88%] rounded-2xl p-3.5 text-sm shadow-sm transition-all duration-200 ${msg.role === 'user'
-                                            ? 'bg-primary text-primary-foreground rounded-br-none'
-                                            : 'bg-muted/50 text-foreground rounded-bl-none border border-border/50'
-                                            }`}>
-                                            {msg.content}
-                                        </div>
-                                    </div>
-                                ))}
-                                {['SEARCHING', 'BOOKING'].includes(chatState) && (
-                                    <div className="flex justify-start">
-                                        <div className="bg-muted/50 rounded-2xl px-4 py-2 border border-border/50 flex items-center gap-2">
-                                            <span className="flex gap-1">
-                                                <span className="w-1.5 h-1.5 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                                                <span className="w-1.5 h-1.5 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                                <span className="w-1.5 h-1.5 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                                            </span>
-                                            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">AI Processing...</span>
-                                        </div>
-                                    </div>
-                                )}
-                                <div ref={scrollRef} />
-                            </div>
-                        </ScrollArea>
-
-                        <div className="p-4 border-t bg-white/50 backdrop-blur-md">
-                            <form
-                                className="flex gap-2"
-                                onSubmit={(e) => {
-                                    e.preventDefault()
-                                    handleSend()
-                                }}
-                            >
-                                <Input
-                                    placeholder="Consult with Mission Coordinator..."
-                                    className="bg-muted/30 border-none shadow-inner focus-visible:ring-1 focus-visible:ring-primary h-11"
-                                    value={inputValue}
-                                    onChange={e => setInputValue(e.target.value)}
-                                    disabled={['SEARCHING', 'BOOKING'].includes(chatState)}
-                                />
-                                <Button
-                                    type="submit"
-                                    size="icon"
-                                    className="h-11 w-11 shrink-0 rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all"
-                                    disabled={!inputValue.trim() || ['SEARCHING', 'BOOKING'].includes(chatState)}
-                                >
-                                    <Send className="h-5 w-5" />
-                                </Button>
-                            </form>
-                        </div>
-                    </CardContent>
-                </Card>
+                <div
+                    className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[40] animate-in fade-in duration-300"
+                    onClick={() => setIsOpen(false)}
+                />
             )}
 
-            <Button
-                onClick={() => isOpen ? setIsOpen(false) : handleOpen()}
-                size="lg"
-                className="h-16 w-16 rounded-[22px] shadow-2xl p-0 hover:scale-110 active:scale-90 transition-all duration-300 bg-primary group overflow-hidden"
-            >
-                <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                {isOpen ? <X className="h-7 w-7" /> : <MessageCircle className="h-8 w-8" />}
-            </Button>
-        </div>
+            <div className="fixed bottom-4 right-4 z-[50] flex flex-col items-end">
+                {isOpen && (
+                    <Card className="w-[380px] mb-4 shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-primary/20 animate-in slide-in-from-bottom-5 bg-white/95 backdrop-blur-xl overflow-hidden flex flex-col ring-1 ring-white/20">
+                        <div className="p-4 border-b flex items-center justify-between bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm shadow-inner"><MessageCircle className="h-4 w-4" /></div>
+                                <div>
+                                    <span className="font-bold text-sm block leading-none">AeroHive AI</span>
+                                    <span className="text-[10px] text-primary-foreground/70 uppercase tracking-widest font-medium">Principal Architect</span>
+                                </div>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary-foreground hover:bg-white/10 rounded-full transition-colors" onClick={() => setIsOpen(false)}>
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+
+                        <CardContent className="p-0 flex flex-col h-[480px]">
+                            <ScrollArea className="flex-1 p-4 overscroll-contain">
+                                <div className="flex flex-col gap-5">
+                                    {messages.map(msg => (
+                                        <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                            <div className={`max-w-[88%] rounded-2xl p-3.5 text-sm shadow-sm transition-all duration-200 ${msg.role === 'user'
+                                                ? 'bg-primary text-primary-foreground rounded-br-none'
+                                                : 'bg-muted/50 text-foreground rounded-bl-none border border-border/50'
+                                                }`}>
+                                                {msg.type === 'booking_success' ? (
+                                                    <div className="space-y-3">
+                                                        <div className="flex items-center gap-2 text-green-600 font-bold">
+                                                            <CheckCircle className="h-5 w-5" /> Mission Hub Initialized
+                                                        </div>
+                                                        <p className="text-xs">Mission <strong>{msg.data?.booking_id}</strong> is active. Our Pilot is receiving the coordinates.</p>
+
+                                                        <div className="space-y-3 mt-2 text-foreground">
+                                                            <div className="p-3 bg-white/50 dark:bg-slate-800/50 rounded-md text-xs space-y-1 border">
+                                                                <p><strong>Pilot:</strong> {msg.data?.pilot?.full_name}</p>
+                                                                <p><strong>System ID:</strong> {msg.data?.booking_id}</p>
+                                                                <p className="text-[10px] text-blue-600 font-medium font-mono">✨ LIVE COORDINATES ENABLED</p>
+                                                            </div>
+
+                                                            <div className="h-[220px] w-full rounded-md overflow-hidden border bg-muted/20">
+                                                                {userLocation ? (
+                                                                    <MissionMap
+                                                                        pilotLocation={trackingData || { lat: msg.data?.pilot?.latitude || 17.3850, lng: msg.data?.pilot?.longitude || 78.4867 }}
+                                                                        clientLocation={userLocation}
+                                                                        bookingId={msg.data?.booking_id}
+                                                                    />
+                                                                ) : (
+                                                                    <div className="h-full w-full flex items-center justify-center text-[10px] text-muted-foreground animate-pulse">
+                                                                        Syncing coordinates...
+                                                                    </div>
+                                                                )}
+                                                            </div>
+
+                                                            <Button variant="outline" size="sm" className="w-full flex items-center gap-2" onClick={() => setIsOpen(false)}>
+                                                                Minimize Hub
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                ) : msg.content}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {['SEARCHING', 'BOOKING'].includes(chatState) && (
+                                        <div className="flex justify-start">
+                                            <div className="bg-muted/50 rounded-2xl px-4 py-2 border border-border/50 flex items-center gap-2">
+                                                <span className="flex gap-1">
+                                                    <span className="w-1.5 h-1.5 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                                    <span className="w-1.5 h-1.5 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                                    <span className="w-1.5 h-1.5 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                                </span>
+                                                <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">AI Processing...</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div ref={scrollRef} />
+                                </div>
+                            </ScrollArea>
+
+                            <div className="p-4 border-t bg-white/50 backdrop-blur-md">
+                                <form
+                                    className="flex gap-2"
+                                    onSubmit={(e) => {
+                                        e.preventDefault()
+                                        handleSend()
+                                    }}
+                                >
+                                    <Input
+                                        placeholder="Consult with Mission Coordinator..."
+                                        className="bg-muted/30 border-none shadow-inner focus-visible:ring-1 focus-visible:ring-primary h-11"
+                                        value={inputValue}
+                                        onChange={e => setInputValue(e.target.value)}
+                                        disabled={['SEARCHING', 'BOOKING'].includes(chatState)}
+                                    />
+                                    <Button
+                                        type="submit"
+                                        size="icon"
+                                        className="h-11 w-11 shrink-0 rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all"
+                                        disabled={!inputValue.trim() || ['SEARCHING', 'BOOKING'].includes(chatState)}
+                                    >
+                                        <Send className="h-5 w-5" />
+                                    </Button>
+                                </form>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                <Button
+                    onClick={() => isOpen ? setIsOpen(false) : handleOpen()}
+                    size="lg"
+                    className="h-16 w-16 rounded-[22px] shadow-2xl p-0 hover:scale-110 active:scale-90 transition-all duration-300 bg-primary group overflow-hidden"
+                >
+                    <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    {isOpen ? <X className="h-7 w-7" /> : <MessageCircle className="h-8 w-8" />}
+                </Button>
+            </div>
+        </>
     )
 }
