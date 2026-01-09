@@ -1,17 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-console.log('🔧 Supabase Configuration:')
-console.log('URL:', supabaseUrl ? '✅ Set' : '❌ Missing')
-console.log('Anon Key:', supabaseAnonKey ? '✅ Set' : '❌ Missing')
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('❌ CRITICAL: Missing Supabase environment variables!')
-  console.error('Please ensure .env.local exists with:')
-  console.error('NEXT_PUBLIC_SUPABASE_URL=your_url')
-  console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key')
+  if (typeof window !== 'undefined') {
+    console.error('❌ CRITICAL: Missing Supabase environment variables! Check your deployment settings.')
+  }
 }
 
 // Custom storage adapter with better error handling
@@ -76,31 +71,33 @@ const customFetch = async (url: RequestInfo | URL, options?: RequestInit): Promi
   throw lastError || new Error('Request failed after maximum retries')
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    storage: getStorage(),
-    storageKey: 'sb-aerohive-auth-token',
-    flowType: 'pkce',
-    debug: process.env.NODE_ENV === 'development',
-  },
-  global: {
-    fetch: customFetch,
-    headers: {
-      'x-client-info': 'aerohive-web',
+export const supabase = (supabaseUrl && supabaseAnonKey)
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+      storage: getStorage(),
+      storageKey: 'sb-aerohive-auth-token',
+      flowType: 'pkce',
+      debug: process.env.NODE_ENV === 'development',
     },
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 10,
+    global: {
+      fetch: customFetch,
+      headers: {
+        'x-client-info': 'aerohive-web',
+      },
     },
-  },
-  db: {
-    schema: 'public',
-  },
-})
+    realtime: {
+      params: {
+        eventsPerSecond: 10,
+      },
+    },
+    db: {
+      schema: 'public',
+    },
+  })
+  : null as any
 
 // Server-side admin client for bypassing RLS (only use on server-side)
 let supabaseAdmin: ReturnType<typeof createClient> | null = null
@@ -831,11 +828,11 @@ export const getNearbyPilots = async (lat: number, lng: number, radiusKm: number
     if (!pilots) return []
 
     // Filter by distance (simple haversine calculation)
-    const filteredPilots = pilots.filter(pilot => {
+    const filteredPilots = (pilots as any[]).filter((pilot: any) => {
       if (!pilot.latitude || !pilot.longitude) return true // Include pilots without location
       const distance = calculateDistance(lat, lng, pilot.latitude, pilot.longitude)
       return distance <= radiusKm
-    }).map(pilot => ({
+    }).map((pilot: any) => ({
       ...pilot,
       distance_km: pilot.latitude && pilot.longitude
         ? Math.round(calculateDistance(lat, lng, pilot.latitude, pilot.longitude) * 10) / 10

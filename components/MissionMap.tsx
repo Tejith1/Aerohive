@@ -3,7 +3,6 @@
 import React, { useMemo, useEffect, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
-import * as L from 'leaflet'
 
 // Helper to handle map view changes
 function ChangeView({ center }: { center: [number, number] }) {
@@ -23,31 +22,31 @@ export interface MissionMapProps {
 }
 
 export default function MissionMap({ pilotLocation, clientLocation, bookingId }: MissionMapProps) {
+    const [icons, setIcons] = useState<any>(null)
     const [isMounted, setIsMounted] = useState(false)
 
     useEffect(() => {
         setIsMounted(true)
-    }, [])
-
-    const center: [number, number] = useMemo(() => [pilotLocation.lat, pilotLocation.lng], [pilotLocation.lat, pilotLocation.lng])
-
-    const icons = useMemo(() => {
-        if (typeof window === 'undefined') return null
-
-        return {
-            defaultIcon: L.icon({
-                iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-                shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-                iconSize: [25, 41],
-                iconAnchor: [12, 41],
-            }),
-            droneIcon: L.icon({
-                iconUrl: 'https://cdn-icons-png.flaticon.com/512/3211/3211388.png',
-                iconSize: [32, 32],
-                iconAnchor: [16, 16],
+        // Ensure Leaflet is only even LOADED in the browser
+        if (typeof window !== 'undefined') {
+            const L = require('leaflet')
+            setIcons({
+                defaultIcon: L.icon({
+                    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+                    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                }),
+                droneIcon: L.icon({
+                    iconUrl: 'https://cdn-icons-png.flaticon.com/512/3211/3211388.png',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                })
             })
         }
     }, [])
+
+    const center: [number, number] = useMemo(() => [pilotLocation.lat, pilotLocation.lng], [pilotLocation.lat, pilotLocation.lng])
 
     if (!isMounted || !icons) {
         return <div className="h-full w-full bg-slate-950 animate-pulse flex items-center justify-center text-white text-xs font-mono">📡 ESTABLISHING SECURE CONNECTION...</div>

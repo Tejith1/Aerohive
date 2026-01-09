@@ -6,10 +6,10 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null
 
-// Generate booking ID with hashtag format
+// Generate booking ID with strict hashtag format
 function generateBookingId(): string {
     const num = Math.floor(1000 + Math.random() * 9000)
-    return `AH-${num}`
+    return `#AH-${num}`
 }
 
 // Generate random 4-digit OTP
@@ -85,35 +85,41 @@ export async function POST(request: NextRequest) {
 
                 if (error) {
                     console.error('Database insert error:', error)
-                    // Continue anyway - we'll still return the booking confirmation
                 }
             } catch (dbError) {
                 console.error('Database error:', dbError)
-                // Continue with mock response
             }
         }
 
-        // Generate confirmation messages as per the EXACT booking protocol
+        // Generate confirmation messages exactly as requested
         const clientMessage = `Hello ${userName},
-Your booking for **${service_type}** is confirmed!
-📍 Location: ${locationDisplay}
+
+Your booking for *${service_type}* has been successfully confirmed.
+
+📍 Location: ${locationDisplay}  
 📅 Slot: ${dateTimeDisplay}
 
-Your Pilot Details:
-👨‍✈️ **${pilotName}** (Rating: 4.9⭐)
-📞 Contact: +91-${pilotPhone}
-🔑 Share this OTP with pilot: **${otp}**`
+Pilot Assigned:
+👨‍✈️ ${pilotName} (Rating: 4.9⭐)  
+📞 Contact: +91-${pilotPhone}  
 
-        const pilotMessage = `**NEW JOB ASSIGNMENT**
-🆔 Job ID: ${bookingId}
-🛠 Service: ${service_type}
-📍 Site: ${locationDisplay}
-📅 Time: ${dateTimeDisplay}
+🔐 Please share this OTP with the pilot upon arrival: *${otp}*
+
+Thank you for choosing our services.`
+
+        const pilotMessage = `NEW JOB ASSIGNMENT
+
+🆔 Job ID: ${bookingId}  
+🛠 Service: ${service_type}  
+📍 Site Location: ${locationDisplay}  
+📅 Scheduled Time: ${dateTimeDisplay}
 
 Client Details:
-👤 ${userName}
-📞 ${userPhone}
-⚠️ Status: PENDING. Verify OTP **${otp}** upon arrival.`
+👤 Name: ${userName}  
+📞 Contact: ${userPhone}
+
+⚠️ Job Status: PENDING  
+🔐 Verify client OTP: *${otp}* before starting the service.`
 
         return NextResponse.json({
             status: "success",

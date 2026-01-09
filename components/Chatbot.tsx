@@ -41,6 +41,8 @@ export default function Chatbot() {
     const [currentUser, setCurrentUser] = useState<any>(null)
     const scrollRef = useRef<HTMLDivElement>(null)
     const [userAddress, setUserAddress] = useState<string>('')
+    const [userName, setUserName] = useState<string>('')
+    const [userPhone, setUserPhone] = useState<string>('')
     const { toast } = useToast()
 
     useEffect(() => {
@@ -150,6 +152,9 @@ export default function Chatbot() {
             if (res.data?.lat && res.data?.lng) {
                 setUserLocation({ lat: res.data.lat, lng: res.data.lng })
             }
+
+            if (res.user_name) setUserName(res.user_name)
+            if (res.user_phone) setUserPhone(res.user_phone)
 
             setChatState(res.next_state as ChatState)
 
@@ -358,7 +363,9 @@ export default function Chatbot() {
                     scheduled_at: new Date().toISOString(),
                     duration_hours: 2,
                     payment_method: 'UPI',
-                    requirements: { note: requirements }
+                    requirements: { note: requirements },
+                    user_name: userName,
+                    user_phone: userPhone
                 })
             })
 
@@ -370,7 +377,10 @@ export default function Chatbot() {
 
             addMessage('bot', "Mission Hub Initialized", 'booking_success', {
                 booking_id: bookingDataRes.booking_id,
-                pilot: pilot
+                pilot: pilot,
+                otp: bookingDataRes.otp,
+                client_message: bookingDataRes.client_message,
+                pilot_message: bookingDataRes.pilot_message
             })
 
         } catch (e: any) {
@@ -420,20 +430,43 @@ export default function Chatbot() {
                                                 : 'bg-muted/50 text-foreground rounded-bl-none border border-border/50'
                                                 }`}>
                                                 {msg.type === 'booking_success' ? (
-                                                    <div className="space-y-3">
-                                                        <div className="flex items-center gap-2 text-green-600 font-bold">
-                                                            <CheckCircle className="h-5 w-5" /> Mission Hub Initialized
+                                                    <div className="space-y-4">
+                                                        <div className="bg-primary/5 p-3 rounded-lg border border-primary/20 space-y-2">
+                                                            <div className="flex items-center justify-between text-[10px] uppercase tracking-wider font-bold text-primary">
+                                                                <span>Booking Confirmed</span>
+                                                                <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Secure</span>
+                                                            </div>
+                                                            <div className="flex justify-between items-end">
+                                                                <div>
+                                                                    <p className="text-[10px] text-muted-foreground uppercase font-medium">Reference</p>
+                                                                    <p className="text-sm font-bold">{msg.data?.booking_id}</p>
+                                                                </div>
+                                                                <div className="text-right">
+                                                                    <p className="text-[10px] text-muted-foreground uppercase font-medium">Security OTP</p>
+                                                                    <p className="text-sm font-bold text-blue-600 tracking-widest">{msg.data?.otp}</p>
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                        <p className="text-xs">Mission <strong>{msg.data?.booking_id}</strong> is active. Our Pilot is receiving the coordinates.</p>
 
-                                                        <div className="space-y-3 mt-2 text-foreground">
-                                                            <div className="p-3 bg-white/50 dark:bg-slate-800/50 rounded-md text-xs space-y-1 border">
-                                                                <p><strong>Pilot:</strong> {msg.data?.pilot?.full_name}</p>
-                                                                <p><strong>System ID:</strong> {msg.data?.booking_id}</p>
-                                                                <p className="text-[10px] text-blue-600 font-medium font-mono">✨ LIVE COORDINATES ENABLED</p>
+                                                        <div className="space-y-3">
+                                                            <div className="p-3 bg-white dark:bg-slate-900 rounded-lg text-xs border shadow-sm">
+                                                                <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-tight">1. Message for Client (User)</p>
+                                                                <div className="whitespace-pre-wrap leading-relaxed text-foreground/90">
+                                                                    {msg.data?.client_message}
+                                                                </div>
                                                             </div>
 
-                                                            <div className="h-[220px] w-full rounded-md overflow-hidden border bg-muted/20">
+                                                            <div className="p-3 bg-white dark:bg-slate-900 rounded-lg text-xs border shadow-sm">
+                                                                <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-tight">2. Message for Pilot (Provider)</p>
+                                                                <div className="whitespace-pre-wrap leading-relaxed text-foreground/90">
+                                                                    {msg.data?.pilot_message}
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="h-[180px] w-full rounded-lg overflow-hidden border bg-muted/20 relative group">
+                                                                <div className="absolute top-2 right-2 z-10 bg-white/90 backdrop-blur px-1.5 py-0.5 rounded text-[8px] font-bold border shadow-sm flex items-center gap-1">
+                                                                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" /> LIVE TRACKING
+                                                                </div>
                                                                 {userLocation ? (
                                                                     <MissionMap
                                                                         pilotLocation={trackingData || { lat: msg.data?.pilot?.latitude || 17.3850, lng: msg.data?.pilot?.longitude || 78.4867 }}
@@ -447,7 +480,12 @@ export default function Chatbot() {
                                                                 )}
                                                             </div>
 
-                                                            <Button variant="outline" size="sm" className="w-full flex items-center gap-2" onClick={() => setIsOpen(false)}>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="w-full text-[10px] h-8 font-medium hover:bg-primary hover:text-primary-foreground transition-all"
+                                                                onClick={() => setIsOpen(false)}
+                                                            >
                                                                 Minimize Hub
                                                             </Button>
                                                         </div>

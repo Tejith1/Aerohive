@@ -42,13 +42,15 @@ Use these EXACT categories from the website when users ask for help:
 ### 3. BOOKING PROTOCOL
 If a user wants to book a service or pilot:
 1. **Identify Category:** Ask which specific service they need (e.g., "Do you need a pilot for Spraying or Surveying?").
-2. **Collect Details:** Once they choose, ask for their **Name, Phone Number, and Location**.
-3. **Confirm:** Say "Thank you. Our team will contact you at [Phone Number] to schedule your [Service Name] in [Location]."
+2. **Collect Requirements:** Ask for technical details (acres, hours, problem type).
+3. **Collect Location:** Use the "Request Location" tool to get coordinates.
+4. **Collect Contact Details:** Ask for their **Full Name** and **WhatsApp/Phone Number**. This is CRITICAL for sending the booking confirmation.
+5. **Confirm:** Show the selected pilot and ask for final confirmation.
 
 ### BEHAVIORAL RULES
-- If the user asks "What services do you have?", list the headers under "Pilot Services" and "Drone Care".
 - Keep answers professional and concise.
-- Do not make up services that are not listed here.
+- Always be helpful and goal-oriented.
+- If contact details are missing, politely ask: "May I have your name and phone number to send the booking confirmation?"
 
 Current App State: {state}
 User Context: {context}
@@ -59,20 +61,19 @@ Analyze the user message and respond with a STRICT JSON object:
 3. "radius_km": [10, 20, 50]
 4. "requirements": JSON object with specific details (e.g., acres, hours, problem type).
 5. "location_name": Extracted city/area.
-6. "response_text": Professional, concise response.
-7. "next_state": [INIT, REQUIREMENTS, LOCATION, RADIUS, RESULTS, SLOT, CONTACT, PAYMENT, CONFIRM, SUCCESS]
-8. "action": ["request_location", "show_results", "request_radius", "process_booking", "typing", "null"]
+6. "user_name": Extracted user full name.
+7. "user_phone": Extracted user phone number.
+8. "response_text": Professional, concise response.
+9. "next_state": [INIT, REQUIREMENTS, LOCATION, RADIUS, RESULTS, SLOT, CONTACT, PAYMENT, CONFIRM, SUCCESS]
+10. "action": ["request_location", "show_results", "request_radius", "process_booking", "typing", "null"]
 
 CRITICAL: Never expose internal technical details. Be efficient and professional.
 `
 
 // Generate booking ID
 function generateBookingId(service: string): string {
-    const prefix = "DRN"
-    const svc = service ? service.substring(0, 3).toUpperCase() : "GEN"
-    const year = new Date().getFullYear()
-    const rand = Math.random().toString(36).substring(2, 6).toUpperCase()
-    return `${prefix}-${svc}-${year}-${rand}`
+    const num = Math.floor(1000 + Math.random() * 9000)
+    return `#AH-${num}`
 }
 
 // Search pilots from database
@@ -164,7 +165,7 @@ function getDemoResponse(message: string, state: string, context: any) {
                                 msg.includes("diagnostic") ? "Diagnostic Testing" : "Repair Services"
         response = {
             intent: "provide_requirements",
-            response_text: `Great choice! For ${category}, I'll need a few details to connect you with the right professional. Could you please share your location?`,
+            response_text: `Great choice! For ${category}, I'll need a few details. Could you please share your location?`,
             next_state: "LOCATION",
             action: "request_location",
             data: { category }
@@ -185,6 +186,22 @@ function getDemoResponse(message: string, state: string, context: any) {
             next_state: "RESULTS",
             action: "show_results",
             data: { radius_km: radius }
+        }
+    } else if (state === "RESULTS" && msg.includes("select")) {
+        response = {
+            intent: "provide_contact",
+            response_text: "Excellent. To finalize the booking and send your confirmation, please provide your **Full Name** and **Phone Number**.",
+            next_state: "CONTACT",
+            action: null,
+            data: null
+        }
+    } else if (state === "CONTACT") {
+        response = {
+            intent: "confirm_booking",
+            response_text: "Thank you! Everything is ready. Shall I proceed with the booking?",
+            next_state: "CONFIRM",
+            action: null,
+            data: null
         }
     } else if (state === "CONFIRM" || msg.includes("confirm") || msg.includes("book")) {
         response = {
