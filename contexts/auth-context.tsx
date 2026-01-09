@@ -12,6 +12,7 @@ interface User {
   last_name: string
   is_admin: boolean
   phone?: string
+  provider?: string
 }
 
 interface AuthContextType {
@@ -27,6 +28,7 @@ interface AuthContextType {
   logout: () => Promise<void>
   signOut: () => Promise<void>
   refreshUser: () => Promise<void>
+  updatePassword: (password: string) => Promise<{ error: any } | void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -224,7 +226,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const { profile } = await response.json()
       console.log('✅ User profile synced:', profile?.email)
-      setUser(profile)
+      setUser({
+        ...profile,
+        provider: authUser.app_metadata?.provider || 'email'
+      })
     } catch (error: any) {
       console.error('❌ Error syncing user profile:', error)
 
@@ -425,6 +430,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const updatePassword = async (password: string) => {
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        password: password
+      })
+      if (error) throw error
+
+      toast({
+        title: "Password Updated",
+        description: "Your password has been changed successfully.",
+        className: "border-green-200 bg-green-50 text-green-900",
+      })
+      return { error: null }
+    } catch (error: any) {
+      console.error('Password update error:', error)
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update password. Please try again.",
+        variant: "destructive",
+      })
+      return { error }
+    }
+  }
+
   // Email sign-in (alias for login)
   const signInWithEmail = async (email: string, password: string) => {
     try {
@@ -468,7 +497,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     register,
     logout,
     signOut,
-    refreshUser
+    refreshUser,
+    updatePassword
   }
 
   return (

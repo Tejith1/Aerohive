@@ -133,11 +133,18 @@ export default function AccountPage() {
                             <p className="text-sm text-gray-500 mb-4">
                                 Keep your contact information up to date to ensure secure mission coordination.
                             </p>
-                            <Button variant="outline" className="w-full justify-start gap-2 border-gray-200 hover:bg-gray-50 rounded-xl" asChild>
-                                <Link href="/auth/reset-password">
-                                    Change Password
-                                </Link>
-                            </Button>
+                            {authUser?.provider === 'google' ? (
+                                <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 text-[11px] text-blue-700 leading-relaxed">
+                                    <span className="font-bold block mb-1">Authenticated via Google</span>
+                                    Password management is handled by your Google Account security settings.
+                                </div>
+                            ) : (
+                                <Button variant="outline" className="w-full justify-start gap-2 border-gray-200 hover:bg-gray-50 rounded-xl" asChild>
+                                    <Link href="/account/change-password">
+                                        Change Password
+                                    </Link>
+                                </Button>
+                            )}
                         </div>
                     </div>
 
