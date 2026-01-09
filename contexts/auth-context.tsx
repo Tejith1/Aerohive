@@ -34,6 +34,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isProfileFetching, setIsProfileFetching] = useState(false) // Lock to prevent redundant fetches
   const router = useRouter()
 
   const isAuthenticated = !!user
@@ -101,12 +102,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Listen for auth changes
     const { data } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (event: string, session: any) => {
         console.log('🔔 Auth state change:', event, session?.user?.email)
 
-        // Only handle specific events, don't redirect on every change
         if (event === 'SIGNED_IN' && session) {
-          console.log('📊 User signed in, fetching profile...')
+          console.log('📊 User signed in, syncing profile...')
           await fetchUserProfile()
 
           // Check if this is an OAuth sign-in (Google, etc.)
@@ -122,36 +122,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else if (event === 'SIGNED_OUT') {
           console.log('📊 User signed out')
           setUser(null)
+          setIsLoading(false)
         } else if (event === 'TOKEN_REFRESHED') {
           console.log('📊 Token refreshed successfully')
-          // Refetch profile to ensure we have latest data
-          await fetchUserProfile()
-        } else if (event === 'USER_UPDATED') {
-          console.log('📊 User updated')
-          await fetchUserProfile()
         }
       }
     )
 
-    // Session heartbeat - check session every 30 seconds and refresh if needed
-    const heartbeat = setInterval(async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        const expiresAt = session.expires_at ? session.expires_at * 1000 : 0
-        const now = Date.now()
-        const timeUntilExpiry = expiresAt - now
-
-        // Refresh if expiring in less than 5 minutes
-        if (timeUntilExpiry < 5 * 60 * 1000 && timeUntilExpiry > 0) {
-          console.log('🔄 Session expiring soon, refreshing...')
-          await supabase.auth.refreshSession()
-        }
-      }
-    }, 30000) // Check every 30 seconds
-
     return () => {
       data.subscription.unsubscribe()
-      clearInterval(heartbeat)
     }
   }, [])
 
@@ -206,54 +185,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const fetchUserProfile = async (retryCount = 0) => {
+    // Prevent multiple simultaneous profile fetches
+    if (isProfileFetching) {
+      console.log('⚠️ Profile fetch already in progress, skipping...')
+      return
+    }
+
     try {
+      setIsProfileFetching(true)
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
 
-      if (authError) {
-        console.error('❌ Auth user error:', authError)
+      if (authError || !authUser) {
+        if (authError) console.error('❌ Auth user error:', authError)
         setUser(null)
+        setIsLoading(false)
         return
       }
 
-      console.log('🔍 Fetching user profile...', authUser?.email)
+      console.log('🔍 Syncing user profile via API...', authUser.email)
 
-      if (authUser) {
-        // Get user profile from users table with retry logic
-        const { data: userProfile, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', authUser.id)
-          .single()
+      // Get user profile from our secure API (handles create-if-not-exists)
+      const response = await fetch('/api/user/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: authUser.id,
+          email: authUser.email,
+          firstName: authUser.user_metadata?.full_name?.split(' ')[0] || authUser.user_metadata?.first_name || 'User',
+          lastName: authUser.user_metadata?.full_name?.split(' ').slice(1).join(' ') || authUser.user_metadata?.last_name || '',
+          phone: authUser.phone || authUser.user_metadata?.phone || null
+        })
+      })
 
-        if (error) {
-          console.error('❌ Error fetching user profile:', error)
-
-          // Retry once on connection issues
-          if (retryCount < 1 && (error.message?.includes('Failed to fetch') || error.message?.includes('network'))) {
-            console.log('🔄 Retrying profile fetch...')
-            await new Promise(resolve => setTimeout(resolve, 1000))
-            return fetchUserProfile(retryCount + 1)
-          }
-
-          // If profile doesn't exist, user might need to complete registration
-          return
-        }
-
-        console.log('✅ User profile loaded:', userProfile?.email)
-        setUser(userProfile)
-      } else {
-        console.log('❌ No auth user found')
-        setUser(null)
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to sync profile')
       }
-    } catch (error) {
-      console.error('❌ Error fetching user profile:', error)
 
-      // Retry once on network errors
+      const { profile } = await response.json()
+      console.log('✅ User profile synced:', profile?.email)
+      setUser(profile)
+    } catch (error: any) {
+      console.error('❌ Error syncing user profile:', error)
+
+      // Retry once on network/connection issues
       if (retryCount < 1) {
-        console.log('🔄 Retrying profile fetch due to error...')
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        console.log('🔄 Retrying profile sync in 2s...')
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        setIsProfileFetching(false)
         return fetchUserProfile(retryCount + 1)
       }
+    } finally {
+      setIsProfileFetching(false)
+      setIsLoading(false)
     }
   }
 
@@ -267,103 +251,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (error) {
-        console.error('Login error details:', error)
-
-        // Special handling for email not confirmed
-        if (error.message === 'Email not confirmed') {
-          toast({
-            title: "Email Not Confirmed",
-            description: "Please check your email and click the confirmation link. If you don't see the email, contact support.",
-            variant: "destructive",
-          })
-
-          // For admin accounts, show additional help
-          if (email === 'admin1@gmail.com' || email === 'admin@aerohive.com') {
-            toast({
-              title: "Admin Account Issue",
-              description: "Admin email needs to be confirmed in Supabase dashboard. Contact the system administrator.",
-              variant: "destructive",
-            })
-          }
-        } else if (error.message === 'Invalid login credentials') {
-          toast({
-            title: "Invalid Credentials",
-            description: "The email or password you entered is incorrect. Please try again.",
-            variant: "destructive",
-          })
-        } else {
-          toast({
-            title: "Login Failed",
-            description: error.message || "An unexpected error occurred during login.",
-            variant: "destructive",
-          })
-        }
         throw error
       }
 
-      // Fetch user profile to check role
       if (data.user) {
-        const { data: userProfile, error: profileError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', data.user.id)
-          .single()
+        // fetchUserProfile will sync profile via API and set user state
+        await fetchUserProfile()
 
-        if (!profileError && userProfile) {
-          setUser(userProfile)
+        // Use the auth session user role for immediate redirect if needed, 
+        // or wait for the synced user state. For robustness, we check the email.
+        const isAdminEmail = data.user.email === 'admin1@gmail.com' || data.user.email === 'admin@aerohive.com'
 
-          // Show welcome toast immediately
-          toast({
-            title: userProfile.is_admin ? "Welcome back, Admin!" : "Welcome back!",
-            description: `Signed in as ${userProfile.first_name} ${userProfile.last_name}`,
-            className: "border-green-200 bg-green-50 text-green-900",
-            duration: 3000,
-          })
+        toast({
+          title: "Welcome back!",
+          description: isAdminEmail ? "Signed in as Administrator" : "Successfully signed in",
+          className: "border-green-200 bg-green-50 text-green-900",
+          duration: 3000,
+        })
 
-          // Redirect based on user role
-          if (userProfile.is_admin) {
-            router.push('/admin')
-          } else {
-            router.push('/')
-          }
+        if (isAdminEmail) {
+          router.push('/admin')
         } else {
-          // If profile doesn't exist, create it
-          const { error: createProfileError } = await supabase
-            .from('users')
-            .insert({
-              id: data.user.id,
-              email: data.user.email!,
-              password_hash: 'managed_by_supabase_auth',
-              first_name: data.user.user_metadata?.first_name || 'User',
-              last_name: data.user.user_metadata?.last_name || '',
-              is_admin: data.user.email === 'admin1@gmail.com' || data.user.email === 'admin@aerohive.com',
-              is_active: true
-            })
-
-          if (!createProfileError) {
-            // Fetch the newly created profile
-            const { data: newProfile } = await supabase
-              .from('users')
-              .select('*')
-              .eq('id', data.user.id)
-              .single()
-
-            if (newProfile) {
-              setUser(newProfile)
-              router.push(newProfile.is_admin ? '/admin' : '/')
-            }
-          }
+          router.push('/')
         }
       }
     } catch (error: any) {
       console.error('Login error:', error)
-      if (error.message !== 'Email not confirmed') {
-        toast({
-          title: "Login Failed",
-          description: error.message || "Invalid email or password",
-          variant: "destructive",
-        })
-      }
+      toast({
+        title: "Login Failed",
+        description: error.message || "Invalid email or password",
+        variant: "destructive",
+      })
       throw error
     } finally {
       setIsLoading(false)
