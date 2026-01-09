@@ -928,6 +928,93 @@ export const getNotifications = async (userId: string, limit: number = 20) => {
   return data as Notification[]
 }
 
+// User Profile functions
+export const getUserProfile = async (userId: string): Promise<User | null> => {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', userId)
+    .single()
+
+  if (error) {
+    console.error('Error fetching user profile:', error)
+    return null
+  }
+  return data as User
+}
+
+export const updateUserProfile = async (userId: string, updates: Partial<User>) => {
+  try {
+    const response = await fetch('/api/user/profile', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId, updates }),
+    })
+
+    const result = await response.json()
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to update profile')
+    }
+
+    return result.profile as User
+  } catch (error) {
+    console.error('Error updating user profile:', error)
+    throw error
+  }
+}
+
+// Booking retrieval for users
+export const getUserBookings = async (userId: string): Promise<Booking[]> => {
+  const { data, error } = await supabase
+    .from('bookings')
+    .select(`
+      *,
+      pilot:drone_pilots(*)
+    `)
+    .eq('client_id', userId)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching user bookings:', error)
+    return []
+  }
+  return data as any[]
+}
+
+// Admin functions (Server-side or High-privilege)
+export const getAllUsers = async (): Promise<User[]> => {
+  const adminClient = getSupabaseAdmin()
+  const { data, error } = await (adminClient || supabase)
+    .from('users')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching all users:', error)
+    return []
+  }
+  return data as User[]
+}
+
+export const getAllBookings = async (): Promise<any[]> => {
+  const { data, error } = await supabase
+    .from('bookings')
+    .select(`
+      *,
+      client:users(*),
+      pilot:drone_pilots(*)
+    `)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching all bookings:', error)
+    return []
+  }
+  return data
+}
+
 export const markNotificationAsRead = async (id: string) => {
   const { error } = await supabase
     .from('notifications')

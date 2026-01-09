@@ -60,3 +60,43 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 })
     }
 }
+
+export async function PATCH(request: NextRequest) {
+    try {
+        const supabaseAdmin = getSupabaseAdmin()
+        if (!supabaseAdmin) {
+            return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+        }
+
+        const body = await request.json()
+        const { userId, updates } = body
+
+        if (!userId || !updates) {
+            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+        }
+
+        console.log('👤 Updating profile for:', userId)
+
+        const { data: updatedProfile, error: updateError } = await supabaseAdmin
+            .from('users')
+            .update({
+                ...updates,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', userId)
+            .select()
+            .single()
+
+        if (updateError) {
+            console.error('❌ Profile update failed:', updateError)
+            return NextResponse.json({ error: updateError.message }, { status: 500 })
+        }
+
+        console.log('✅ Profile updated successfully')
+        return NextResponse.json({ profile: updatedProfile })
+
+    } catch (error: any) {
+        console.error('❌ API Error:', error)
+        return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+}
