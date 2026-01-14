@@ -1,7 +1,8 @@
-
+/* eslint-disable @typescript-eslint/no-var-requires */
 import { createClient } from '@supabase/supabase-js'
-import dotenv from 'dotenv'
 
+// Use require for dotenv to avoid needing type declarations for this script
+const dotenv = require('dotenv')
 dotenv.config({ path: '.env.local' })
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL

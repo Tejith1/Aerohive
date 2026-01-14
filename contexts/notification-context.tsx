@@ -41,7 +41,12 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         if (isAuthenticated && user) {
             fetchNotifications()
 
-            // Set up real-time subscription
+            // Set up real-time subscription (only if supabase is initialized)
+            if (!supabase) {
+                setIsLoading(false)
+                return
+            }
+
             const channel = supabase
                 .channel(`user-notifications-${user.id}`)
                 .on(

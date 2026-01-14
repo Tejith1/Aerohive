@@ -4,11 +4,15 @@ import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
-import { getDronePilots, DronePilot, supabase } from "@/lib/supabase"
+import { getDronePilots, DronePilot, supabase, getCurrentUser } from "@/lib/supabase"
+import { BookingConfirmDialog } from "@/components/BookingConfirmDialog"
+import { BookingDetailsDialog } from "@/components/BookingDetailsDialog"
+import { BookingLimitReachedDialog } from "@/components/BookingLimitReachedDialog"
+import { useToast } from "@/hooks/use-toast"
 import {
   MapPin,
   Star,
@@ -34,6 +38,123 @@ export default function DronePilotsPage() {
   const [areas, setAreas] = useState<string[]>(["All Areas"])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { toast } = useToast()
+
+  // User and booking state
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false)
+  const [showLimitDialog, setShowLimitDialog] = useState(false)
+  const [bookingLimitData, setBookingLimitData] = useState<{
+    canBook: boolean
+    currentCount: number
+    maxBookings: number
+    bookings: any[]
+  } | null>(null)
+  const [pendingPilot, setPendingPilot] = useState<DronePilot | null>(null)
+  const [completedBooking, setCompletedBooking] = useState<any>(null)
+  const [bookingInProgress, setBookingInProgress] = useState(false)
+
+  // Fetch current user on mount
+  useEffect(() => {
+    getCurrentUser().then(user => setCurrentUser(user))
+  }, [])
+
+  // Handle Contact button click - check limit and show confirm dialog
+  const handleContactClick = async (pilot: DronePilot) => {
+    if (!currentUser) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to contact a drone pilot.",
+        variant: "destructive"
+      })
+      window.location.href = '/login'
+      return
+    }
+
+    setPendingPilot(pilot)
+
+    try {
+      const limitRes = await fetch(`/api/bookings/check-limit?userId=${currentUser.id}`)
+      const limitData = await limitRes.json()
+      setBookingLimitData(limitData)
+
+      if (!limitData.canBook) {
+        setShowLimitDialog(true)
+        return
+      }
+
+      setShowConfirmDialog(true)
+    } catch (err) {
+      console.error('Error checking booking limit:', err)
+      setBookingLimitData({ canBook: true, currentCount: 0, maxBookings: 2, bookings: [] })
+      setShowConfirmDialog(true)
+    }
+  }
+
+  // Process booking after confirmation
+  const processBooking = async () => {
+    if (!currentUser || !pendingPilot) return
+
+    setShowConfirmDialog(false)
+    setBookingInProgress(true)
+
+    try {
+      const bookingRes = await fetch('/api/bookings/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client_id: currentUser.id,
+          pilot_id: pendingPilot.id,
+          service_type: pendingPilot.specializations || "General",
+          lat: 0,
+          lng: 0,
+          scheduled_at: new Date().toISOString(),
+          duration_hours: 2,
+          payment_method: 'UPI',
+          requirements: {},
+          user_name: currentUser.full_name || currentUser.email?.split('@')[0],
+          user_phone: '',
+          user_email: currentUser.email
+        })
+      })
+
+      const bookingData = await bookingRes.json()
+      if (!bookingRes.ok) throw new Error(bookingData.detail || "Booking failed")
+
+      setCompletedBooking({
+        bookingId: bookingData.booking_id,
+        otp: bookingData.otp,
+        serviceType: pendingPilot.specializations || "General",
+        location: `${pendingPilot.area}, ${pendingPilot.location}`,
+        scheduledAt: new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }),
+        pilot: {
+          id: pendingPilot.id,
+          full_name: bookingData.pilot_name || pendingPilot.full_name,
+          phone: bookingData.pilot_phone || pendingPilot.phone,
+          email: bookingData.pilot_email || pendingPilot.email,
+          rating: bookingData.pilot_rating || pendingPilot.rating
+        }
+      })
+
+      setShowDetailsDialog(true)
+      toast({
+        title: "🎉 Booking Confirmed!",
+        description: `You've booked ${pendingPilot.full_name}. Check your email for details.`
+      })
+
+    } catch (err: any) {
+      console.error('Booking error:', err)
+      toast({
+        title: "Booking Failed",
+        description: err.message || "Something went wrong. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setBookingInProgress(false)
+    }
+  }
+
 
   // Fetch all pilots and extract unique locations/areas
   useEffect(() => {
@@ -43,7 +164,9 @@ export default function DronePilotsPage() {
   useEffect(() => {
     fetchPilots()
 
-    // Set up real-time subscription for drone pilots
+    // Set up real-time subscription for drone pilots (only if supabase is initialized)
+    if (!supabase) return
+
     const channel = supabase
       .channel('drone_pilots_changes')
       .on(
@@ -53,7 +176,7 @@ export default function DronePilotsPage() {
           schema: 'public',
           table: 'drone_pilots'
         },
-        (payload) => {
+        (payload: { eventType: string; new: Record<string, unknown>; old: Record<string, unknown> }) => {
           console.log('Real-time pilot change detected:', payload)
           // Refresh the list when a change is detected
           fetchPilots()
@@ -335,8 +458,19 @@ export default function DronePilotsPage() {
                             <p className="text-sm text-gray-600">Starting from</p>
                             <p className="text-2xl font-bold text-gray-900">₹{pilot.hourly_rate}<span className="text-sm text-gray-600">/hour</span></p>
                           </div>
-                          <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl">
-                            Contact
+                          <Button
+                            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl"
+                            onClick={() => handleContactClick(pilot)}
+                            disabled={bookingInProgress}
+                          >
+                            {bookingInProgress && pendingPilot?.id === pilot.id ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Booking...
+                              </>
+                            ) : (
+                              'Contact'
+                            )}
                           </Button>
                         </div>
                       </div>
@@ -373,6 +507,41 @@ export default function DronePilotsPage() {
         </section>
       </div>
       <ModernFooter />
+
+      {/* Booking Confirmation Dialog */}
+      <BookingConfirmDialog
+        isOpen={showConfirmDialog}
+        onConfirm={processBooking}
+        onCancel={() => {
+          setShowConfirmDialog(false)
+          setPendingPilot(null)
+        }}
+        currentBookings={bookingLimitData?.currentCount || 0}
+        maxBookings={bookingLimitData?.maxBookings || 2}
+        pilotName={pendingPilot?.full_name}
+      />
+
+      {/* Booking Details Dialog */}
+      <BookingDetailsDialog
+        isOpen={showDetailsDialog}
+        onClose={() => {
+          setShowDetailsDialog(false)
+          setCompletedBooking(null)
+          setPendingPilot(null)
+        }}
+        booking={completedBooking}
+      />
+
+      {/* Booking Limit Reached Dialog */}
+      <BookingLimitReachedDialog
+        isOpen={showLimitDialog}
+        onClose={() => {
+          setShowLimitDialog(false)
+          setPendingPilot(null)
+        }}
+        maxBookings={bookingLimitData?.maxBookings || 2}
+        existingBookings={bookingLimitData?.bookings || []}
+      />
     </>
   )
 }

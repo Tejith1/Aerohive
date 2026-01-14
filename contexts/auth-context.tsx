@@ -102,7 +102,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     initializeAuth()
 
-    // Listen for auth changes
+    // Listen for auth changes (only if supabase is initialized)
+    if (!supabase) {
+      setIsLoading(false)
+      return
+    }
+
     const { data } = supabase.auth.onAuthStateChange(
       async (event: string, session: any) => {
         console.log('🔔 Auth state change:', event, session?.user?.email)

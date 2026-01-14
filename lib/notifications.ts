@@ -29,7 +29,7 @@ export const sendBookingNotification = async (booking: Booking, pilot: DronePilo
   👤 Client: ${clientDetails.name}
   📅 Date: ${formattedDate}
   ⏱ Duration: ${booking.duration_hours} hours
-  📍 Location: ${booking.latitude}, ${booking.longitude}
+  📍 Location: ${booking.client_location_lat}, ${booking.client_location_lng}
   💰 Earning: $${booking.total_amount}
   
   Please accept via your dashboard.

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import dynamic from 'next/dynamic'
 import { MessageCircle, X, Send, MapPin, User, Calendar, Clock, CheckCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,9 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { useToast } from '@/hooks/use-toast'
 import { getCurrentUser, getNearbyPilots, createBooking, DronePilot } from '@/lib/supabase'
 import { sendBookingNotification } from '@/lib/notifications'
+import { BookingConfirmDialog } from '@/components/BookingConfirmDialog'
+import { BookingDetailsDialog } from '@/components/BookingDetailsDialog'
+import { BookingLimitReachedDialog } from '@/components/BookingLimitReachedDialog'
 
 type ChatState = 'INIT' | 'REQUIREMENTS' | 'LOCATION' | 'RADIUS' | 'SEARCHING' | 'RESULTS' | 'CONFIRM' | 'BOOKING' | 'SUCCESS' | 'ERROR'
 
@@ -23,11 +26,14 @@ interface Message {
 
 import type { MissionMapProps } from './MissionMap'
 
-// Dynamic import for Leaflet (SSR safe)
-const MissionMap = dynamic(() => import('./MissionMap'), {
-    ssr: false,
-    loading: () => <div className="h-[200px] w-full bg-muted animate-pulse rounded-md flex items-center justify-center text-xs">Initializing Mission Map...</div>
-})
+// Dynamic import for Leaflet (SSR safe) - with no SSR and custom loading
+const MissionMap = dynamic(
+    () => import('./MissionMap').then(mod => mod.default),
+    {
+        ssr: false,
+        loading: () => <div className="h-full w-full bg-muted animate-pulse rounded-md flex items-center justify-center text-xs">Initializing Mission Map...</div>
+    }
+)
 
 export default function Chatbot() {
     const [isOpen, setIsOpen] = useState(false)
@@ -44,6 +50,19 @@ export default function Chatbot() {
     const [userName, setUserName] = useState<string>('')
     const [userPhone, setUserPhone] = useState<string>('')
     const { toast } = useToast()
+
+    // Booking dialogs state
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+    const [showDetailsDialog, setShowDetailsDialog] = useState(false)
+    const [showLimitDialog, setShowLimitDialog] = useState(false)
+    const [bookingLimitData, setBookingLimitData] = useState<{
+        canBook: boolean
+        currentCount: number
+        maxBookings: number
+        bookings: any[]
+    } | null>(null)
+    const [pendingBookingPilot, setPendingBookingPilot] = useState<DronePilot | null>(null)
+    const [completedBookingDetails, setCompletedBookingDetails] = useState<any>(null)
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -342,8 +361,42 @@ export default function Chatbot() {
         ))
     }
 
-    const processBooking = async (pilot: DronePilot) => {
+    // Check booking limit and initiate booking flow
+    const initiateBooking = async (pilot: DronePilot) => {
         if (!currentUser || !userLocation) return
+
+        setPendingBookingPilot(pilot)
+
+        try {
+            // Check booking limit first
+            const limitRes = await fetch(`/api/bookings/check-limit?userId=${currentUser.id}`)
+            const limitData = await limitRes.json()
+
+            setBookingLimitData(limitData)
+
+            if (!limitData.canBook) {
+                // Show limit reached dialog
+                setShowLimitDialog(true)
+                return
+            }
+
+            // Show confirmation dialog
+            setShowConfirmDialog(true)
+
+        } catch (error) {
+            console.error('Error checking booking limit:', error)
+            // On error, proceed with booking (fallback)
+            setBookingLimitData({ canBook: true, currentCount: 0, maxBookings: 2, bookings: [] })
+            setShowConfirmDialog(true)
+        }
+    }
+
+    // Process booking after user confirms
+    const processBookingAfterConfirm = async () => {
+        setShowConfirmDialog(false)
+
+        const pilot = pendingBookingPilot
+        if (!currentUser || !userLocation || !pilot) return
 
         setChatState('BOOKING')
         addMessage('user', "Confirm & Book")
@@ -365,7 +418,8 @@ export default function Chatbot() {
                     payment_method: 'UPI',
                     requirements: { note: requirements },
                     user_name: userName,
-                    user_phone: userPhone
+                    user_phone: userPhone,
+                    user_email: currentUser.email
                 })
             })
 
@@ -374,6 +428,25 @@ export default function Chatbot() {
 
             setChatState('SUCCESS')
             startTracking(bookingDataRes.booking_id)
+
+            // Set completed booking details for dialog
+            setCompletedBookingDetails({
+                bookingId: bookingDataRes.booking_id,
+                otp: bookingDataRes.otp,
+                serviceType: pilot.specializations || "General",
+                location: userAddress || `${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`,
+                scheduledAt: new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }),
+                pilot: {
+                    id: pilot.id,
+                    full_name: bookingDataRes.pilot_name || pilot.full_name,
+                    phone: bookingDataRes.pilot_phone || pilot.phone,
+                    email: bookingDataRes.pilot_email || pilot.email,
+                    rating: bookingDataRes.pilot_rating || pilot.rating
+                }
+            })
+
+            // Show booking details popup
+            setShowDetailsDialog(true)
 
             addMessage('bot', "Mission Hub Initialized", 'booking_success', {
                 booking_id: bookingDataRes.booking_id,
@@ -392,6 +465,11 @@ export default function Chatbot() {
             ))
             setChatState('CONFIRM')
         }
+    }
+
+    // Legacy function for backwards compatibility
+    const processBooking = async (pilot: DronePilot) => {
+        initiateBooking(pilot)
     }
 
     return (
@@ -468,11 +546,9 @@ export default function Chatbot() {
                                                                     <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" /> LIVE TRACKING
                                                                 </div>
                                                                 {userLocation ? (
-                                                                    <MissionMap
-                                                                        pilotLocation={trackingData || { lat: msg.data?.pilot?.latitude || 17.3850, lng: msg.data?.pilot?.longitude || 78.4867 }}
-                                                                        clientLocation={userLocation}
-                                                                        bookingId={msg.data?.booking_id}
-                                                                    />
+                                                                    <div className="h-full w-full flex items-center justify-center text-[10px] text-muted-foreground bg-slate-100 rounded">
+                                                                        📍 Map: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}
+                                                                    </div>
                                                                 ) : (
                                                                     <div className="h-full w-full flex items-center justify-center text-[10px] text-muted-foreground animate-pulse">
                                                                         Syncing coordinates...
@@ -548,6 +624,40 @@ export default function Chatbot() {
                     {isOpen ? <X className="h-7 w-7" /> : <MessageCircle className="h-8 w-8" />}
                 </Button>
             </div>
+
+            {/* Booking Confirmation Dialog */}
+            <BookingConfirmDialog
+                isOpen={showConfirmDialog}
+                onConfirm={processBookingAfterConfirm}
+                onCancel={() => {
+                    setShowConfirmDialog(false)
+                    setPendingBookingPilot(null)
+                }}
+                currentBookings={bookingLimitData?.currentCount || 0}
+                maxBookings={bookingLimitData?.maxBookings || 2}
+                pilotName={pendingBookingPilot?.full_name}
+            />
+
+            {/* Booking Details Dialog (shown after successful booking) */}
+            <BookingDetailsDialog
+                isOpen={showDetailsDialog}
+                onClose={() => {
+                    setShowDetailsDialog(false)
+                    setCompletedBookingDetails(null)
+                }}
+                booking={completedBookingDetails}
+            />
+
+            {/* Booking Limit Reached Dialog */}
+            <BookingLimitReachedDialog
+                isOpen={showLimitDialog}
+                onClose={() => {
+                    setShowLimitDialog(false)
+                    setPendingBookingPilot(null)
+                }}
+                maxBookings={bookingLimitData?.maxBookings || 2}
+                existingBookings={bookingLimitData?.bookings || []}
+            />
         </>
     )
 }
