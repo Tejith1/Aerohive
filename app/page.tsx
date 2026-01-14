@@ -253,8 +253,18 @@ export default function HomePage() {
         </section>
 
         {/* Featured Products */}
-        <section className="py-24 bg-white">
-          <div className="container mx-auto px-4">
+        <section className="py-24 bg-white relative">
+          <div className="container mx-auto px-4 relative">
+            {/* Blur Overlay */}
+            <div className="absolute inset-0 z-20 backdrop-blur-md bg-white/30 flex items-center justify-center rounded-3xl pointer-events-auto">
+              <div className="bg-white/90 px-12 py-6 rounded-2xl shadow-2xl border border-blue-100 transform hover:scale-105 transition-transform duration-300">
+                <h3 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  Coming Soon
+                </h3>
+                <p className="text-gray-600 mt-2 text-center text-lg">Stay tuned for our latest arrivals!</p>
+              </div>
+            </div>
+
             <div className="text-center mb-20">
               <h2 className="text-5xl md:text-6xl font-bold text-slate-900 mb-6">
                 Featured Drones
