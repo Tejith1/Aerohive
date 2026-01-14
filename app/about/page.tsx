@@ -155,19 +155,40 @@ export default function AboutPage() {
           <div className="relative z-10 container mx-auto px-4 text-center text-white">
             <div className="max-w-5xl mx-auto">
               {/* Main Hero Content */}
-              <div className="mb-8">
-                <Badge className="bg-white/20 text-white border-white/30 mb-6 px-6 py-2 text-sm font-medium">
+              <div className="mb-12">
+                <Badge className="bg-white/20 text-white border-white/30 mb-8 px-6 py-2 text-sm font-medium">
                   🚁 Leading the Future of Aviation
                 </Badge>
-                <h1 className="text-6xl md:text-8xl font-bold mb-8 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-                  AeroHive
-                </h1>
-                <p className="text-2xl md:text-3xl font-light mb-6 text-blue-100">
-                  Empowering the Sky, One Drone at a Time
-                </p>
+
+                {/* Brand Logo Integration */}
+                <div className="flex flex-col items-center justify-center mb-8 group">
+                  <div className="relative mb-4">
+                    <div className="h-28 w-28 md:h-36 md:w-36 rounded-[2.5rem] overflow-hidden shadow-2xl transition-all duration-500 bg-white group-hover:scale-105 group-hover:rotate-3">
+                      <img
+                        src="/WhatsApp Image 2025-10-24 at 13.04.00_647ae0e3.jpg"
+                        alt="AeroHive Logo"
+                        className="h-full w-full object-contain p-2"
+                      />
+                    </div>
+                    <div className="absolute -inset-4 bg-white/20 blur-3xl rounded-full -z-10 group-hover:bg-white/30 transition-all duration-500"></div>
+                  </div>
+                  <div className="flex items-center -mt-12 md:-mt-16">
+                    <img
+                      src="/Aerohive text logo scaled up.png"
+                      alt="AeroHive"
+                      className="w-auto object-contain transition-all duration-500 group-hover:scale-105"
+                      style={{ filter: 'brightness(0) invert(1)', height: '220px' }}
+                    />
+                  </div>
+                  <div className="-mt-16 md:-mt-20">
+                    <p className="text-2xl md:text-3xl font-light text-blue-100 tracking-wider">
+                      Empowering the Sky, One Drone at a Time
+                    </p>
+                  </div>
+                </div>
                 <p className="text-lg md:text-xl text-blue-200 max-w-3xl mx-auto leading-relaxed">
-                  We're not just selling drones – we're pioneering the future of aerial technology. 
-                  From precision agriculture to emergency response, our cutting-edge solutions are 
+                  We're not just selling drones – we're pioneering the future of aerial technology.
+                  From precision agriculture to emergency response, our cutting-edge solutions are
                   transforming industries and saving lives across the globe.
                 </p>
               </div>
@@ -216,7 +237,7 @@ export default function AboutPage() {
                 Transforming Tomorrow's Aviation
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Our mission extends far beyond selling drones. We're building an ecosystem that empowers 
+                Our mission extends far beyond selling drones. We're building an ecosystem that empowers
                 innovation, enhances safety, and opens new possibilities in the sky.
               </p>
             </div>
@@ -232,8 +253,8 @@ export default function AboutPage() {
                       <h3 className="text-3xl font-bold text-gray-900">Our Mission</h3>
                     </div>
                     <p className="text-lg text-gray-600 leading-relaxed mb-6">
-                      To democratize advanced drone technology, making it accessible to professionals, 
-                      businesses, and enthusiasts worldwide. We believe everyone should have access to 
+                      To democratize advanced drone technology, making it accessible to professionals,
+                      businesses, and enthusiasts worldwide. We believe everyone should have access to
                       tools that enhance their capabilities and expand their horizons.
                     </p>
                     <div className="space-y-3">
@@ -263,11 +284,11 @@ export default function AboutPage() {
                       <h3 className="text-3xl font-bold text-gray-900">Our Vision</h3>
                     </div>
                     <p className="text-lg text-gray-600 leading-relaxed mb-6">
-                      A world where autonomous aerial systems seamlessly integrate into daily life, 
-                      from delivery services to emergency response, environmental monitoring to 
+                      A world where autonomous aerial systems seamlessly integrate into daily life,
+                      from delivery services to emergency response, environmental monitoring to
                       entertainment, creating safer and more efficient solutions for humanity.
                     </p>
-                    
+
                     {/* Vision Cards */}
                     <div className="space-y-4">
                       {[
@@ -307,7 +328,7 @@ export default function AboutPage() {
             <div className="relative max-w-6xl mx-auto">
               {/* Timeline Line */}
               <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-primary via-blue-400 to-purple-500 rounded-full"></div>
-              
+
               <div className="space-y-16">
                 {timeline.map((item, index) => (
                   <div key={index} className={`flex items-center ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'}`}>
@@ -337,12 +358,12 @@ export default function AboutPage() {
                         </CardContent>
                       </Card>
                     </div>
-                    
+
                     {/* Timeline Dot */}
                     <div className="absolute left-1/2 transform -translate-x-1/2">
                       <div className={`w-6 h-6 rounded-full border-4 border-white shadow-lg transition-all duration-300 ${currentTimelineIndex === index ? 'bg-primary scale-125' : 'bg-gray-300'}`}></div>
                     </div>
-                    
+
                     <div className="w-1/2"></div>
                   </div>
                 ))}
@@ -469,8 +490,8 @@ export default function AboutPage() {
                 Ready to Soar with AeroHive?
               </h2>
               <p className="text-xl text-blue-100 mb-12 leading-relaxed">
-                Join thousands of professionals, businesses, and enthusiasts who trust AeroHive 
-                for their aerial technology needs. Experience the difference that innovation, 
+                Join thousands of professionals, businesses, and enthusiasts who trust AeroHive
+                for their aerial technology needs. Experience the difference that innovation,
                 quality, and exceptional service can make.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">

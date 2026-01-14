@@ -5,10 +5,12 @@ import Link from "next/link"
 import { Search, Grid3x3, List, ArrowRight, Zap, Camera, Shield, Truck, Globe, MapPin, Plane, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"      
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
+import { useAuth } from "@/contexts/auth-context"
+import { Lock } from "lucide-react"
 
 // Drone categories data with icons and updated design
 const droneCategories = [
@@ -28,7 +30,7 @@ const droneCategories = [
   {
     id: 2,
     name: "Photography Drones",
-    slug: "photography-drones", 
+    slug: "photography-drones",
     description: "Professional cameras with stabilization for aerial photography and videography",
     imageUrl: "/placeholder.svg?height=400&width=400&text=Photography+Drone",
     productCount: 78,
@@ -106,7 +108,7 @@ const droneCategories = [
   {
     id: 8,
     name: "Mapping Drones",
-    slug: "mapping-drones", 
+    slug: "mapping-drones",
     description: "Precision mapping and surveying drones with advanced GPS and sensors",
     imageUrl: "/placeholder.svg?height=400&width=400&text=Mapping+Drone",
     productCount: 28,
@@ -135,6 +137,7 @@ export default function CategoriesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [sortBy, setSortBy] = useState("name")
   const [filteredCategories, setFilteredCategories] = useState(droneCategories)
+  const { isAuthenticated, isAdmin, isLoading } = useAuth()
 
   useEffect(() => {
     let filtered = droneCategories.filter(category =>
@@ -162,7 +165,7 @@ export default function CategoriesPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50">
       <ModernHeader />
-      
+
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white py-32 overflow-hidden">
@@ -174,7 +177,7 @@ export default function CategoriesPage() {
                 <span className="text-2xl font-bold">Drone Categories</span>
               </div>
               <h1 className="text-6xl md:text-7xl font-extrabold mb-8 text-white">
-                Explore Our 
+                Explore Our
                 <span className="block text-transparent bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text">
                   Drone Categories
                 </span>
@@ -200,7 +203,7 @@ export default function CategoriesPage() {
                   className="pl-12 py-3 text-lg border-2 border-gray-200 rounded-xl focus:border-blue-500 transition-colors"
                 />
               </div>
-              
+
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-3">
                   <span className="text-lg font-medium text-gray-700">Sort by:</span>
@@ -219,9 +222,9 @@ export default function CategoriesPage() {
           </div>
         </section>
         {/* Categories Grid */}
-        <section className="py-24 bg-gradient-to-br from-gray-50 to-blue-50">
+        <section className="py-24 bg-gradient-to-br from-gray-50 to-blue-50 relative">
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 ${!isAdmin && !isLoading ? 'blur-md pointer-events-none select-none opacity-40' : ''}`}>
               {filteredCategories.map((category) => {
                 const IconComponent = category.icon
                 return (
@@ -258,7 +261,7 @@ export default function CategoriesPage() {
                       <p className="text-slate-600 mb-4 leading-relaxed">
                         {category.description}
                       </p>
-                      
+
                       <div className="mb-6">
                         <p className="text-sm font-semibold text-blue-600 mb-3">Key Features:</p>
                         <div className="flex flex-wrap gap-2">
@@ -274,7 +277,7 @@ export default function CategoriesPage() {
                           )}
                         </div>
                       </div>
-                      
+
                       <div className="flex justify-between items-center">
                         <div>
                           <p className="text-sm text-slate-500 mb-1">Price Range</p>
@@ -292,6 +295,23 @@ export default function CategoriesPage() {
                 )
               })}
             </div>
+
+            {/* Locked Overlay */}
+            {!isAdmin && !isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center z-20 px-4">
+                <div className="max-w-md w-full bg-white/95 backdrop-blur-sm border border-gray-200 p-8 rounded-3xl shadow-2xl text-center transform transition-all duration-500 animate-in fade-in zoom-in slide-in-from-bottom-4">
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-200">
+                    <Lock className="h-10 w-10 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                    Coming Soon
+                  </h3>
+                  <p className="text-gray-600 mb-4 leading-relaxed">
+                    We are currently expanding our specialized categories. Standard and premium access levels will be updated soon.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {filteredCategories.length === 0 && (
               <div className="text-center py-16">
