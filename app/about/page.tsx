@@ -58,21 +58,21 @@ const team = [
     specialties: ["Aerospace Engineering", "Strategic Leadership", "Innovation"]
   },
   {
-    name: "Dr. D. Ramya Krishna",
+    name: "Dr. Dhulipalla Ramya Krishna",
     role: "Chief Technology Advisor",
     bio: "Doctorate in Applications of UAV in Precision Agriculture", Best women Researcher, pioneer in Data Science Engineering",
     image: "/placeholder.svg?height=400&width=400&text=Marcus+CTO",
     specialties: ["AI/ML", "Autonomous Systems", "Computer Vision", "Image Processing"]
   },
   {
-    name: "Charan",
-    role: "UAV Hardware Developer ",
+    name: "Meka Charan Sai Tej",
+    role: "Chief Hardware and Operations Officer ",
     bio: "Pioneer in Flight Controller Design & Integration, Hardware Testing, Calibration, and Validation",
     image: "/placeholder.svg?height=400&width=400&text=Emily+Innovation",
     specialties: ["R&D", "Patent Strategy", "Product Development"]
   },
   {
-    name: "Tejith Reddy",
+    name: "Daida Tejith Reddy",
     role: "Web Developer – Drone Operations Platform",
     bio: "Expertise in full-stack web development, cloud-based platforms, and API integration.",
     image: "/placeholder.svg?height=400&width=400&text=James+VP",
