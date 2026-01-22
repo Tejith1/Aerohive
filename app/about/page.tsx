@@ -18,25 +18,25 @@ const stats = [
 
 const timeline = [
   {
-    year: "2017",
+    year: "2023",
     title: "Foundation",
     description: "AeroHive was founded with a vision to democratize drone technology for everyone.",
     icon: Target
   },
   {
-    year: "2019",
+    year: "2024",
     title: "First 1000 Customers",
     description: "Reached our first major milestone with revolutionary customer service.",
     icon: Users
   },
   {
-    year: "2021",
+    year: "2024",
     title: "Global Expansion",
     description: "Expanded operations to 50+ countries with localized support.",
     icon: Globe
   },
   {
-    year: "2023",
+    year: "2025",
     title: "Innovation Leader",
     description: "Launched industry-first drone customization platform.",
     icon: Zap
@@ -51,30 +51,30 @@ const timeline = [
 
 const team = [
   {
-    name: "Sarah Chen",
+    name: "Veerla SivaRamaKrishna",
     role: "Chief Executive Officer",
-    bio: "Former SpaceX engineer with 15+ years in aerospace technology.",
+    bio: "Young engineer with good expereince in aerospace technology.",
     image: "/placeholder.svg?height=400&width=400&text=Sarah+Chen+CEO",
     specialties: ["Aerospace Engineering", "Strategic Leadership", "Innovation"]
   },
   {
-    name: "Marcus Rodriguez",
-    role: "Chief Technology Officer",
-    bio: "AI and robotics expert, pioneer in autonomous flight systems.",
+    name: "Dr. D. Ramya Krishna",
+    role: "Chief Technology Advisor",
+    bio: "Doctorate in Applications of UAV in Precision Agriculture", Best women Researcher, pioneer in Data Science Engineering",
     image: "/placeholder.svg?height=400&width=400&text=Marcus+CTO",
-    specialties: ["AI/ML", "Autonomous Systems", "Software Architecture"]
+    specialties: ["AI/ML", "Autonomous Systems", "Computer Vision", "Image Processing"]
   },
   {
-    name: "Dr. Emily Watson",
-    role: "Head of Innovation",
-    bio: "PhD in Mechanical Engineering, 50+ patents in drone technology.",
+    name: "Charan",
+    role: "UAV Hardware Developer ",
+    bio: "Pioneer in Flight Controller Design & Integration, Hardware Testing, Calibration, and Validation",
     image: "/placeholder.svg?height=400&width=400&text=Emily+Innovation",
     specialties: ["R&D", "Patent Strategy", "Product Development"]
   },
   {
-    name: "James Park",
-    role: "VP of Customer Experience",
-    bio: "Customer-first advocate with expertise in global service operations.",
+    name: "Tejith Reddy",
+    role: "Web Developer – Drone Operations Platform",
+    bio: "Expertise in full-stack web development, cloud-based platforms, and API integration.",
     image: "/placeholder.svg?height=400&width=400&text=James+VP",
     specialties: ["Customer Success", "Global Operations", "Service Excellence"]
   }
