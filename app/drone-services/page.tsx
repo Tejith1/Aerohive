@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, MapPin, Clock, Star, Camera, Plane, Droplets, Map, DollarSign, Calendar, Shield, Award, Loader2 } from "lucide-react"
+import { Search, MapPin, Clock, Star, Camera, Plane, Droplets, Map, DollarSign, Calendar, Shield, Award, Loader2, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
 import { calculateDistance } from "@/lib/supabase"
+import { useAuth } from "@/contexts/auth-context"
 
 interface ServiceProvider {
   id: string
@@ -258,6 +259,7 @@ export default function DroneServicesPage() {
   const [filteredProviders, setFilteredProviders] = useState(serviceProviders)
   const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null)
   const [isLocating, setIsLocating] = useState(false)
+  const { isAdmin, isLoading: authLoading } = useAuth()
 
   useEffect(() => {
     if (activeTab === "services") {
@@ -504,10 +506,10 @@ export default function DroneServicesPage() {
       </section>
 
       {/* Content Section */}
-      <section className="py-12">
+      <section className="py-12 relative">
         <div className="container mx-auto px-4">
           {activeTab === "services" ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+            <div className={`grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 ${!isAdmin && !authLoading ? 'blur-md pointer-events-none select-none opacity-40' : ''}`}>
               {filteredServices.map((service) => {
                 const provider = getProviderById(service.providerId)
                 const ServiceIcon = getServiceIcon(service.serviceType)
@@ -640,7 +642,7 @@ export default function DroneServicesPage() {
               })}
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+            <div className={`grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 ${!isAdmin && !authLoading ? 'blur-md pointer-events-none select-none opacity-40' : ''}`}>
               {filteredProviders.map((provider) => (
                 <Card key={provider.id} className="overflow-hidden hover:shadow-xl transition-all duration-300">
                   <CardHeader className="text-center pb-4">
@@ -758,6 +760,23 @@ export default function DroneServicesPage() {
                 </Button>
               </div>
             )}
+
+          {/* Coming Soon Overlay */}
+          {!isAdmin && !authLoading && (
+            <div className="absolute inset-0 flex items-center justify-center z-20 px-4">
+              <div className="max-w-md w-full bg-white/95 backdrop-blur-sm border border-gray-200 p-8 rounded-3xl shadow-2xl text-center transform transition-all duration-500 animate-in fade-in zoom-in slide-in-from-bottom-4">
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-200">
+                  <Lock className="h-10 w-10 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  Coming Soon
+                </h3>
+                <p className="text-gray-600 mb-4 leading-relaxed">
+                  Our drone services marketplace is currently being prepared. Professional service providers will be available soon.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

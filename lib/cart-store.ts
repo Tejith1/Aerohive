@@ -2,6 +2,7 @@
 
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
+import { addCartNotification } from "./action-notifications-store"
 
 interface CartItem {
   id: number
@@ -38,10 +39,14 @@ export const useCartStore = create<CartStore>()(
               i.id === item.id ? { ...i, quantity: Math.min(i.quantity + 1, item.stockQuantity) } : i,
             ),
           })
+          // Notify for quantity increase
+          addCartNotification(item.name, item.imageUrl)
         } else {
           set({
             items: [...items, { ...item, quantity: 1 }],
           })
+          // Notify for new item
+          addCartNotification(item.name, item.imageUrl)
         }
       },
 

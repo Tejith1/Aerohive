@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Search, Filter, MapPin, Clock, Users, Star, Award, Calendar, BookOpen, User } from "lucide-react"
+import { Search, Filter, MapPin, Clock, Users, Star, Award, Calendar, BookOpen, User, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
+import { useAuth } from "@/contexts/auth-context"
 
 interface TrainingProvider {
   id: string
@@ -105,7 +106,7 @@ const trainingCourses: TrainingCourse[] = [
     prerequisites: [],
     courseOutline: [
       "Introduction to UAS Operations",
-      "Airspace Classification & Requirements", 
+      "Airspace Classification & Requirements",
       "Weather Systems & Meteorology",
       "UAS Performance & Loading",
       "Emergency Procedures",
@@ -203,6 +204,7 @@ export default function TrainingPage() {
   const [formatFilter, setFormatFilter] = useState<string>("all")
   const [filteredCourses, setFilteredCourses] = useState(trainingCourses)
   const [filteredProviders, setFilteredProviders] = useState(trainingProviders)
+  const { isAdmin, isLoading: authLoading } = useAuth()
 
   useEffect(() => {
     if (activeTab === "courses") {
@@ -223,7 +225,7 @@ export default function TrainingPage() {
     } else {
       const filtered = trainingProviders.filter(provider =>
         provider.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        provider.specializations.some(spec => 
+        provider.specializations.some(spec =>
           spec.toLowerCase().includes(searchTerm.toLowerCase())
         )
       )
@@ -238,7 +240,7 @@ export default function TrainingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
       <ModernHeader />
-      
+
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-900 via-indigo-800 to-purple-900 text-white py-20">
         <div className="container mx-auto px-4 text-center">
@@ -246,7 +248,7 @@ export default function TrainingPage() {
             Drone Training & Certification
           </h1>
           <p className="text-xl mb-8 text-blue-100 max-w-3xl mx-auto">
-            Master professional drone operations with certified training from leading aviation instructors. 
+            Master professional drone operations with certified training from leading aviation instructors.
             From beginner courses to advanced certifications, launch your drone career today.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
@@ -309,7 +311,7 @@ export default function TrainingPage() {
                     <option value="Advanced">Advanced</option>
                     <option value="Professional">Professional</option>
                   </select>
-                  
+
                   <select
                     value={formatFilter}
                     onChange={(e) => setFormatFilter(e.target.value)}
@@ -328,10 +330,10 @@ export default function TrainingPage() {
       </section>
 
       {/* Content Section */}
-      <section className="py-12">
+      <section className="py-12 relative">
         <div className="container mx-auto px-4">
           {activeTab === "courses" ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+            <div className={`grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 ${!isAdmin && !authLoading ? 'blur-md pointer-events-none select-none opacity-40' : ''}`}>
               {filteredCourses.map((course) => {
                 const provider = getProviderById(course.providerId)
                 const availableSpots = course.maxParticipants - course.currentEnrollment
@@ -343,18 +345,17 @@ export default function TrainingPage() {
                         <Badge variant={course.level === "Professional" ? "default" : "secondary"}>
                           {course.level}
                         </Badge>
-                        <Badge variant="outline" className={`${
-                          course.format === "Online" ? "bg-green-50 text-green-700"
-                          : course.format === "In-Person" ? "bg-blue-50 text-blue-700"
-                          : "bg-purple-50 text-purple-700"
-                        }`}>
+                        <Badge variant="outline" className={`${course.format === "Online" ? "bg-green-50 text-green-700"
+                            : course.format === "In-Person" ? "bg-blue-50 text-blue-700"
+                              : "bg-purple-50 text-purple-700"
+                          }`}>
                           {course.format}
                         </Badge>
                       </div>
                       <CardTitle className="text-xl mb-2">{course.title}</CardTitle>
                       <p className="text-gray-600 text-sm">{course.description}</p>
                     </CardHeader>
-                    
+
                     <CardContent className="space-y-4">
                       {/* Provider Info */}
                       {provider && (
@@ -425,18 +426,17 @@ export default function TrainingPage() {
                               <div className="text-xs text-green-600 font-medium">Certificate Included</div>
                             )}
                           </div>
-                          <div className={`text-sm font-medium ${
-                            availableSpots > 5 ? "text-green-600"
-                            : availableSpots > 0 ? "text-yellow-600"
-                            : "text-red-600"
-                          }`}>
+                          <div className={`text-sm font-medium ${availableSpots > 5 ? "text-green-600"
+                              : availableSpots > 0 ? "text-yellow-600"
+                                : "text-red-600"
+                            }`}>
                             {availableSpots > 0 ? `${availableSpots} spots available` : "Fully Booked"}
                           </div>
                         </div>
-                        
+
                         <div className="space-y-2">
-                          <Button 
-                            className="w-full bg-blue-600 hover:bg-blue-700" 
+                          <Button
+                            className="w-full bg-blue-600 hover:bg-blue-700"
                             disabled={availableSpots === 0}
                           >
                             {availableSpots > 0 ? "Enroll Now" : "Join Waitlist"}
@@ -452,7 +452,7 @@ export default function TrainingPage() {
               })}
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+            <div className={`grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 ${!isAdmin && !authLoading ? 'blur-md pointer-events-none select-none opacity-40' : ''}`}>
               {filteredProviders.map((provider) => (
                 <Card key={provider.id} className="overflow-hidden hover:shadow-xl transition-all duration-300">
                   <CardHeader className="text-center pb-4">
@@ -476,7 +476,7 @@ export default function TrainingPage() {
                       <span className="text-sm text-gray-500">({provider.reviewCount} reviews)</span>
                     </div>
                   </CardHeader>
-                  
+
                   <CardContent className="space-y-4">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <MapPin className="w-4 h-4" />
@@ -519,21 +519,38 @@ export default function TrainingPage() {
             </div>
           )}
 
-          {((activeTab === "courses" && filteredCourses.length === 0) || 
+          {((activeTab === "courses" && filteredCourses.length === 0) ||
             (activeTab === "providers" && filteredProviders.length === 0)) && (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">No {activeTab} found matching your criteria.</p>
-              <Button 
-                variant="outline" 
-                className="mt-4"
-                onClick={() => {
-                  setSearchTerm("")
-                  setLevelFilter("all")
-                  setFormatFilter("all")
-                }}
-              >
-                Clear Filters
-              </Button>
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-lg">No {activeTab} found matching your criteria.</p>
+                <Button
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => {
+                    setSearchTerm("")
+                    setLevelFilter("all")
+                    setFormatFilter("all")
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            )}
+
+          {/* Coming Soon Overlay */}
+          {!isAdmin && !authLoading && (
+            <div className="absolute inset-0 flex items-center justify-center z-20 px-4">
+              <div className="max-w-md w-full bg-white/95 backdrop-blur-sm border border-gray-200 p-8 rounded-3xl shadow-2xl text-center transform transition-all duration-500 animate-in fade-in zoom-in slide-in-from-bottom-4">
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-200">
+                  <Lock className="h-10 w-10 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  Coming Soon
+                </h3>
+                <p className="text-gray-600 mb-4 leading-relaxed">
+                  Our drone training and certification programs are being developed. Expert training courses will be available soon.
+                </p>
+              </div>
             </div>
           )}
         </div>

@@ -13,6 +13,7 @@ import { BookingConfirmDialog } from "@/components/BookingConfirmDialog"
 import { BookingDetailsDialog } from "@/components/BookingDetailsDialog"
 import { BookingLimitReachedDialog } from "@/components/BookingLimitReachedDialog"
 import { useToast } from "@/hooks/use-toast"
+import { addBookingNotification } from "@/lib/action-notifications-store"
 import {
   MapPin,
   Star,
@@ -138,6 +139,23 @@ export default function DronePilotsPage() {
       })
 
       setShowDetailsDialog(true)
+
+      // Add notification to the notification bar with full booking data
+      addBookingNotification({
+        bookingId: bookingData.booking_id,
+        otp: bookingData.otp,
+        serviceType: pendingPilot.specializations || "General",
+        location: `${pendingPilot.area}, ${pendingPilot.location}`,
+        scheduledAt: new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }),
+        pilot: {
+          id: pendingPilot.id,
+          full_name: bookingData.pilot_name || pendingPilot.full_name,
+          phone: bookingData.pilot_phone || pendingPilot.phone,
+          email: bookingData.pilot_email || pendingPilot.email,
+          rating: bookingData.pilot_rating || pendingPilot.rating
+        }
+      })
+
       toast({
         title: "🎉 Booking Confirmed!",
         description: `You've booked ${pendingPilot.full_name}. Check your email for details.`

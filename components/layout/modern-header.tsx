@@ -93,8 +93,8 @@ export function ModernHeader() {
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
-        ? 'bg-white/95 backdrop-blur-lg shadow-lg border-b border-gray-200/50'
-        : 'bg-white/80 backdrop-blur-md'
+      ? 'bg-white/95 backdrop-blur-lg shadow-lg border-b border-gray-200/50'
+      : 'bg-white/80 backdrop-blur-md'
       }`}>
       <div className="container mx-auto px-4">
         <div className="flex h-20 items-center justify-between">

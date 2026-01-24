@@ -60,7 +60,7 @@ const team = [
   {
     name: "Dr. Dhulipalla Ramya Krishna",
     role: "Chief Technology Advisor",
-    bio: "Doctorate in Applications of UAV in Precision Agriculture", Best women Researcher, pioneer in Data Science Engineering",
+    bio: "Doctorate in Applications of UAV in Precision Agriculture, Best Women Researcher, Pioneer in Data Science Engineering",
     image: "/placeholder.svg?height=400&width=400&text=Marcus+CTO",
     specialties: ["AI/ML", "Autonomous Systems", "Computer Vision", "Image Processing"]
   },
