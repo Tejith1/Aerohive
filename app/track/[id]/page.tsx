@@ -23,8 +23,8 @@ export default function TrackingPage() {
     useEffect(() => {
         if (id) {
             fetchJobDetails()
-            // Poll for updates every 30 seconds
-            const interval = setInterval(fetchJobDetails, 30000)
+            // Poll for updates every 5 seconds for a "clean" live experience
+            const interval = setInterval(fetchJobDetails, 5000)
             return () => clearInterval(interval)
         }
     }, [id])
@@ -98,9 +98,17 @@ export default function TrackingPage() {
                         <h1 className="text-lg font-bold text-slate-900">AeroHive Tracking</h1>
                         <p className="text-xs text-slate-500">Order #{job.id || 'Unknown'}</p>
                     </div>
-                    <Badge variant={isActive ? "default" : "secondary"} className={isActive ? "bg-green-600 hover:bg-green-700" : ""}>
-                        {job.status}
-                    </Badge>
+                    <div className="flex items-center gap-4">
+                        {isActive && (
+                            <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full border border-blue-100 animate-pulse">
+                                <div className="w-2 h-2 rounded-full bg-blue-600"></div>
+                                <span className="text-[10px] font-bold uppercase tracking-wider">Live Sync</span>
+                            </div>
+                        )}
+                        <Badge variant={isActive ? "default" : "secondary"} className={isActive ? "bg-green-600 hover:bg-green-700" : ""}>
+                            {job.status}
+                        </Badge>
+                    </div>
                 </div>
             </div>
 

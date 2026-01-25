@@ -18,7 +18,7 @@ const contactInfo = [
   {
     icon: Mail,
     title: "Email Support",
-    details: ["support@aerohive.com", "sales@aerohive.com"],
+    details: ["support@aerohive.co.in"],
     description: "Get detailed responses within 2 hours",
     color: "text-blue-600",
     bgColor: "bg-blue-50"

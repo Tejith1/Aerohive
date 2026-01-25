@@ -211,30 +211,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log('🔍 Syncing user profile via API...', authUser.email)
 
-      // Get user profile from our secure API (handles create-if-not-exists)
-      const response = await fetch('/api/user/profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: authUser.id,
-          email: authUser.email,
-          firstName: authUser.user_metadata?.full_name?.split(' ')[0] || authUser.user_metadata?.first_name || 'User',
-          lastName: authUser.user_metadata?.full_name?.split(' ').slice(1).join(' ') || authUser.user_metadata?.last_name || '',
-          phone: authUser.phone || authUser.user_metadata?.phone || null
+      // Add a timeout to the profile fetch using AbortController
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => {
+        controller.abort()
+        console.warn('⏱️ Profile sync request timed out after 8s')
+      }, 8000)
+
+      try {
+        // Get user profile from our secure API (handles create-if-not-exists)
+        const response = await fetch('/api/user/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: authUser.id,
+            email: authUser.email,
+            firstName: authUser.user_metadata?.full_name?.split(' ')[0] || authUser.user_metadata?.first_name || 'User',
+            lastName: authUser.user_metadata?.full_name?.split(' ').slice(1).join(' ') || authUser.user_metadata?.last_name || '',
+            phone: authUser.phone || authUser.user_metadata?.phone || null
+          }),
+          signal: controller.signal
         })
-      })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to sync profile')
+        clearTimeout(timeoutId)
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Failed to sync profile')
+        }
+
+        const { profile } = await response.json()
+        console.log('✅ User profile synced:', profile?.email)
+        setUser({
+          ...profile,
+          provider: authUser.app_metadata?.provider || 'email'
+        })
+      } catch (e: any) {
+        clearTimeout(timeoutId)
+        if (e.name === 'AbortError') {
+          console.error('❌ Profile sync aborted due to timeout')
+        }
+        throw e
       }
-
-      const { profile } = await response.json()
-      console.log('✅ User profile synced:', profile?.email)
-      setUser({
-        ...profile,
-        provider: authUser.app_metadata?.provider || 'email'
-      })
     } catch (error: any) {
       console.error('❌ Error syncing user profile:', error)
 

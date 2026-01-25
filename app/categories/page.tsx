@@ -137,7 +137,24 @@ export default function CategoriesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [sortBy, setSortBy] = useState("name")
   const [filteredCategories, setFilteredCategories] = useState(droneCategories)
-  const { isAuthenticated, isAdmin, isLoading } = useAuth()
+  const { isAuthenticated, isAdmin, isLoading: authLoading } = useAuth()
+  const [isSyncing, setIsSyncing] = useState(true)
+
+  // Use a safety timeout for loading state
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsSyncing(false)
+    }, 5000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    if (!authLoading) {
+      setIsSyncing(false)
+    }
+  }, [authLoading])
+
+  const isLoading = authLoading || isSyncing
 
   useEffect(() => {
     let filtered = droneCategories.filter(category =>

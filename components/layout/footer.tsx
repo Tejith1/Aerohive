@@ -127,7 +127,7 @@ export function Footer() {
               <div className="flex items-center space-x-3 text-blue-200">
                 <Mail className="h-4 w-4 flex-shrink-0" />
                 <div>
-                  <div className="font-medium text-white">support@aerohive.com</div>
+                  <div className="font-medium text-white">support@aerohive.co.in</div>
                   <div className="text-xs">Technical Support</div>
                 </div>
               </div>

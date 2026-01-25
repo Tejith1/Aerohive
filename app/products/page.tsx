@@ -31,7 +31,23 @@ export default function ProductsPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [showFilters, setShowFilters] = useState(false)
   const { addItem } = useCartStore()
-  const { isAuthenticated, isAdmin } = useAuth()
+  const { isAuthenticated, isAdmin, isLoading: authLoading } = useAuth()
+  const [isSyncing, setIsSyncing] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsSyncing(false)
+    }, 5000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    if (!authLoading) {
+      setIsSyncing(false)
+    }
+  }, [authLoading])
+
+  const isGlobalLoading = authLoading || isSyncing || (isLoading && products.length === 0)
 
   useEffect(() => {
     loadData()
@@ -242,7 +258,7 @@ export default function ProductsPage() {
                   <div className="flex items-center space-x-2">
                     <div className="h-2 w-2 rounded-full bg-green-500"></div>
                     <p className="text-sm font-medium text-gray-600">
-                      {isLoading ? "Loading..." : `${sortedProducts.length} products available`}
+                      {isGlobalLoading ? "Updating..." : `${sortedProducts.length} products available`}
                     </p>
                   </div>
                 </div>
@@ -291,7 +307,7 @@ export default function ProductsPage() {
 
               {/* Products */}
               <div className="relative">
-                {isLoading ? (
+                {isGlobalLoading && products.length === 0 ? (
                   <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
                     {[1, 2, 3, 4, 5, 6].map((i) => (
                       <Card key={i} className="border-0 shadow-xl bg-white rounded-2xl animate-pulse overflow-hidden">
@@ -334,7 +350,7 @@ export default function ProductsPage() {
                   <div className={`grid gap-6 ${viewMode === "grid"
                     ? "md:grid-cols-2 xl:grid-cols-3"
                     : "grid-cols-1"
-                    } ${!isAdmin && !isLoading ? 'blur-md pointer-events-none select-none opacity-40' : ''}`}>
+                    } ${!isAdmin && !isGlobalLoading ? 'blur-md pointer-events-none select-none opacity-40' : ''}`}>
                     {sortedProducts.map((product) => (
                       <ModernProductCard
                         key={product.id}
@@ -357,7 +373,7 @@ export default function ProductsPage() {
                 )}
 
                 {/* Locked Overlay */}
-                {!isAdmin && !isLoading && (
+                {!isAdmin && !isGlobalLoading && (
                   <div className="absolute inset-0 flex items-center justify-center z-20 px-4">
                     <div className="max-w-md w-full bg-white/95 backdrop-blur-sm border border-gray-200 p-8 rounded-3xl shadow-2xl text-center transform transition-all duration-500 animate-in fade-in zoom-in slide-in-from-bottom-4">
                       <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-200">

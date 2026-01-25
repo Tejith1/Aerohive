@@ -27,8 +27,8 @@ const getStorage = () => {
 
 // Custom fetch with timeout and retry logic for connection resilience
 const customFetch = async (url: RequestInfo | URL, options?: RequestInit): Promise<Response> => {
-  const maxRetries = 3
-  const timeoutMs = 30000 // 30 seconds timeout
+  const maxRetries = 2
+  const timeoutMs = 12000 // 12 seconds timeout
   let lastError: Error | null = null
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
@@ -59,7 +59,7 @@ const customFetch = async (url: RequestInfo | URL, options?: RequestInit): Promi
 
       // Log retry attempt
       if (attempt < maxRetries - 1) {
-        const delay = 1000 * Math.pow(2, attempt) // Exponential backoff: 1s, 2s, 4s
+        const delay = 1000 * Math.pow(2, attempt) // Exponential backoff: 1s, 2s
         console.warn(`🔄 Request failed (attempt ${attempt + 1}/${maxRetries}), retrying in ${delay}ms...`)
         await new Promise(resolve => setTimeout(resolve, delay))
       } else {

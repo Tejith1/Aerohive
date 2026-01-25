@@ -242,6 +242,23 @@ export default function RepairServicesPage() {
   const [filteredCenters, setFilteredCenters] = useState(repairCenters)
   const [selectedCenter, setSelectedCenter] = useState<RepairCenter | null>(null)
   const { isAdmin, isLoading: authLoading } = useAuth()
+  const [isSyncing, setIsSyncing] = useState(true)
+
+  // Use a safety timeout for loading state
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsSyncing(false)
+    }, 5000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    if (!authLoading) {
+      setIsSyncing(false)
+    }
+  }, [authLoading])
+
+  const isLoading = authLoading || isSyncing
 
   useEffect(() => {
     let filtered = repairCenters.filter(center => {
@@ -364,7 +381,7 @@ export default function RepairServicesPage() {
       {/* Repair Centers Grid */}
       <section className="py-12 relative">
         <div className="container mx-auto px-4">
-          <div className={`grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 ${!isAdmin && !authLoading ? 'blur-md pointer-events-none select-none opacity-40' : ''}`}>
+          <div className={`grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 ${!isAdmin && !isLoading ? 'blur-md pointer-events-none select-none opacity-40' : ''}`}>
             {filteredCenters.map((center) => (
               <Card key={center.id} className="overflow-hidden hover:shadow-xl transition-all duration-300">
                 <CardHeader className="pb-4">
@@ -518,7 +535,7 @@ export default function RepairServicesPage() {
           )}
 
           {/* Coming Soon Overlay */}
-          {!isAdmin && !authLoading && (
+          {!isAdmin && !isLoading && (
             <div className="absolute inset-0 flex items-center justify-center z-20 px-4">
               <div className="max-w-md w-full bg-white/95 backdrop-blur-sm border border-gray-200 p-8 rounded-3xl shadow-2xl text-center transform transition-all duration-500 animate-in fade-in zoom-in slide-in-from-bottom-4">
                 <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-200">

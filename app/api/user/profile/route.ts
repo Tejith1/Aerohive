@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
                 first_name: firstName || 'User',
                 last_name: lastName || '',
                 phone: phone || null,
-                is_admin: email === 'admin@aerohive.com' || email.includes('admin'),
+                is_admin: email === 'admin@aerohive.com' || email === 'admin1@gmail.com',
                 is_active: true
             })
             .select()

@@ -4,12 +4,16 @@ import React, { useMemo, useEffect, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 
-// Helper to handle map view changes
+// Helper to handle map view changes smoothly
 function ChangeView({ center }: { center: [number, number] }) {
     const map = useMap()
     useEffect(() => {
         if (map) {
-            map.setView(center, 13)
+            // Use panTo for smooth movement instead of instant setView
+            map.panTo(center, {
+                animate: true,
+                duration: 1.5
+            })
         }
     }, [center, map])
     return null
@@ -49,34 +53,53 @@ export default function MissionMap({ pilotLocation, clientLocation, bookingId }:
     const center: [number, number] = useMemo(() => [pilotLocation.lat, pilotLocation.lng], [pilotLocation.lat, pilotLocation.lng])
 
     if (!isMounted || !icons) {
-        return <div className="h-full w-full bg-slate-950 animate-pulse flex items-center justify-center text-white text-xs font-mono">📡 ESTABLISHING SECURE CONNECTION...</div>
+        return (
+            <div className="h-full w-full bg-slate-950 flex items-center justify-center text-white text-xs font-mono relative overflow-hidden">
+                <div className="absolute inset-0 bg-blue-500/10 animate-pulse"></div>
+                <div className="z-10 flex flex-col items-center gap-3">
+                    <div className="w-12 h-12 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    <span className="tracking-widest animate-pulse">📡 ESTABLISHING SECURE CONNECTION...</span>
+                </div>
+            </div>
+        )
     }
 
     return (
-        <MapContainer
-            center={center}
-            zoom={13}
-            style={{ height: '100%', width: '100%' }}
-            zoomControl={false}
-        >
-            <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <ChangeView center={center} />
+        <div className="h-full w-full relative">
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                .leaflet-marker-icon {
+                    transition: all 1.5s linear;
+                }
+                .leaflet-marker-shadow {
+                    transition: all 1.5s linear;
+                }
+            `}} />
+            <MapContainer
+                center={center}
+                zoom={14}
+                style={{ height: '100%', width: '100%' }}
+                zoomControl={false}
+            >
+                <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <ChangeView center={center} />
 
-            <Marker position={[clientLocation.lat, clientLocation.lng]} icon={icons.defaultIcon}>
-                <Popup>Your Location</Popup>
-            </Marker>
+                <Marker position={[clientLocation.lat, clientLocation.lng]} icon={icons.defaultIcon}>
+                    <Popup>Your Location</Popup>
+                </Marker>
 
-            <Marker position={[pilotLocation.lat, pilotLocation.lng]} icon={icons.droneIcon}>
-                <Popup>
-                    <div className="text-xs">
-                        <p className="font-bold">Pilot Live Location</p>
-                        <p className="text-[10px] text-muted-foreground">{bookingId}</p>
-                    </div>
-                </Popup>
-            </Marker>
-        </MapContainer>
+                <Marker position={[pilotLocation.lat, pilotLocation.lng]} icon={icons.droneIcon}>
+                    <Popup>
+                        <div className="text-xs">
+                            <p className="font-bold">Pilot Live Location</p>
+                            <p className="text-[10px] text-muted-foreground">{bookingId}</p>
+                        </div>
+                    </Popup>
+                </Marker>
+            </MapContainer>
+        </div>
     )
 }

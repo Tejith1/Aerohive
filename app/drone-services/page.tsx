@@ -260,6 +260,23 @@ export default function DroneServicesPage() {
   const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null)
   const [isLocating, setIsLocating] = useState(false)
   const { isAdmin, isLoading: authLoading } = useAuth()
+  const [isSyncing, setIsSyncing] = useState(true)
+
+  // Use a safety timeout for loading state
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsSyncing(false)
+    }, 5000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    if (!authLoading) {
+      setIsSyncing(false)
+    }
+  }, [authLoading])
+
+  const isLoading = authLoading || isSyncing
 
   useEffect(() => {
     if (activeTab === "services") {
@@ -762,7 +779,7 @@ export default function DroneServicesPage() {
             )}
 
           {/* Coming Soon Overlay */}
-          {!isAdmin && !authLoading && (
+          {!isAdmin && !isLoading && (
             <div className="absolute inset-0 flex items-center justify-center z-20 px-4">
               <div className="max-w-md w-full bg-white/95 backdrop-blur-sm border border-gray-200 p-8 rounded-3xl shadow-2xl text-center transform transition-all duration-500 animate-in fade-in zoom-in slide-in-from-bottom-4">
                 <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-200">
