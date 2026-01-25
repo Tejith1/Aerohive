@@ -6,14 +6,17 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY
 const GMAIL_USER = process.env.GMAIL_USER
 const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD
 
+// Mediator Email Address
+const MEDIATOR_EMAIL = 'aerohive.help@gmail.com'
+
 interface EmailRequest {
     to: string
     subject: string
-    message: string
     type: 'client' | 'pilot'
-    bookingDetails?: {
+    bookingDetails: {
         bookingId: string
-        otp: string
+        orderUUID: string
+        otp: string // Keeping OTP for record, though maybe not checking immediately
         pilotName?: string
         pilotPhone?: string
         pilotEmail?: string
@@ -23,6 +26,12 @@ interface EmailRequest {
         serviceType: string
         location: string
         scheduledAt: string
+        durationHours?: number
+        chargesNote?: string
+        trackingLink?: string
+        acceptJobLink?: string
+        googleMapsLink?: string
+        estimatedAmount?: string
     }
 }
 
@@ -38,122 +47,114 @@ function createGmailTransporter() {
 }
 
 // Generate HTML email content
-function generateEmailHtml(type: 'client' | 'pilot', bookingDetails: EmailRequest['bookingDetails']) {
-    if (!bookingDetails) return ''
+function generateEmailHtml(type: 'client' | 'pilot', d: EmailRequest['bookingDetails']) {
+    if (!d) return ''
+
+    const styles = `
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .header { background: #1e293b; padding: 25px; text-align: center; }
+        .header h1 { color: white; margin: 0; font-size: 22px; font-weight: 600; }
+        .content { padding: 30px; color: #334155; line-height: 1.6; }
+        .section { margin-bottom: 25px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; }
+        .section:last-child { border-bottom: none; }
+        .label { font-size: 13px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+        .value { font-size: 16px; color: #1e293b; font-weight: 500; }
+        .btn { display: inline-block; background: #2563eb; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; text-align: center; margin-top: 10px; }
+        .footer { background: #f8fafc; padding: 20px; text-align: center; color: #94a3b8; font-size: 12px; }
+        .note { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; padding: 12px; border-radius: 6px; font-size: 14px; margin-top: 15px; }
+    `
 
     if (type === 'client') {
         return `
 <!DOCTYPE html>
 <html>
-<head>
-    <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header { background: linear-gradient(135deg, #3b82f6, #8b5cf6); padding: 30px; text-align: center; }
-        .header h1 { color: white; margin: 0; font-size: 24px; }
-        .content { padding: 30px; }
-        .booking-card { background: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #3b82f6; }
-        .otp-box { background: linear-gradient(135deg, #1e3a5f, #0f172a); color: white; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0; }
-        .otp-code { font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #60a5fa; }
-        .info-row { padding: 10px 0; border-bottom: 1px solid #e2e8f0; }
-        .info-row:last-child { border-bottom: none; }
-        .footer { background: #f8fafc; padding: 20px; text-align: center; color: #64748b; font-size: 12px; }
-        .pilot-card { background: #ecfdf5; border-radius: 8px; padding: 15px; margin-top: 15px; }
-    </style>
-</head>
+<head><style>${styles}</style></head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚁 Booking Confirmed!</h1>
-            <p style="color: rgba(255,255,255,0.9); margin-top: 8px;">AeroHive Drone Services</p>
+            <h1>Booking Confirmation</h1>
         </div>
         <div class="content">
-            <p>Hello <strong>${bookingDetails.clientName || 'Valued Customer'}</strong>,</p>
-            <p>Your drone service booking has been successfully confirmed!</p>
-            
-            <div class="booking-card">
-                <div class="info-row"><strong>📋 Reference:</strong> ${bookingDetails.bookingId}</div>
-                <div class="info-row"><strong>🛠 Service:</strong> ${bookingDetails.serviceType}</div>
-                <div class="info-row"><strong>📍 Location:</strong> ${bookingDetails.location}</div>
-                <div class="info-row"><strong>📅 Scheduled:</strong> ${bookingDetails.scheduledAt}</div>
+            <p>Hello,</p>
+            <p>Your drone pilot has been assigned for the requested service.</p>
+
+            <div class="section">
+                <div class="label">Pilot Assigned</div>
+                <div class="value">${d.pilotName || 'Assignments Team'}</div>
+                <div class="value">📞 ${d.pilotPhone || 'N/A'}</div>
             </div>
 
-            <div class="pilot-card">
-                <p style="margin:0 0 10px 0; color: #047857; font-weight: 600;">👨‍✈️ Assigned Pilot</p>
-                <p style="margin: 5px 0;"><strong>${bookingDetails.pilotName}</strong> ⭐ 4.9</p>
-                <p style="margin: 5px 0; color: #065f46;">📞 ${bookingDetails.pilotPhone}</p>
+            <div class="section">
+                <div class="label">Order ID</div>
+                <div class="value" style="font-family: monospace;">${d.orderUUID}</div>
             </div>
 
-            <div class="otp-box">
-                <p style="margin: 0 0 10px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 2px;">Security OTP</p>
-                <div class="otp-code">${bookingDetails.otp}</div>
-                <p style="margin: 10px 0 0 0; font-size: 12px; opacity: 0.8;">Share this OTP with the pilot upon arrival</p>
+            <div class="section">
+                <div class="label">Service Details</div>
+                <div class="value">📅 Date: ${d.scheduledAt.split(',')[0]}</div>
+                <div class="value">⏰ Time: ${d.scheduledAt.split(',')[1] || ''}</div>
+                <div class="value">⏳ Duration: ${d.durationHours} Hours</div>
             </div>
 
-            <p style="color: #64748b; font-size: 14px;">Thank you for choosing AeroHive! 🙏</p>
+            <div class="section" style="text-align: center;">
+                <a href="${d.trackingLink}" class="btn" style="background: #10b981;">Track Pilot Live</a>
+                <p style="font-size: 13px; color: #64748b; margin-top: 8px;">Click to view live status map</p>
+            </div>
+
+            ${d.chargesNote ? `<div class="note"><strong>Note:</strong> ${d.chargesNote}</div>` : ''}
         </div>
         <div class="footer">
-            AeroHive Drone Services • Professional Aerial Solutions<br>
-            This is an automated message.
+            AeroHive Drone Services<br>
+            For support, reply to this email.
         </div>
     </div>
 </body>
 </html>`
     } else {
-        // Pilot email
+        // Pilot Email
         return `
 <!DOCTYPE html>
 <html>
-<head>
-    <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header { background: linear-gradient(135deg, #f59e0b, #ef4444); padding: 30px; text-align: center; }
-        .header h1 { color: white; margin: 0; font-size: 24px; }
-        .content { padding: 30px; }
-        .booking-card { background: #fffbeb; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #f59e0b; }
-        .otp-box { background: linear-gradient(135deg, #7c2d12, #450a0a); color: white; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0; }
-        .otp-code { font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #fbbf24; }
-        .info-row { padding: 10px 0; border-bottom: 1px solid #fde68a; }
-        .info-row:last-child { border-bottom: none; }
-        .footer { background: #fffbeb; padding: 20px; text-align: center; color: #92400e; font-size: 12px; }
-        .client-card { background: #fef3c7; border-radius: 8px; padding: 15px; margin-top: 15px; }
-    </style>
-</head>
+<head><style>${styles}</style></head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🚁 New Job Assignment!</h1>
-            <p style="color: rgba(255,255,255,0.9); margin-top: 8px;">AeroHive Pilot Portal</p>
+        <div class="header" style="background: #0f172a;">
+            <h1>New Job Assignment</h1>
         </div>
         <div class="content">
             <p>Hello Pilot,</p>
-            <p>You have been assigned a new drone service job. <span style="background: #fbbf24; color: #78350f; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;">⚠️ PENDING</span></p>
-            
-            <div class="booking-card">
-                <div class="info-row"><strong>🆔 Job ID:</strong> ${bookingDetails.bookingId}</div>
-                <div class="info-row"><strong>🛠 Service:</strong> ${bookingDetails.serviceType}</div>
-                <div class="info-row"><strong>📍 Site Location:</strong> ${bookingDetails.location}</div>
-                <div class="info-row"><strong>📅 Scheduled:</strong> ${bookingDetails.scheduledAt}</div>
+            <p>You have a new job assignment. Action is required to accept this job.</p>
+
+            <div class="section">
+                <div class="label">Client Details</div>
+                <div class="value">${d.clientName || 'Valued Client'}</div>
+                <div class="value">📞 ${d.clientPhone || 'N/A'}</div>
             </div>
 
-            <div class="client-card">
-                <p style="margin:0 0 10px 0; color: #92400e; font-weight: 600;">👤 Client Details</p>
-                <p style="margin: 5px 0; color: #78350f;"><strong>${bookingDetails.clientName || 'Client'}</strong></p>
-                <p style="margin: 5px 0; color: #78350f;">📞 ${bookingDetails.clientPhone || 'Not provided'}</p>
+            <div class="section">
+                <div class="label">Service Schedule</div>
+                <div class="value">📅 ${d.scheduledAt}</div>
+                <div class="value">⏳ Expected Hours: ${d.durationHours} hrs</div>
+                <div class="value" style="color: #059669;">💰 Est. Earning: ${d.estimatedAmount}</div>
             </div>
 
-            <div class="otp-box">
-                <p style="margin: 0 0 10px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 2px;">Verification OTP</p>
-                <div class="otp-code">${bookingDetails.otp}</div>
-                <p style="margin: 10px 0 0 0; font-size: 12px; opacity: 0.8;">⚠️ Verify this OTP from client before starting service</p>
+            <div class="section">
+                <div class="label">Location</div>
+                <div class="value">${d.location}</div>
+                <div style="margin-top: 8px;">
+                    <a href="${d.googleMapsLink}" style="color: #2563eb; text-decoration: underline;">Open in Google Maps</a>
+                </div>
             </div>
 
-            <p style="color: #92400e; font-size: 14px;">Good luck with your mission! 🎯</p>
+            <div class="section" style="text-align: center;">
+                <a href="${d.acceptJobLink}" class="btn">Accept Job</a>
+                <p style="font-size: 13px; color: #64748b; margin-top: 8px;">Secure Job Acceptance Link</p>
+            </div>
         </div>
         <div class="footer">
-            AeroHive Pilot Portal • Professional Aerial Solutions<br>
-            This is an automated message.
+            AeroHive Pilot Network<br>
+            Please accept promptly.
         </div>
     </div>
 </body>
@@ -174,15 +175,22 @@ export async function POST(request: NextRequest) {
         }
 
         const htmlContent = generateEmailHtml(type, bookingDetails)
+        const fromAddress = `AeroHive Support <${MEDIATOR_EMAIL}>` // Force mediator email
+        const replyTo = MEDIATOR_EMAIL
 
-        // Try Resend first if configured
+        // Try Resend first
         if (RESEND_API_KEY) {
             try {
                 const { Resend } = await import('resend')
                 const resend = new Resend(RESEND_API_KEY)
 
                 const { data, error } = await resend.emails.send({
-                    from: 'support@aerohive.com',
+                    from: 'AeroHive Support <onboarding@resend.dev>', // Resend demands verified domain or test domain
+                    // NOTE: If using Resend, we might not be able to "spoof" gmail. 
+                    // But we can set Reply-To.
+                    // If user insists on FROM: aerohive.help@gmail.com, sending via Resend won't work unless verified domain.
+                    // So we prefer Gmail/Nodemailer if configured for this specific address.
+                    reply_to: replyTo,
                     to: [to],
                     subject: subject,
                     html: htmlContent
@@ -193,17 +201,18 @@ export async function POST(request: NextRequest) {
                 console.log(`✅ [Resend] Email sent to ${to}:`, data?.id)
                 return NextResponse.json({ success: true, provider: 'resend', emailId: data?.id })
             } catch (resendError) {
-                console.error('❌ Resend failed:', resendError)
+                console.error('❌ Resend failed, trying fallback:', resendError)
             }
         }
 
-        // Try Gmail/Nodemailer if configured
+        // Try Gmail/Nodemailer
         if (GMAIL_USER && GMAIL_APP_PASSWORD) {
             try {
                 const transporter = createGmailTransporter()
 
                 const result = await transporter.sendMail({
-                    from: `AeroHive <${GMAIL_USER}>`,
+                    from: fromAddress,
+                    replyTo: replyTo,
                     to: to,
                     subject: subject,
                     html: htmlContent
@@ -213,19 +222,23 @@ export async function POST(request: NextRequest) {
                 return NextResponse.json({ success: true, provider: 'gmail', messageId: result.messageId })
             } catch (gmailError) {
                 console.error('❌ Gmail failed:', gmailError)
+                return NextResponse.json(
+                    { success: false, error: 'Failed to send via Gmail' },
+                    { status: 500 }
+                )
             }
         }
 
         // No provider configured - simulate
         console.log(`📧 [Simulated] Email to ${to}:`, subject)
         console.log(`   Type: ${type}`)
-        console.log(`   Booking: ${bookingDetails.bookingId}`)
-        console.log(`   OTP: ${bookingDetails.otp}`)
+        console.log(`   Order UUID: ${bookingDetails.orderUUID}`)
+        console.log(`   Link: ${type === 'client' ? bookingDetails.trackingLink : bookingDetails.acceptJobLink}`)
 
         return NextResponse.json({
             success: true,
             simulated: true,
-            message: 'Email simulated (configure RESEND_API_KEY or GMAIL_USER + GMAIL_APP_PASSWORD)',
+            message: 'Email simulated (configure GMAIL_USER/APP_PASSWORD)',
             details: { to, subject, type, bookingId: bookingDetails.bookingId }
         })
 
@@ -237,4 +250,3 @@ export async function POST(request: NextRequest) {
         )
     }
 }
-

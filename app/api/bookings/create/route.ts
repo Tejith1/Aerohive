@@ -81,6 +81,7 @@ export async function POST(request: NextRequest) {
 
         // Generate booking details
         const bookingId = generateBookingId()
+        const orderUUID = crypto.randomUUID() // Secure unique identifier
         const otp = generateOTP()
         const locationDisplay = location_name || `Lat ${lat?.toFixed(4)}, Lng ${lng?.toFixed(4)}`
         const dateTimeDisplay = scheduled_at ? new Date(scheduled_at).toLocaleString('en-IN', {
@@ -89,6 +90,9 @@ export async function POST(request: NextRequest) {
         }) : 'ASAP'
         const userName = user_name || 'Valued Customer'
         const userPhone = user_phone || 'Not provided'
+
+        // Charges Note (as per requirement)
+        const chargesNote = "Final charges will be calculated based on actual working hours and collected after service completion."
 
         // Try to fetch real pilot details from database
         let pilotName = generatePilotName()
@@ -99,7 +103,7 @@ export async function POST(request: NextRequest) {
             try {
                 const { data: pilot, error } = await supabase
                     .from('drone_pilots')
-                    .select('full_name, phone, email')
+                    .select('full_name, phone, email, hourly_rate')
                     .eq('id', pilot_id)
                     .single()
 
@@ -107,6 +111,8 @@ export async function POST(request: NextRequest) {
                     pilotName = pilot.full_name || pilotName
                     pilotPhone = pilot.phone || pilotPhone
                     pilotEmail = pilot.email || ''
+                    // We'll use hourly_rate later
+                    var pilotRate = pilot.hourly_rate || 0
                     console.log('📋 Fetched real pilot details:', pilot.full_name)
                 }
             } catch (err) {
@@ -132,37 +138,63 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Try to insert into database if available
-        if (supabase) {
-            try {
-                const { error } = await supabase
-                    .from('bookings')
-                    .insert({
-                        client_id,
-                        pilot_id,
-                        service_type,
-                        status: 'confirmed',
-                        scheduled_at,
-                        duration_hours,
-                        payment_method,
-                        requirements,
-                        client_location_lat: lat,
-                        client_location_lng: lng,
-                        otp_code: otp,
-                        booking_reference: bookingId
-                    })
-
-                if (error) {
-                    console.error('Database insert error:', error)
-                }
-            } catch (dbError) {
-                console.error('Database error:', dbError)
-            }
+        // Create booking in database - MUST SUCCEED to proceed with emails
+        if (!supabase) {
+            console.error('❌ Supabase client not initialized')
+            return NextResponse.json(
+                { status: "error", detail: "Database configuration missing" },
+                { status: 500 }
+            )
         }
+
+        try {
+            const { error } = await supabase
+                .from('bookings')
+                .insert({
+                    client_id,
+                    pilot_id,
+                    service_type,
+                    status: 'PENDING',
+                    scheduled_at,
+                    duration_hours,
+                    payment_method,
+                    requirements,
+                    client_location_lat: lat,
+                    client_location_lng: lng,
+                    otp_code: otp,
+                    booking_reference: bookingId,
+                    order_uuid: orderUUID
+                })
+
+            if (error) {
+                console.error('❌ Database insert error:', error)
+                return NextResponse.json(
+                    { status: "error", detail: "Failed to save booking to database. Please ensure 'order_uuid' column exists." },
+                    { status: 500 }
+                )
+            }
+            console.log('✅ Booking saved to database:', bookingId)
+        } catch (dbError) {
+            console.error('❌ Database exception:', dbError)
+            return NextResponse.json(
+                { status: "error", detail: "Internal database error" },
+                { status: 500 }
+            )
+        }
+
+        // Get base URL for links
+        const baseUrl = request.nextUrl.origin
+        const trackingLink = `${baseUrl}/track/${orderUUID}`
+        const acceptJobLink = `${baseUrl}/pilots/accept-job?id=${orderUUID}`
+        const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
+
+        // Calculate estimated amount
+        const estimatedAmount = (pilotRate || 0) * (duration_hours || 0)
 
         // Prepare email booking details
         const emailBookingDetails = {
             bookingId,
+            orderUUID,
             otp,
             pilotName,
             pilotPhone: `+91-${pilotPhone}`,
@@ -172,11 +204,14 @@ export async function POST(request: NextRequest) {
             clientEmail,
             serviceType: service_type || 'General',
             location: locationDisplay,
-            scheduledAt: dateTimeDisplay
+            scheduledAt: dateTimeDisplay,
+            durationHours: duration_hours,
+            chargesNote,
+            trackingLink,
+            acceptJobLink,
+            googleMapsLink,
+            estimatedAmount: estimatedAmount > 0 ? `₹${estimatedAmount}` : 'TBD'
         }
-
-        // Get base URL for internal API calls
-        const baseUrl = request.nextUrl.origin
 
         // Send email notifications (non-blocking)
         const emailPromises = []
@@ -188,7 +223,7 @@ export async function POST(request: NextRequest) {
                 sendNotificationEmail(
                     baseUrl,
                     clientEmail,
-                    `🚁 Booking Confirmed - ${bookingId}`,
+                    `Your Drone Pilot Is Assigned | AeroHive Booking Confirmation`,
                     'client',
                     emailBookingDetails
                 )
@@ -204,7 +239,7 @@ export async function POST(request: NextRequest) {
                 sendNotificationEmail(
                     baseUrl,
                     pilotEmail,
-                    `🚁 New Job Assignment - ${bookingId}`,
+                    `New Job Assigned | Action Required – AeroHive`,
                     'pilot',
                     emailBookingDetails
                 )
@@ -217,24 +252,27 @@ export async function POST(request: NextRequest) {
         const emailResults = await Promise.allSettled(emailPromises)
         const emailsSent = emailResults.filter(r => r.status === 'fulfilled' && (r as any).value?.success).length
 
-        // Generate confirmation messages for chatbot display
+        // Generate confirmation messages for chatbot display (Client view)
         const clientMessage = `Hello ${userName},
 
-Your booking for *${service_type}* has been successfully confirmed.
+Your booking for *${service_type}* is PENDING pilot acceptance.
 
 📍 Location: ${locationDisplay}  
 📅 Slot: ${dateTimeDisplay}
 
 Pilot Assigned:
-👨‍✈️ ${pilotName} (Rating: 4.9⭐)  
+👨‍✈️ ${pilotName} 
 📞 Contact: +91-${pilotPhone}  
 
-🔐 Please share this OTP with the pilot upon arrival: *${otp}*
+🔐 Security OTP: *${otp}*
+(Share this with pilot only upon arrival)
 
-${clientEmail ? `📧 Confirmation email sent to: ${clientEmail}` : ''}
+📧 Confirmation email sent to: ${clientEmail}
+You can track the pilot live via the link in the email once the job starts.
 
-Thank you for choosing our services.`
+Thank you for choosing AeroHive.`
 
+        // Pilot Message is usually not shown in chatbot response unless for debugging, but we keep it
         const pilotMessage = `NEW JOB ASSIGNMENT
 
 🆔 Job ID: ${bookingId}  
@@ -254,6 +292,7 @@ ${pilotEmail ? `📧 Job details sent to: ${pilotEmail}` : ''}`
         return NextResponse.json({
             status: "success",
             booking_id: bookingId,
+            order_uuid: orderUUID,
             otp: otp,
             pilot_name: pilotName,
             pilot_phone: pilotPhone,
