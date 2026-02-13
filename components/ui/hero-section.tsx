@@ -2,6 +2,7 @@
 
 import React from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Play, Shield, Star, Users } from "lucide-react"
 
@@ -121,9 +122,13 @@ export function HeroSection({
             {/* Main image */}
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-3xl blur-3xl"></div>
-              <img
+              <Image
                 src={backgroundImage}
                 alt="Hero Visual"
+                width={600}
+                height={400}
+                priority
+                sizes="(max-width: 1024px) 100vw, 50vw"
                 className="relative z-10 w-full h-auto rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-500"
                 width="1920"
                 height="1080"

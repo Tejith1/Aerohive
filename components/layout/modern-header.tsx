@@ -97,31 +97,14 @@ export function ModernHeader() {
       : 'bg-white/80 backdrop-blur-md'
       }`}>
       <div className="container mx-auto px-4">
-        <div className="flex h-20 items-center justify-between">
+        <div className="flex h-24 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center group" aria-label="AeroHive Home">
-            <div className="relative">
-              <div className="h-12 w-12 rounded-2xl overflow-hidden shadow-lg group-hover:shadow-xl transition-all duration-300 bg-white">
-                <img
-                  src="/WhatsApp Image 2025-10-24 at 13.04.00_647ae0e3.jpg"
-                  alt="AeroHive Logo Icon"
-                  className="h-full w-full object-contain p-1"
-                  width="48"
-                  height="48"
-                />
-              </div>
-              <div className="absolute -inset-0.5 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl opacity-0 group-hover:opacity-20 blur transition-all duration-300"></div>
-            </div>
-            <div className="flex items-center -ml-8">
-              <img
-                src="/Aerohive text logo scaled up.png"
-                alt="AeroHive Logo Text"
-                className="w-auto object-contain"
-                style={{ filter: 'none', height: '140px' }}
-                width="170"
-                height="140"
-              />
-            </div>
+            <img
+              src="/aerohive-text-logo.jpg"
+              alt="AeroHive"
+              className="h-20 w-auto object-contain scale-[1.4] origin-left"
+            />
           </Link>
 
           {/* Desktop Navigation */}

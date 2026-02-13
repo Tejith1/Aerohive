@@ -164,18 +164,24 @@ export default function AboutPage() {
                 <div className="flex flex-col items-center justify-center mb-8 group">
                   <div className="relative mb-4">
                     <div className="h-28 w-28 md:h-36 md:w-36 rounded-[2.5rem] overflow-hidden shadow-2xl transition-all duration-500 bg-white group-hover:scale-105 group-hover:rotate-3">
-                      <img
+                      <Image
                         src="/WhatsApp Image 2025-10-24 at 13.04.00_647ae0e3.jpg"
                         alt="AeroHive Logo"
+                        width={144}
+                        height={144}
+                        priority
                         className="h-full w-full object-contain p-2"
                       />
                     </div>
                     <div className="absolute -inset-4 bg-white/20 blur-3xl rounded-full -z-10 group-hover:bg-white/30 transition-all duration-500"></div>
                   </div>
                   <div className="flex items-center -mt-12 md:-mt-16">
-                    <img
+                    <Image
                       src="/Aerohive text logo scaled up.png"
                       alt="AeroHive"
+                      width={500}
+                      height={140}
+                      priority
                       className="w-auto object-contain transition-all duration-500 group-hover:scale-105"
                       style={{ filter: 'brightness(0) invert(1)', height: '220px' }}
                     />
