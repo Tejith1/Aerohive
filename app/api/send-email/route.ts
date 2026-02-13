@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
                     // But we can set Reply-To.
                     // If user insists on FROM: aerohive.help@gmail.com, sending via Resend won't work unless verified domain.
                     // So we prefer Gmail/Nodemailer if configured for this specific address.
-                    reply_to: replyTo,
+                    replyTo: replyTo,
                     to: [to],
                     subject: subject,
                     html: htmlContent

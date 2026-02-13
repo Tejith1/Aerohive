@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useSearchParams } from "next/navigation"
 import { ArrowRight, Plane, Camera, Zap, MapPin, Shield, Truck, Star, Clock, Wind, Users, Award, Globe, Battery, Wifi, ShoppingCart, Settings, Play, Eye, Headphones, Gauge, Navigation, Wifi as WifiIcon, Mail, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -348,9 +349,11 @@ export default function HomePage() {
               <Card className="group bg-white border-0 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
                 <CardContent className="p-8 text-center relative">
                   <div className="w-20 h-20 bg-white rounded-2xl overflow-hidden flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border-2 border-blue-100">
-                    <img
+                    <Image
                       src="/WhatsApp Image 2025-10-24 at 09.33.29_68a8851c.jpg"
                       alt="AeroHive Drone Services"
+                      width={80}
+                      height={80}
                       className="h-full w-full object-contain p-2"
                     />
                   </div>
@@ -410,9 +413,11 @@ export default function HomePage() {
           <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-4xl mx-auto text-center">
               <div className="w-20 h-20 bg-white/90 rounded-2xl overflow-hidden flex items-center justify-center mx-auto mb-8 backdrop-blur-sm shadow-lg">
-                <img
+                <Image
                   src="/WhatsApp Image 2025-10-24 at 09.33.29_68a8851c.jpg"
                   alt="AeroHive Logo"
+                  width={80}
+                  height={80}
                   className="h-full w-full object-contain p-2"
                 />
               </div>

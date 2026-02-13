@@ -2,6 +2,7 @@
 
 import React from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Play, Shield, Star, Users } from "lucide-react"
 
@@ -38,7 +39,7 @@ export function HeroSection({
       {/* Background decoration */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/20 via-transparent to-purple-100/20"></div>
       <div className="absolute top-0 left-0 w-full h-full bg-grid-pattern opacity-5"></div>
-      
+
       <div className="container mx-auto px-4 py-16 relative z-10">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Content Side */}
@@ -48,7 +49,7 @@ export function HeroSection({
               <Shield className="h-4 w-4 text-blue-600 mr-2" />
               <span className="text-sm font-medium text-blue-700">Trusted by professionals worldwide</span>
             </div>
-            
+
             {/* Main heading */}
             <div className="space-y-4">
               <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
@@ -57,7 +58,7 @@ export function HeroSection({
                   {subtitle}
                 </span>
               </h1>
-              
+
               <p className="text-xl text-gray-600 leading-relaxed max-w-2xl">
                 {description}
               </p>
@@ -77,8 +78,8 @@ export function HeroSection({
 
             {/* Action buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                 asChild
               >
@@ -87,11 +88,11 @@ export function HeroSection({
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              
+
               {secondaryButtonText && secondaryButtonHref && (
-                <Button 
-                  variant="outline" 
-                  size="lg" 
+                <Button
+                  variant="outline"
+                  size="lg"
                   className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-4 text-lg rounded-xl transition-all duration-300"
                   asChild
                 >
@@ -121,17 +122,21 @@ export function HeroSection({
             {/* Main image */}
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-3xl blur-3xl"></div>
-              <img
+              <Image
                 src={backgroundImage}
                 alt="Hero Visual"
+                width={600}
+                height={400}
+                priority
+                sizes="(max-width: 1024px) 100vw, 50vw"
                 className="relative z-10 w-full h-auto rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-500"
               />
-              
+
               {/* Floating elements */}
               <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg animate-float">
                 4.8★
               </div>
-              
+
               <div className="absolute -bottom-4 -left-4 bg-white rounded-xl p-4 shadow-lg animate-bounce-in">
                 <div className="flex items-center space-x-2">
                   <Users className="h-5 w-5 text-blue-600" />
