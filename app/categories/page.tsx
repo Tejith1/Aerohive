@@ -206,141 +206,145 @@ export default function CategoriesPage() {
           </div>
         </section>
 
-        {/* Search and Filter Section */}
-        <section className="py-12 bg-white border-b border-gray-200">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col md:flex-row gap-6 items-center justify-between max-w-4xl mx-auto">
-              <div className="flex-1 relative max-w-md">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <Input
-                  type="text"
-                  placeholder="Search categories..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-12 py-3 text-lg border-2 border-gray-200 rounded-xl focus:border-blue-500 transition-colors"
-                />
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-lg font-medium text-gray-700">Sort by:</span>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="border-2 border-gray-200 rounded-xl px-4 py-3 text-lg bg-white focus:border-blue-500 transition-colors"
-                  >
-                    <option value="name">Name</option>
-                    <option value="products">Product Count</option>
-                    <option value="price">Price Range</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        {/* Categories Grid */}
-        <section className="py-24 bg-gradient-to-br from-gray-50 to-blue-50 relative">
-          <div className="container mx-auto px-4">
-            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 ${!isAdmin && !isLoading ? 'blur-md pointer-events-none select-none opacity-40' : ''}`}>
-              {filteredCategories.map((category) => {
-                const IconComponent = category.icon
-                return (
-                  <Card key={category.id} className="group overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-2 bg-white border-0 shadow-lg">
-                    <Link href={`/products?category=${encodeURIComponent(category.name)}`}>
-                      <div className="relative">
-                        <div className="relative h-48 overflow-hidden">
-                          <img
-                            src={category.imageUrl}
-                            alt={category.name}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        </div>
-                        <div className="absolute top-4 right-4">
-                          <Badge className="bg-blue-600 text-white shadow-lg">
-                            {category.productCount} models
-                          </Badge>
-                        </div>
-                        <div className="absolute top-4 left-4">
-                          <div className={`w-12 h-12 bg-gradient-to-br ${category.bgColor} rounded-full flex items-center justify-center shadow-lg`}>
-                            <IconComponent className={`h-6 w-6 ${category.color}`} />
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-
-                    <CardContent className="p-6">
-                      <Link href={`/products?category=${encodeURIComponent(category.name)}`}>
-                        <h3 className="text-2xl font-bold mb-3 text-slate-900 group-hover:text-blue-600 transition-colors">
-                          {category.name}
-                        </h3>
-                      </Link>
-                      <p className="text-slate-600 mb-4 leading-relaxed">
-                        {category.description}
-                      </p>
-
-                      <div className="mb-6">
-                        <p className="text-sm font-semibold text-blue-600 mb-3">Key Features:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {category.features.slice(0, 3).map((feature, index) => (
-                            <Badge key={index} variant="outline" className="text-xs border-gray-300 text-gray-600">
-                              {feature}
-                            </Badge>
-                          ))}
-                          {category.features.length > 3 && (
-                            <Badge variant="outline" className="text-xs border-gray-300 text-gray-600">
-                              +{category.features.length - 3} more
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <p className="text-sm text-slate-500 mb-1">Price Range</p>
-                          <span className="text-xl font-bold text-blue-600">{category.priceRange}</span>
-                        </div>
-                        <Link href={`/products?category=${encodeURIComponent(category.name)}`}>
-                          <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md hover:shadow-lg transition-all duration-300">
-                            Explore Now
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                          </Button>
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
-              })}
-            </div>
-
-            {/* Locked Overlay */}
-            {!isAdmin && !isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center z-20 px-4">
-                <div className="max-w-md w-full bg-white/95 backdrop-blur-sm border border-gray-200 p-8 rounded-3xl shadow-2xl text-center transform transition-all duration-500 animate-in fade-in zoom-in slide-in-from-bottom-4">
-                  <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-200">
-                    <Lock className="h-10 w-10 text-white" />
+        <div className="relative">
+          <div className={`${!isAdmin && !isLoading ? 'blur-md pointer-events-none select-none opacity-40' : ''}`}>
+            {/* Search and Filter Section */}
+            <section className="py-12 bg-white border-b border-gray-200">
+              <div className="container mx-auto px-4">
+                <div className="flex flex-col md:flex-row gap-6 items-center justify-between max-w-4xl mx-auto">
+                  <div className="flex-1 relative max-w-md">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <Input
+                      type="text"
+                      placeholder="Search categories..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-12 py-3 text-lg border-2 border-gray-200 rounded-xl focus:border-blue-500 transition-colors"
+                    />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                    Coming Soon
-                  </h3>
-                  <p className="text-gray-600 mb-4 leading-relaxed">
-                    We are currently expanding our specialized categories. Standard and premium access levels will be updated soon.
-                  </p>
-                </div>
-              </div>
-            )}
 
-            {filteredCategories.length === 0 && (
-              <div className="text-center py-16">
-                <div className="max-w-md mx-auto">
-                  <Search className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">No Categories Found</h3>
-                  <p className="text-gray-600">No categories match your search criteria. Try adjusting your search terms.</p>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg font-medium text-gray-700">Sort by:</span>
+                      <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="border-2 border-gray-200 rounded-xl px-4 py-3 text-lg bg-white focus:border-blue-500 transition-colors"
+                      >
+                        <option value="name">Name</option>
+                        <option value="products">Product Count</option>
+                        <option value="price">Price Range</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
               </div>
-            )}
+            </section>
+            {/* Categories Grid */}
+            <section className="py-24 bg-gradient-to-br from-gray-50 to-blue-50">
+              <div className="container mx-auto px-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {filteredCategories.map((category) => {
+                    const IconComponent = category.icon
+                    return (
+                      <Card key={category.id} className="group overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-2 bg-white border-0 shadow-lg">
+                        <Link href={`/products?category=${encodeURIComponent(category.name)}`}>
+                          <div className="relative">
+                            <div className="relative h-48 overflow-hidden">
+                              <img
+                                src={category.imageUrl}
+                                alt={category.name}
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            </div>
+                            <div className="absolute top-4 right-4">
+                              <Badge className="bg-blue-600 text-white shadow-lg">
+                                {category.productCount} models
+                              </Badge>
+                            </div>
+                            <div className="absolute top-4 left-4">
+                              <div className={`w-12 h-12 bg-gradient-to-br ${category.bgColor} rounded-full flex items-center justify-center shadow-lg`}>
+                                <IconComponent className={`h-6 w-6 ${category.color}`} />
+                              </div>
+                            </div>
+                          </div>
+                        </Link>
+
+                        <CardContent className="p-6">
+                          <Link href={`/products?category=${encodeURIComponent(category.name)}`}>
+                            <h3 className="text-2xl font-bold mb-3 text-slate-900 group-hover:text-blue-600 transition-colors">
+                              {category.name}
+                            </h3>
+                          </Link>
+                          <p className="text-slate-600 mb-4 leading-relaxed">
+                            {category.description}
+                          </p>
+
+                          <div className="mb-6">
+                            <p className="text-sm font-semibold text-blue-600 mb-3">Key Features:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {category.features.slice(0, 3).map((feature, index) => (
+                                <Badge key={index} variant="outline" className="text-xs border-gray-300 text-gray-600">
+                                  {feature}
+                                </Badge>
+                              ))}
+                              {category.features.length > 3 && (
+                                <Badge variant="outline" className="text-xs border-gray-300 text-gray-600">
+                                  +{category.features.length - 3} more
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="text-sm text-slate-500 mb-1">Price Range</p>
+                              <span className="text-xl font-bold text-blue-600">{category.priceRange}</span>
+                            </div>
+                            <Link href={`/products?category=${encodeURIComponent(category.name)}`}>
+                              <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md hover:shadow-lg transition-all duration-300">
+                                Explore Now
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                              </Button>
+                            </Link>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
+
+                {filteredCategories.length === 0 && (
+                  <div className="text-center py-16">
+                    <div className="max-w-md mx-auto">
+                      <Search className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">No Categories Found</h3>
+                      <p className="text-gray-600">No categories match your search criteria. Try adjusting your search terms.</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
           </div>
-        </section>
+
+          {/* Locked Overlay */}
+          {!isAdmin && !isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center z-20 px-4">
+              <div className="max-w-md w-full bg-white/95 backdrop-blur-sm border border-gray-200 p-8 rounded-3xl shadow-2xl text-center transform transition-all duration-500 animate-in fade-in zoom-in slide-in-from-bottom-4 sticky top-1/2">
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-200">
+                  <Lock className="h-10 w-10 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  Coming Soon
+                </h3>
+                <p className="text-gray-600 mb-4 leading-relaxed">
+                  We are currently expanding our specialized categories. Standard and premium access levels will be updated soon.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </main>
 
       <ModernFooter />

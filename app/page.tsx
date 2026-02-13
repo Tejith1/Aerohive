@@ -359,7 +359,7 @@ export default function HomePage() {
                     Professional drone services including aerial photography, mapping, surveying, and custom operations.
                   </p>
                   <Button variant="outline" className="border-2 border-blue-200 text-blue-600 hover:bg-blue-50 rounded-xl" asChild>
-                    <Link href="/drone-services">Learn More</Link>
+                    <Link href="/drone-services" aria-label="Learn more about Drone Services">Learn More</Link>
                   </Button>
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-indigo-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
                 </CardContent>
@@ -375,7 +375,7 @@ export default function HomePage() {
                     Expert repair services and maintenance programs to keep your drones flying at peak performance.
                   </p>
                   <Button variant="outline" className="border-2 border-purple-200 text-purple-600 hover:bg-purple-50 rounded-xl" asChild>
-                    <Link href="/repair-services">Learn More</Link>
+                    <Link href="/repair-services" aria-label="Learn more about Repair Services">Learn More</Link>
                   </Button>
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 to-pink-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
                 </CardContent>
@@ -391,7 +391,7 @@ export default function HomePage() {
                     Comprehensive training programs and certifications from licensed pilots and aviation experts.
                   </p>
                   <Button variant="outline" className="border-2 border-green-200 text-green-600 hover:bg-green-50 rounded-xl" asChild>
-                    <Link href="/training">Learn More</Link>
+                    <Link href="/training" aria-label="Learn more about Training & Certification">Learn More</Link>
                   </Button>
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-600 to-emerald-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
                 </CardContent>

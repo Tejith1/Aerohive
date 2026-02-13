@@ -99,13 +99,15 @@ export function ModernHeader() {
       <div className="container mx-auto px-4">
         <div className="flex h-20 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center group">
+          <Link href="/" className="flex items-center group" aria-label="AeroHive Home">
             <div className="relative">
               <div className="h-12 w-12 rounded-2xl overflow-hidden shadow-lg group-hover:shadow-xl transition-all duration-300 bg-white">
                 <img
                   src="/WhatsApp Image 2025-10-24 at 13.04.00_647ae0e3.jpg"
-                  alt="AeroHive Logo"
+                  alt="AeroHive Logo Icon"
                   className="h-full w-full object-contain p-1"
+                  width="48"
+                  height="48"
                 />
               </div>
               <div className="absolute -inset-0.5 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl opacity-0 group-hover:opacity-20 blur transition-all duration-300"></div>
@@ -113,9 +115,11 @@ export function ModernHeader() {
             <div className="flex items-center -ml-8">
               <img
                 src="/Aerohive text logo scaled up.png"
-                alt="AeroHive"
+                alt="AeroHive Logo Text"
                 className="w-auto object-contain"
                 style={{ filter: 'none', height: '140px' }}
+                width="170"
+                height="140"
               />
             </div>
           </Link>
@@ -166,6 +170,7 @@ export function ModernHeader() {
               variant="ghost"
               size="icon"
               className="hidden md:flex h-10 w-10 rounded-xl hover:bg-gray-100 text-gray-600 hover:text-gray-800 transition-all duration-200"
+              aria-label="Search"
             >
               <Search className="h-5 w-5" />
             </Button>
@@ -182,6 +187,7 @@ export function ModernHeader() {
                   size="icon"
                   className="hidden md:flex h-10 w-10 rounded-xl hover:bg-gray-100 text-gray-600 hover:text-gray-800 transition-all duration-200"
                   asChild
+                  aria-label="Wishlist"
                 >
                   <Link href="/wishlist">
                     <Heart className="h-5 w-5" />
@@ -191,7 +197,7 @@ export function ModernHeader() {
                 {/* User Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex items-center space-x-2 p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 group">
+                    <button className="flex items-center space-x-2 p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 group" aria-label="User Menu">
                       <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-bold flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-200">
                         {user?.first_name ? user.first_name[0].toUpperCase() : "U"}
                       </div>
@@ -292,6 +298,7 @@ export function ModernHeader() {
               size="icon"
               asChild
               className="relative h-10 w-10 rounded-xl hover:bg-gray-100 text-gray-600 hover:text-gray-800 transition-all duration-200"
+              aria-label="Shopping Cart"
             >
               <Link href="/cart">
                 <ShoppingCart className="h-5 w-5" />
@@ -309,6 +316,7 @@ export function ModernHeader() {
               size="icon"
               className="lg:hidden h-10 w-10 rounded-xl hover:bg-gray-100 text-gray-600 hover:text-gray-800 transition-all duration-200"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle Mobile Menu"
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>

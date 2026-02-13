@@ -4,11 +4,15 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
+import dynamic from 'next/dynamic'
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/contexts/auth-context"
 import { NotificationProvider } from "@/contexts/notification-context"
-import Chatbot from "@/components/Chatbot"
 import "./globals.css"
+
+const Chatbot = dynamic(() => import('@/components/Chatbot'), {
+  ssr: false,
+})
 
 export const metadata: Metadata = {
   title: "AeroHive Drones - Professional Drones for Every Mission",
