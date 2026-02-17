@@ -368,6 +368,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+
+
   const register = async (email: string, password: string, firstName: string, lastName: string, phone?: string) => {
     try {
       setIsLoading(true)
@@ -405,7 +407,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const error = new Error(result.error || 'Registration failed')
 
         // Handle specific error cases with user-friendly messages
-        if (error.message.includes('User already registered')) {
+        if (error.message.includes('User already registered') || error.message.includes('User already registered')) {
           toast({
             title: "Email Already Registered",
             description: "This email is already registered. Please try logging in instead.",
