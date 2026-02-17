@@ -640,7 +640,7 @@ export default function Chatbot() {
                             <div className="relative">
                                 {/* Inner glow for the bot icon */}
                                 <div className="absolute inset-0 bg-blue-400 blur-md opacity-50" />
-                                <Bot className="h-8 w-8 text-white relative z-10 drop-shadow-md" />
+                                <Bot className="h-8 w-8 text-white relative z-10 drop-shadow-md animate-wave-hand" />
                             </div>
                         )}
                     </Button>
