@@ -90,41 +90,12 @@ const offices = [
     country: "India",
     address: "HYDERABAD, TELANGANA, INDIA - 500090",
     phone: "+91 7075894588",
-    email: "india@aerohive.com",
+    email: "aerohive.help@gmail.com",
     type: "Global Headquarters",
     timezone: "IST",
     specialties: ["R&D", "Engineering", "Innovation"]
   },
-  {
-    city: "London",
-    country: "United Kingdom",
-    address: "45 Canary Wharf, London E14 5AB, UK",
-    phone: "+44 20 7946 0958",
-    email: "europe@aerohive.com",
-    type: "European Operations",
-    timezone: "GMT",
-    specialties: ["Sales", "Support", "Compliance"]
-  },
-  {
-    city: "Singapore",
-    country: "Singapore",
-    address: "1 Marina Bay, Singapore 018989",
-    phone: "+65 6123 4567",
-    email: "asia@aerohive.com",
-    type: "Asia-Pacific Hub",
-    timezone: "SGT",
-    specialties: ["Manufacturing", "Distribution", "Support"]
-  },
-  {
-    city: "Tokyo",
-    country: "Japan",
-    address: "1-1-1 Shibuya, Tokyo 150-0002, Japan",
-    phone: "+81 3 1234 5678",
-    email: "japan@aerohive.com",
-    type: "Innovation Center",
-    timezone: "JST",
-    specialties: ["Technology", "Partnerships", "Local Support"]
-  }
+
 ]
 
 const departments = [
@@ -169,13 +140,24 @@ export default function ContactPage() {
     setIsSubmitting(true)
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send message')
+      }
 
       setSubmitSuccess(true)
       toast({
         title: "Message Sent Successfully!",
-        description: "We'll get back to you within 2 hours.",
+        description: "We've received your inquiry and will respond to support@aerohive.co.in shortly.",
       })
 
       // Reset form
@@ -191,10 +173,11 @@ export default function ContactPage() {
         newsletter: false,
         updates: false
       })
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Contact form error:', error)
       toast({
         title: "Error Sending Message",
-        description: "Please try again or contact us directly.",
+        description: error.message || "Please try again or contact us directly.",
         variant: "destructive"
       })
     } finally {
@@ -673,25 +656,25 @@ export default function ContactPage() {
             <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {[
                 {
-                  name: "Sarah Mitchell",
+                  name: "Priya Reddy",
                   role: "Professional Photographer",
                   rating: 5,
                   comment: "AeroHive's customer support is exceptional. They helped me customize the perfect drone for aerial photography.",
-                  location: "California, USA"
+                  location: "Hyderabad, Telangana"
                 },
                 {
-                  name: "Marcus Chen",
+                  name: "Rajesh Rao",
                   role: "Agricultural Manager",
                   rating: 5,
                   comment: "Outstanding technical support and quick response times. The team really knows their products inside and out.",
-                  location: "Victoria, Australia"
+                  location: "Warangal, Telangana"
                 },
                 {
-                  name: "Elena Rodriguez",
+                  name: "Sneha Gupta",
                   role: "Search & Rescue Coordinator",
                   rating: 5,
                   comment: "When we had an emergency equipment failure, AeroHive's 24/7 support got us back in the air within hours.",
-                  location: "Madrid, Spain"
+                  location: "Karimnagar, Telangana"
                 }
               ].map((review, index) => (
                 <Card key={index} className="border-0 shadow-lg">

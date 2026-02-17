@@ -99,11 +99,11 @@ export function ModernHeader() {
       <div className="container mx-auto px-4">
         <div className="flex h-24 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center group" aria-label="AeroHive Home">
+          <Link href="/" className="flex items-center group shrink-0" aria-label="AeroHive Home">
             <img
               src="/aerohive-text-logo.jpg"
               alt="AeroHive"
-              className="h-20 w-auto object-contain scale-[1.4] origin-left"
+              className="h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105 mix-blend-multiply"
             />
           </Link>
 

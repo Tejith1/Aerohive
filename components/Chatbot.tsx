@@ -106,23 +106,47 @@ export default function Chatbot() {
         socketRef.current = ws
     }
 
+    const [language, setLanguage] = useState<'en' | 'te' | 'hi' | null>(null)
+
     const addMessage = (role: 'bot' | 'user', content: string | React.ReactNode, type?: Message['type'], data?: any) => {
         setMessages(prev => [...prev, { id: Math.random().toString(36), role, content, type, data }])
     }
 
     const handleOpen = async () => {
         setIsOpen(true)
-        if (messages.length === 0) {
-            try {
-                // Initial call to backend to get greeting
-                const res = await callBackend("hello", "INIT")
-                addMessage('bot', res.message)
-                setChatState(res.next_state as ChatState)
-            } catch (e) {
-                console.error("Backend offline, falling back", e)
-                addMessage('bot', "Hello! I'm your AeroHive assistant. (Offline Mode)")
-                setChatState('REQUIREMENTS')
-            }
+        if (messages.length === 0 && !language) {
+            // Show language selection
+            addMessage('bot', (
+                <div className="flex flex-col gap-3">
+                    <p>Please select your preferred language:</p>
+                    <div className="grid grid-cols-1 gap-2">
+                        <Button variant="outline" onClick={() => handleLanguageSelect('en')}>English</Button>
+                        <Button variant="outline" onClick={() => handleLanguageSelect('te')}>Telugu (తెలుగు)</Button>
+                        <Button variant="outline" onClick={() => handleLanguageSelect('hi')}>Hindi (हिंदी)</Button>
+                    </div>
+                </div>
+            ))
+        }
+    }
+
+    const handleLanguageSelect = async (lang: 'en' | 'te' | 'hi') => {
+        setLanguage(lang)
+
+        // Remove the selection message cleanup if strictly needed, but appending is fine.
+        // Actually, let's clear the selection buttons to keep chat clean or just append.
+        // Better to append the user's choice as a user message for visual consistency.
+        const langLabel = lang === 'en' ? "English" : lang === 'te' ? "Telugu" : "Hindi"
+        addMessage('user', langLabel)
+
+        try {
+            // Initial call to backend to get greeting in selected language
+            const res = await callBackend("hello", "INIT", { language: lang })
+            addMessage('bot', res.message)
+            setChatState(res.next_state as ChatState)
+        } catch (e) {
+            console.error("Backend offline, falling back", e)
+            addMessage('bot', "Hello! I'm your AeroHive assistant. (Offline Mode)")
+            setChatState('REQUIREMENTS')
         }
     }
 
@@ -131,6 +155,7 @@ export default function Chatbot() {
             const fullContext = {
                 lat: userLocation?.lat,
                 lng: userLocation?.lng,
+                language: language || context?.language || 'en',
                 ...(context || {})
             }
             const response = await fetch('/api/chat', {
@@ -527,16 +552,16 @@ export default function Chatbot() {
                                                         </div>
 
                                                         <div className="space-y-3">
-                                                            <div className="p-3 bg-white dark:bg-slate-900 rounded-lg text-xs border shadow-sm">
-                                                                <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-tight">1. Message for Client (User)</p>
-                                                                <div className="whitespace-pre-wrap leading-relaxed text-foreground/90">
+                                                            <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg text-xs border show-sm">
+                                                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-tight">1. Message for Client (User)</p>
+                                                                <div className="whitespace-pre-wrap leading-relaxed text-slate-800 dark:text-slate-100 font-medium">
                                                                     {msg.data?.client_message}
                                                                 </div>
                                                             </div>
 
-                                                            <div className="p-3 bg-white dark:bg-slate-900 rounded-lg text-xs border shadow-sm">
-                                                                <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-tight">2. Message for Pilot (Provider)</p>
-                                                                <div className="whitespace-pre-wrap leading-relaxed text-foreground/90">
+                                                            <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg text-xs border shadow-sm">
+                                                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-tight">2. Message for Pilot (Provider)</p>
+                                                                <div className="whitespace-pre-wrap leading-relaxed text-slate-800 dark:text-slate-100 font-medium">
                                                                     {msg.data?.pilot_message}
                                                                 </div>
                                                             </div>
@@ -619,8 +644,12 @@ export default function Chatbot() {
                     {/* Flash Waves Animation - Only show when closed and logged in to highlight */}
                     {!isOpen && currentUser && (
                         <>
-                            <div className="absolute inset-0 rounded-[22px] bg-blue-500/60 animate-[ping_2s_ease-in-out_infinite]" />
-                            <div className="absolute inset-0 rounded-[22px] bg-blue-400/40 animate-[pulse_3s_ease-in-out_infinite] scale-110" />
+                            {/* Outer Ripples */}
+                            <div className="absolute inset-0 rounded-[22px] bg-blue-500/40 animate-ripple" style={{ animationDelay: '0s' }} />
+                            <div className="absolute inset-0 rounded-[22px] bg-blue-500/40 animate-ripple" style={{ animationDelay: '1s' }} />
+
+                            {/* Inner Glow */}
+                            <div className="absolute inset-0 rounded-[22px] bg-blue-400/20 animate-pulse scale-110" />
                         </>
                     )}
 

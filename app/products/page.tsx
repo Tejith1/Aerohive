@@ -18,6 +18,7 @@ import { getProducts, Product, getCategories, Category } from "@/lib/supabase"
 import { toast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
 import { Lock, ArrowRight } from "lucide-react"
+import { ComingSoonOverlay } from "@/components/ui/coming-soon-overlay"
 
 export default function ProductsPage() {
   const searchParams = useSearchParams()
@@ -350,7 +351,7 @@ export default function ProductsPage() {
                   <div className={`grid gap-6 ${viewMode === "grid"
                     ? "md:grid-cols-2 xl:grid-cols-3"
                     : "grid-cols-1"
-                    } ${!isAdmin && !isGlobalLoading ? 'blur-md pointer-events-none select-none opacity-40' : ''}`}>
+                    } transition-all duration-300 ${!isAdmin ? 'filter blur-sm select-none pointer-events-none opacity-50' : ''}`}>
                     {sortedProducts.map((product) => (
                       <ModernProductCard
                         key={product.id}
@@ -373,21 +374,10 @@ export default function ProductsPage() {
                 )}
 
                 {/* Locked Overlay */}
-                {!isAdmin && !isGlobalLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center z-20 px-4">
-                    <div className="max-w-md w-full bg-white/95 backdrop-blur-sm border border-gray-200 p-8 rounded-3xl shadow-2xl text-center transform transition-all duration-500 animate-in fade-in zoom-in slide-in-from-bottom-4">
-                      <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-200">
-                        <Lock className="h-10 w-10 text-white" />
-                      </div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                        Coming Soon
-                      </h3>
-                      <p className="text-gray-600 mb-4 leading-relaxed">
-                        Our premium collection is currently being curated. Stay tuned for exclusive launches and expert-level equipment.
-                      </p>
-                    </div>
-                  </div>
-                )}
+                <ComingSoonOverlay
+                  show={!isAdmin}
+                  description="Our premium collection is currently being curated. Stay tuned for exclusive launches and expert-level equipment."
+                />
               </div>
             </div>
           </div>

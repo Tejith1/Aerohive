@@ -11,6 +11,7 @@ import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
 import { useAuth } from "@/contexts/auth-context"
 import { Lock } from "lucide-react"
+import { ComingSoonOverlay } from "@/components/ui/coming-soon-overlay"
 
 // Drone categories data with icons and updated design
 const droneCategories = [
@@ -207,7 +208,7 @@ export default function CategoriesPage() {
         </section>
 
         <div className="relative">
-          <div className={`${!isAdmin && !isLoading ? 'blur-md pointer-events-none select-none opacity-40' : ''}`}>
+          <div className={`transition-all duration-300 ${!isAdmin ? 'filter blur-sm select-none pointer-events-none opacity-50' : ''}`}>
             {/* Search and Filter Section */}
             <section className="py-12 bg-white border-b border-gray-200">
               <div className="container mx-auto px-4">
@@ -329,21 +330,10 @@ export default function CategoriesPage() {
           </div>
 
           {/* Locked Overlay */}
-          {!isAdmin && !isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center z-20 px-4">
-              <div className="max-w-md w-full bg-white/95 backdrop-blur-sm border border-gray-200 p-8 rounded-3xl shadow-2xl text-center transform transition-all duration-500 animate-in fade-in zoom-in slide-in-from-bottom-4 sticky top-1/2">
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-200">
-                  <Lock className="h-10 w-10 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                  Coming Soon
-                </h3>
-                <p className="text-gray-600 mb-4 leading-relaxed">
-                  We are currently expanding our specialized categories. Standard and premium access levels will be updated soon.
-                </p>
-              </div>
-            </div>
-          )}
+          <ComingSoonOverlay
+            show={!isAdmin}
+            description="We are currently expanding our specialized categories. Standard and premium access levels will be updated soon."
+          />
         </div>
       </main>
 

@@ -50,7 +50,7 @@ export function ModernFooter() {
       { href: "/contact", label: "Shipping Info" },
       { href: "/contact", label: "Returns & Refunds" },
       { href: "/contact", label: "Privacy Policy" },
-      { href: "/contact", label: "Terms of Service" },
+      { href: "/terms", label: "Terms of Service" },
     ],
   }
 
