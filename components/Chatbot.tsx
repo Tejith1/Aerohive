@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from 'react'
 import dynamic from 'next/dynamic'
-import { MessageCircle, X, Send, MapPin, User, Calendar, Clock, CheckCircle, Loader2 } from 'lucide-react'
+import { MessageCircle, X, Send, MapPin, User, Calendar, Clock, CheckCircle, Loader2, Bot } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -615,14 +615,36 @@ export default function Chatbot() {
                     </Card>
                 )}
 
-                <Button
-                    onClick={() => isOpen ? setIsOpen(false) : handleOpen()}
-                    size="lg"
-                    className="h-16 w-16 rounded-[22px] shadow-2xl p-0 hover:scale-110 active:scale-90 transition-all duration-300 bg-primary group overflow-hidden"
-                >
-                    <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    {isOpen ? <X className="h-7 w-7" /> : <MessageCircle className="h-8 w-8" />}
-                </Button>
+                <div className="relative group">
+                    {/* Flash Waves Animation - Only show when closed and logged in to highlight */}
+                    {!isOpen && currentUser && (
+                        <>
+                            <div className="absolute inset-0 rounded-[22px] bg-blue-500/60 animate-[ping_2s_ease-in-out_infinite]" />
+                            <div className="absolute inset-0 rounded-[22px] bg-blue-400/40 animate-[pulse_3s_ease-in-out_infinite] scale-110" />
+                        </>
+                    )}
+
+                    <Button
+                        onClick={() => isOpen ? setIsOpen(false) : handleOpen()}
+                        size="lg"
+                        className={`relative h-16 w-16 rounded-[22px] shadow-2xl p-0 hover:scale-110 active:scale-90 transition-all duration-300 overflow-hidden border-2 border-white/20
+                            ${isOpen ? 'bg-destructive' : 'bg-blue-600 hover:bg-blue-500'}
+                        `}
+                    >
+                        {/* Shine effect */}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                        {isOpen ? (
+                            <X className="h-7 w-7 text-white" />
+                        ) : (
+                            <div className="relative">
+                                {/* Inner glow for the bot icon */}
+                                <div className="absolute inset-0 bg-blue-400 blur-md opacity-50" />
+                                <Bot className="h-8 w-8 text-white relative z-10 drop-shadow-md" />
+                            </div>
+                        )}
+                    </Button>
+                </div>
             </div>
 
             {/* Booking Confirmation Dialog */}
