@@ -136,8 +136,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     )
 
+    // Realtime subscription for user profile updates
+    const channel = supabase.channel('realtime-profile')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'users',
+        },
+        async (payload) => {
+          // Only update if it matches current user
+          const { data: { user } } = await supabase.auth.getUser()
+          if (user && payload.new.id === user.id) {
+            console.log('⚡ Realtime Update: User profile changed', payload.new)
+            await fetchUserProfile()
+          }
+        }
+      )
+      .subscribe()
+
     return () => {
       data.subscription.unsubscribe()
+      supabase.removeChannel(channel)
     }
   }, [])
 
