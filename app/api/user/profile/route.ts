@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
         if (profile) {
             console.log('✅ Profile found')
-            return NextResponse.json({ profile }, { headers: { 'Cache-Control': 'no-store, max-age=0' } })
+            return NextResponse.json({ profile })
         }
 
         // 2. If not found, create it
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
         }
 
         console.log('✅ Profile created successfully')
-        return NextResponse.json({ profile: newProfile }, { headers: { 'Cache-Control': 'no-store, max-age=0' } })
+        return NextResponse.json({ profile: newProfile })
 
     } catch (error: any) {
         console.error('❌ API Error:', error)

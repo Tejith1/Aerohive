@@ -224,7 +224,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
 
       if (authError || !authUser) {
-        if (authError) console.error('❌ Auth user error:', authError)
+        console.log('⚠️ fetchUserProfile: getUser failed', authError?.message || 'No user')
+        // Only clear user if it's explicitly a session error (not network)
+        if (authError?.message?.includes('network') || authError?.status === 500) {
+          console.log('🌐 Network error during profile sync, ignoring logout')
+          return
+        }
         setUser(null)
         setIsLoading(false)
         return
@@ -276,6 +281,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error: any) {
       console.error('❌ Error syncing user profile:', error)
+      console.log('⚠️ Falling back to basic auth user data')
+
+      // Fallback: Use basic auth data so user isn't locked out
+      // We need to re-fetch authUser here or pass it down, but simpler to use what we have if possible.
+      // Since we can't easily access authUser from checking scope without refactor, 
+      // let's do a quick check or just retry. 
+      // Actually, better to just set it if we have it. 
+      // For now, let's just ensure we don't leave it null if we are retrying.
 
       // Retry once on network/connection issues
       if (retryCount < 1) {
@@ -283,6 +296,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await new Promise(resolve => setTimeout(resolve, 2000))
         setIsProfileFetching(false)
         return fetchUserProfile(retryCount + 1)
+      } else {
+        // Final fallback after retries failed
+        const { data: { user: fallbackUser } } = await supabase.auth.getUser()
+        if (fallbackUser) {
+          console.log('✅ Using fallback auth user data')
+          setUser({
+            id: fallbackUser.id,
+            email: fallbackUser.email!,
+            first_name: 'User',
+            last_name: '',
+            is_admin: false,
+            provider: fallbackUser.app_metadata?.provider || 'email'
+          })
+        }
       }
     } finally {
       setIsProfileFetching(false)
@@ -292,6 +319,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('🔐 Login requested for:', email)
       setIsLoading(true)
 
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -300,8 +328,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (error) {
+        console.error('❌ Supabase signIn failed:', error.message)
         throw error
       }
+
+      console.log('✅ Supabase signIn successful:', data.user?.email)
 
       if (data.user) {
         // fetchUserProfile will sync profile via API and set user state
