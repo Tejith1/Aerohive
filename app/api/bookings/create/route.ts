@@ -138,6 +138,8 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        console.log(`👤 Client Email resolved to: '${clientEmail}'`)
+
         // Create booking in database - MUST SUCCEED to proceed with emails
         if (!supabase) {
             console.error('❌ Supabase client not initialized')

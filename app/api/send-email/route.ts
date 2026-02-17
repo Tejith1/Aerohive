@@ -41,7 +41,7 @@ function createGmailTransporter() {
         service: 'gmail',
         auth: {
             user: GMAIL_USER,
-            pass: GMAIL_APP_PASSWORD // Use App Password, not regular password
+            pass: GMAIL_APP_PASSWORD?.replace(/\s+/g, '') // Remove spaces from App Password
         }
     })
 }
