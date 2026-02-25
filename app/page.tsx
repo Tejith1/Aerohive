@@ -53,13 +53,9 @@ export default function HomePage() {
       // Check for OAuth success
       if (code || localStorage.getItem('oauth_success') === 'true') {
         console.log('🎉 OAuth callback detected')
-
-        // Give time for auth context to update
-        setTimeout(async () => {
-          await refreshUser()
-          localStorage.removeItem('oauth_success')
-          window.history.replaceState({}, '', '/')
-        }, 1000)
+        // Clean up OAuth markers — auth-context's onAuthStateChange handles profile sync
+        localStorage.removeItem('oauth_success')
+        window.history.replaceState({}, '', '/')
       }
     }
 
@@ -170,7 +166,7 @@ export default function HomePage() {
           primaryButtonText="Explore Drones"
           primaryButtonHref="/products"
           secondaryButtonText="Watch Demo"
-          secondaryButtonHref="/demo"
+          secondaryButtonHref="/products"
           backgroundImage="/hero-drone.jpg"
           stats={[
             { label: "Drone Models", value: "200+" },

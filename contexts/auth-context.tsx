@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useEffect, useState } from "react"
+import React, { createContext, useContext, useEffect, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { supabase, getCurrentUser } from "@/lib/supabase"
 import { toast } from "@/hooks/use-toast"
@@ -36,7 +36,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [isProfileFetching, setIsProfileFetching] = useState(false) // Lock to prevent redundant fetches
+  const isProfileFetchingRef = useRef(false) // Lock to prevent redundant fetches (useRef for correct async behavior)
+  const currentUserIdRef = useRef<string | null>(null) // Track current user ID for account-switch detection
+  const isManualLoginRef = useRef(false) // When true, onAuthStateChange skips fetchUserProfile (login() handles it)
   const router = useRouter()
 
   const isAuthenticated = !!user
@@ -112,23 +114,91 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       async (event: string, session: any) => {
         console.log('🔔 Auth state change:', event, session?.user?.email)
 
-        if (event === 'SIGNED_IN' && session) {
-          console.log('📊 User signed in, syncing profile...')
-          await fetchUserProfile()
+        // Handle both SIGNED_IN and INITIAL_SESSION (PKCE code exchange fires INITIAL_SESSION)
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
+          const newUserId = session.user.id
+          const previousUserId = currentUserIdRef.current
 
-          // Check if this is an OAuth sign-in (Google, etc.)
-          const provider = session.user.app_metadata?.provider
-          if (provider === 'google') {
-            toast({
-              title: "✅ Welcome!",
-              description: "You've successfully signed in with Google.",
-              className: "border-green-200 bg-green-50 text-green-900",
-              duration: 5000,
-            })
+          // Detect account switch: if a different user signed in, clear old state first
+          if (previousUserId && previousUserId !== newUserId) {
+            console.log('🔄 Account switch detected:', previousUserId, '->', newUserId)
+            setUser(null)
+            isProfileFetchingRef.current = false
           }
+
+          currentUserIdRef.current = newUserId
+
+          // If login() or register() is handling the flow, skip duplicate fetch here
+          if (isManualLoginRef.current) {
+            console.log('📊', event, 'event (manual login in progress, skipping profile fetch here)')
+          } else {
+            // OAuth or auto-login — inline profile fetch (no lock, no race condition)
+            console.log('📊 User signed in (OAuth/auto), syncing profile inline...')
+            const authUser = session.user
+
+            let profileSet = false
+            try {
+              const response = await fetch('/api/user/profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  userId: authUser.id,
+                  email: authUser.email,
+                  firstName: authUser.user_metadata?.full_name?.split(' ')[0] || authUser.user_metadata?.first_name || 'User',
+                  lastName: authUser.user_metadata?.full_name?.split(' ').slice(1).join(' ') || authUser.user_metadata?.last_name || '',
+                  phone: authUser.phone || authUser.user_metadata?.phone || null
+                }),
+              })
+
+              if (response.ok) {
+                const { profile } = await response.json()
+                console.log('✅ Profile synced (OAuth/auto):', profile?.email)
+                setUser({
+                  ...profile,
+                  provider: authUser.app_metadata?.provider || 'email'
+                })
+                profileSet = true
+              }
+            } catch (profileError) {
+              console.warn('⚠️ Profile API failed (OAuth/auto), using fallback:', profileError)
+            }
+
+            // Fallback: always set user data even if profile API fails
+            if (!profileSet) {
+              console.log('📋 Using basic auth user data as fallback (OAuth/auto)')
+              setUser({
+                id: authUser.id,
+                email: authUser.email!,
+                first_name: authUser.user_metadata?.full_name?.split(' ')[0] || authUser.user_metadata?.first_name || 'User',
+                last_name: authUser.user_metadata?.full_name?.split(' ').slice(1).join(' ') || authUser.user_metadata?.last_name || '',
+                is_admin: authUser.email === 'admin1@gmail.com' || authUser.email === 'admin@aerohive.com',
+                provider: authUser.app_metadata?.provider || 'email'
+              })
+            }
+
+            setIsLoading(false)
+
+            // Check if this is an OAuth sign-in (Google, etc.)
+            const provider = authUser.app_metadata?.provider
+            if (provider === 'google' && event === 'SIGNED_IN') {
+              toast({
+                title: "✅ Welcome!",
+                description: "You've successfully signed in with Google.",
+                className: "border-green-200 bg-green-50 text-green-900",
+                duration: 5000,
+              })
+            }
+          }
+        } else if (event === 'INITIAL_SESSION' && !session) {
+          // No existing session on page load
+          console.log('📊 No existing session (INITIAL_SESSION)')
+          setUser(null)
+          setIsLoading(false)
         } else if (event === 'SIGNED_OUT') {
           console.log('📊 User signed out')
+          currentUserIdRef.current = null
           setUser(null)
+          isProfileFetchingRef.current = false
           setIsLoading(false)
         } else if (event === 'TOKEN_REFRESHED') {
           console.log('📊 Token refreshed successfully')
@@ -145,7 +215,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           schema: 'public',
           table: 'users',
         },
-        async (payload) => {
+        async (payload: any) => {
           // Only update if it matches current user
           const { data: { user } } = await supabase.auth.getUser()
           if (user && payload.new.id === user.id) {
@@ -165,29 +235,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const initializeAuth = async () => {
     try {
       console.log('🔄 Initializing auth...')
-      console.log('🔍 Checking localStorage for session...')
 
-      // Check if we have a stored session
-      const storedSession = typeof window !== 'undefined'
-        ? localStorage.getItem('sb-aerohive-auth-token')
-        : null
-      console.log('💾 Stored session:', storedSession ? 'Found' : 'Not found')
-
+      // Let Supabase handle session retrieval from its own storage — 
+      // no manual localStorage reads, avoiding stale token issues
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
       if (sessionError) {
         console.error('❌ Session error:', sessionError)
-        console.error('❌ Error details:', JSON.stringify(sessionError, null, 2))
 
-        // Try to refresh the session if we have a stored token
-        if (storedSession) {
-          console.log('🔄 Attempting session refresh...')
-          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
-          if (!refreshError && refreshData.session) {
-            console.log('✅ Session refreshed successfully')
-            await fetchUserProfile()
-            return
-          }
+        // Try to refresh the session as a fallback
+        console.log('🔄 Attempting session refresh...')
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+        if (!refreshError && refreshData.session) {
+          console.log('✅ Session refreshed successfully')
+          currentUserIdRef.current = refreshData.session.user.id
+          await fetchUserProfile()
+          return
         }
 
         setUser(null)
@@ -198,6 +261,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session?.user) {
         console.log('✅ Session found:', session.user.email)
         console.log('🔑 Session expires at:', new Date(session.expires_at! * 1000).toLocaleString())
+        currentUserIdRef.current = session.user.id
         await fetchUserProfile()
       } else {
         console.log('ℹ️ No active session')
@@ -205,7 +269,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('❌ Auth initialization error:', error)
-      console.error('❌ Full error:', JSON.stringify(error, null, 2))
       setUser(null)
     } finally {
       setIsLoading(false)
@@ -214,13 +277,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserProfile = async (retryCount = 0) => {
     // Prevent multiple simultaneous profile fetches
-    if (isProfileFetching) {
+    if (isProfileFetchingRef.current) {
       console.log('⚠️ Profile fetch already in progress, skipping...')
       return
     }
 
     try {
-      setIsProfileFetching(true)
+      isProfileFetchingRef.current = true
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
 
       if (authError || !authUser) {
@@ -294,7 +357,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (retryCount < 1) {
         console.log('🔄 Retrying profile sync in 2s...')
         await new Promise(resolve => setTimeout(resolve, 2000))
-        setIsProfileFetching(false)
+        isProfileFetchingRef.current = false
         return fetchUserProfile(retryCount + 1)
       } else {
         // Final fallback after retries failed
@@ -312,7 +375,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     } finally {
-      setIsProfileFetching(false)
+      isProfileFetchingRef.current = false
       setIsLoading(false)
     }
   }
@@ -321,6 +384,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('🔐 Login requested for:', email)
       setIsLoading(true)
+      isManualLoginRef.current = true // Tell onAuthStateChange to NOT fetch profile
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -335,12 +399,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('✅ Supabase signIn successful:', data.user?.email)
 
       if (data.user) {
-        // fetchUserProfile will sync profile via API and set user state
-        await fetchUserProfile()
+        const authUser = data.user
+        currentUserIdRef.current = authUser.id
 
-        // Use the auth session user role for immediate redirect if needed, 
-        // or wait for the synced user state. For robustness, we check the email.
-        const isAdminEmail = data.user.email === 'admin1@gmail.com' || data.user.email === 'admin@aerohive.com'
+        // Inline profile fetch — bypasses fetchUserProfile() and lock entirely
+        // This guarantees no race condition with onAuthStateChange
+        let profileSet = false
+        try {
+          const response = await fetch('/api/user/profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: authUser.id,
+              email: authUser.email,
+              firstName: authUser.user_metadata?.full_name?.split(' ')[0] || authUser.user_metadata?.first_name || 'User',
+              lastName: authUser.user_metadata?.full_name?.split(' ').slice(1).join(' ') || authUser.user_metadata?.last_name || '',
+              phone: authUser.phone || authUser.user_metadata?.phone || null
+            }),
+          })
+
+          if (response.ok) {
+            const { profile } = await response.json()
+            console.log('✅ Profile synced during login:', profile?.email)
+            setUser({
+              ...profile,
+              provider: authUser.app_metadata?.provider || 'email'
+            })
+            profileSet = true
+          }
+        } catch (profileError) {
+          console.warn('⚠️ Profile API failed during login, using fallback:', profileError)
+        }
+
+        // Fallback: always set user data even if profile API fails
+        if (!profileSet) {
+          console.log('📋 Using basic auth user data as fallback')
+          setUser({
+            id: authUser.id,
+            email: authUser.email!,
+            first_name: authUser.user_metadata?.full_name?.split(' ')[0] || authUser.user_metadata?.first_name || 'User',
+            last_name: authUser.user_metadata?.full_name?.split(' ').slice(1).join(' ') || authUser.user_metadata?.last_name || '',
+            is_admin: authUser.email === 'admin1@gmail.com' || authUser.email === 'admin@aerohive.com',
+            provider: authUser.app_metadata?.provider || 'email'
+          })
+        }
+
+        const isAdminEmail = authUser.email === 'admin1@gmail.com' || authUser.email === 'admin@aerohive.com'
 
         toast({
           title: "Welcome back!",
@@ -348,6 +452,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           className: "border-green-200 bg-green-50 text-green-900",
           duration: 3000,
         })
+
+        // Let React commit the setUser() state update before navigating
+        // Without this, router.push fires before the DOM reflects the new user
+        setIsLoading(false)
+        await new Promise(resolve => setTimeout(resolve, 100))
 
         if (isAdminEmail) {
           router.push('/admin')
@@ -364,6 +473,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
       throw error
     } finally {
+      isManualLoginRef.current = false
       setIsLoading(false)
     }
   }
@@ -461,23 +571,70 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
+      console.log('🔓 Logging out — clearing all session data...')
 
+      // 1. Sign out from Supabase (local scope clears this browser's session without interfering with new logins)
+      const { error } = await supabase.auth.signOut({ scope: 'local' })
+      if (error) {
+        console.error('⚠️ Supabase signOut error (continuing cleanup):', error)
+      }
+
+      // 2. Clear user state immediately
       setUser(null)
-      router.push('/')
+      currentUserIdRef.current = null
+      isProfileFetchingRef.current = false
+
+      // 3. Explicitly remove all Supabase-related localStorage keys
+      if (typeof window !== 'undefined') {
+        // Remove the custom storage key used by our Supabase client
+        localStorage.removeItem('sb-aerohive-auth-token')
+        // Remove any other Supabase keys that might persist
+        const keysToRemove: string[] = []
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i)
+          if (key && (key.startsWith('sb-') || key === 'oauth_success')) {
+            keysToRemove.push(key)
+          }
+        }
+        keysToRemove.forEach(key => {
+          console.log('🧹 Removing localStorage key:', key)
+          localStorage.removeItem(key)
+        })
+
+        // 4. Clear Supabase auth cookies
+        document.cookie.split(';').forEach(cookie => {
+          const name = cookie.split('=')[0].trim()
+          if (name.startsWith('sb-') || name.includes('supabase')) {
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`
+          }
+        })
+      }
+
       toast({
         title: "Logged Out",
         description: "You've been successfully logged out.",
         className: "border-blue-200 bg-blue-50 text-blue-900",
       })
+
+      // 5. Hard navigation to destroy all in-memory React state
+      console.log('🔄 Hard redirect to home...')
+      window.location.href = '/'
     } catch (error: any) {
       console.error('Logout error:', error)
+      // Even on error, force cleanup
+      setUser(null)
+      currentUserIdRef.current = null
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('sb-aerohive-auth-token')
+      }
       toast({
         title: "Logout Failed",
         description: error.message || "Failed to logout",
         variant: "destructive",
       })
+      // Still force a hard redirect to clear state
+      window.location.href = '/'
     }
   }
 
