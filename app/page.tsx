@@ -50,12 +50,12 @@ export default function HomePage() {
         return
       }
 
-      // Check for OAuth success
+      // Check for OAuth success — DO NOT remove the ?code= from the URL here!
+      // Supabase's async PKCE exchange needs it. The URL cleanup happens
+      // in auth-context's onAuthStateChange after the session is established.
       if (code || localStorage.getItem('oauth_success') === 'true') {
-        console.log('🎉 OAuth callback detected')
-        // Clean up OAuth markers — auth-context's onAuthStateChange handles profile sync
+        console.log('🎉 OAuth callback detected — waiting for Supabase to exchange code...')
         localStorage.removeItem('oauth_success')
-        window.history.replaceState({}, '', '/')
       }
     }
 

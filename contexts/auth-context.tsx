@@ -178,6 +178,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             setIsLoading(false)
 
+            // Clean up OAuth params from URL now that session is established
+            if (typeof window !== 'undefined' && window.location.search) {
+              const url = new URL(window.location.href)
+              if (url.searchParams.has('code') || url.searchParams.has('error')) {
+                console.log('🧹 Cleaning up OAuth params from URL')
+                window.history.replaceState({}, '', url.pathname)
+              }
+            }
+
             // Check if this is an OAuth sign-in (Google, etc.)
             const provider = authUser.app_metadata?.provider
             if (provider === 'google' && event === 'SIGNED_IN') {
