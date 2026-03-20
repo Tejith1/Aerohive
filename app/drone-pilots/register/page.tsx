@@ -38,6 +38,7 @@ export default function DronePilotRegisterPage() {
     experience: "",
     certifications: "",
     specializations: "",
+    droneAcademy: "",
     hourlyRate: "",
     about: "",
     dgcaNumber: "",
@@ -116,6 +117,7 @@ export default function DronePilotRegisterPage() {
         specializations: formData.specializations,
         hourly_rate: parseInt(formData.hourlyRate),
         about: formData.about,
+        drone_academy: formData.droneAcademy || null,
         dgca_number: formData.dgcaNumber,
         profile_image_url: profileImageUrl,
         certificate_image_url: certificateImageUrl,
@@ -150,6 +152,7 @@ export default function DronePilotRegisterPage() {
           experience: "",
           certifications: "",
           specializations: "",
+          droneAcademy: "",
           hourlyRate: "",
           about: "",
           dgcaNumber: "",
@@ -422,6 +425,17 @@ export default function DronePilotRegisterPage() {
                       value={formData.specializations}
                       onChange={handleInputChange}
                       required
+                      className="rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="droneAcademy">Drone Academy <span className="text-sm font-normal text-gray-500">(optional)</span></Label>
+                    <Input
+                      id="droneAcademy"
+                      name="droneAcademy"
+                      placeholder="e.g., Indian Institute of Drones, RPTO Academy"
+                      value={formData.droneAcademy}
+                      onChange={handleInputChange}
                       className="rounded-xl"
                     />
                   </div>
