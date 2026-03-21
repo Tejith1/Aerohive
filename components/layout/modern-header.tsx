@@ -97,13 +97,13 @@ export function ModernHeader() {
       : 'bg-white/80 backdrop-blur-md'
       }`}>
       <div className="container mx-auto px-4">
-        <div className="flex h-24 items-center justify-between">
+        <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center group shrink-0" aria-label="AeroHive Home">
             <img
               src="/aerohive-logo-v2.png"
               alt="AeroHive"
-              className="h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+              className="h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
             />
           </Link>
 
