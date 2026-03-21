@@ -7,9 +7,9 @@ import { NextRequest, NextResponse } from 'next/server'
  * integrated with Twilio, Msg91, or Fast2SMS.
  */
 
-const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID
-const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN
-const TWILIO_PHONE_NUMBER = process.env.TWILIO_PHONE_NUMBER
+const FONOSTER_PROJECT_ID = process.env.FONOSTER_PROJECT_ID
+const FONOSTER_TOKEN = process.env.FONOSTER_TOKEN
+const FONOSTER_PHONE_NUMBER = process.env.FONOSTER_PHONE_NUMBER
 
 interface SMSRequest {
     to: string
@@ -31,35 +31,32 @@ export async function POST(request: NextRequest) {
         // Clean phone number (remove spaces, dashes)
         const cleanTo = to.replace(/[\s\-\(\)]/g, '')
 
-        // 1. If Twilio keys are present, use Twilio
-        if (TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN && TWILIO_PHONE_NUMBER) {
+        // 1. If Fonoster keys are present, use Fonoster
+        if (FONOSTER_TOKEN && FONOSTER_PHONE_NUMBER) {
             try {
-                const auth = Buffer.from(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`).toString('base64')
-                const res = await fetch(
-                    `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Basic ${auth}`,
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: new URLSearchParams({
-                            To: cleanTo,
-                            From: TWILIO_PHONE_NUMBER,
-                            Body: message,
-                        }).toString()
-                    }
-                )
+                // Using Fonoster REST API
+                const res = await fetch(`https://api.fonoster.com/v1/sms`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${FONOSTER_TOKEN}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        from: FONOSTER_PHONE_NUMBER,
+                        to: cleanTo,
+                        message: message,
+                    })
+                })
 
                 if (!res.ok) {
                     const errorData = await res.json()
-                    throw new Error(errorData.message || 'Twilio send failure')
+                    throw new Error(errorData.message || 'Fonoster delivery failure')
                 }
 
-                console.log(`✅ [Twilio] SMS sent to ${cleanTo}`)
-                return NextResponse.json({ success: true, provider: 'twilio' })
+                console.log(`✅ [Fonoster] SMS sent to ${cleanTo}`)
+                return NextResponse.json({ success: true, provider: 'fonoster' })
             } catch (error: any) {
-                console.error('❌ Twilio SMS failed, falling back to simulation:', error.message)
+                console.error('❌ Fonoster SMS failed, falling back to simulation:', error.message)
             }
         }
 
@@ -71,7 +68,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             success: true,
             simulated: true,
-            message: 'SMS simulated (configure TWILIO_ACCOUNT_SID/AUTH_TOKEN in .env.local for real sending)',
+            message: 'SMS simulated (configure FONOSTER_TOKEN/PHONE_NUMBER in .env.local for real sending)',
             details: { to: cleanTo, length: message.length }
         })
 
