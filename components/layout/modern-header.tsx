@@ -101,9 +101,9 @@ export function ModernHeader() {
           {/* Logo */}
           <Link href="/" className="flex items-center group shrink-0" aria-label="AeroHive Home">
             <img
-              src="/aerohive-text-logo.jpg"
+              src="/aerohive-logo.svg"
               alt="AeroHive"
-              className="h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105 mix-blend-multiply"
+              className="h-20 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
             />
           </Link>
 
