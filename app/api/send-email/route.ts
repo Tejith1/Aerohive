@@ -175,8 +175,10 @@ export async function POST(request: NextRequest) {
         }
 
         const htmlContent = generateEmailHtml(type, bookingDetails)
-        const fromAddress = `AeroHive Support <${MEDIATOR_EMAIL}>` // Force mediator email
+        const fromAddress = `AeroHive Support <${MEDIATOR_EMAIL}>` 
         const replyTo = MEDIATOR_EMAIL
+
+        console.log(`📡 Email API - Recipient: ${to} | Type: ${type} | Subject: ${subject}`)
 
         // Try Resend first
         if (RESEND_API_KEY) {
@@ -230,7 +232,9 @@ export async function POST(request: NextRequest) {
         }
 
         // No provider configured - simulate
-        console.log(`📧 [Simulated] Email to ${to}:`, subject)
+        console.log(`📧 [Simulated] Incoming email request:`)
+        console.log(`   To: ${to}`)
+        console.log(`   Subject: ${subject}`)
         console.log(`   Type: ${type}`)
         console.log(`   Order UUID: ${bookingDetails.orderUUID}`)
         console.log(`   Link: ${type === 'client' ? bookingDetails.trackingLink : bookingDetails.acceptJobLink}`)

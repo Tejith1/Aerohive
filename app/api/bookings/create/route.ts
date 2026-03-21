@@ -60,6 +60,25 @@ async function sendNotificationEmail(
     }
 }
 
+// Helper function to send SMS
+async function sendSMS(baseUrl: string, to: string, message: string) {
+    if (!to || to === 'Not provided' || to === '') return { success: false, error: 'No phone number' }
+    
+    try {
+        const response = await fetch(`${baseUrl}/api/send-sms`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ to, message })
+        })
+        const result = await response.json()
+        console.log(`📱 SMS to ${to}:`, result.success ? '✅ Sent' : '❌ Failed')
+        return result
+    } catch (error) {
+        console.error(`❌ Failed to send SMS to ${to}:`, error)
+        return { success: false, error }
+    }
+}
+
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json()
@@ -113,7 +132,11 @@ export async function POST(request: NextRequest) {
                     pilotEmail = pilot.email || ''
                     // We'll use hourly_rate later
                     var pilotRate = pilot.hourly_rate || 0
-                    console.log('📋 Fetched real pilot details:', pilot.full_name)
+                    console.log(`📋 Fetched real pilot details: '${pilotName}' | Email: '${pilotEmail}'`)
+                } else if (error) {
+                    console.error('❌ Error fetching pilot details:', error.message)
+                } else {
+                    console.warn(`⚠️ No pilot found for pilot_id: ${pilot_id}`)
                 }
             } catch (err) {
                 console.error('Error fetching pilot:', err)
@@ -235,24 +258,44 @@ export async function POST(request: NextRequest) {
         }
 
         // Send to pilot if email available
-        if (pilotEmail) {
-            console.log(`📧 Sending job assignment email to pilot: ${pilotEmail}`)
+        if (pilotEmail && pilotEmail.trim() !== '') {
+            console.log(`📧 Preparing job assignment email for pilot: '${pilotEmail}'`)
             emailPromises.push(
                 sendNotificationEmail(
                     baseUrl,
                     pilotEmail,
-                    `New Job Assigned | Action Required – AeroHive`,
+                    `New Job Assigned | Action Required - AeroHive`,
                     'pilot',
                     emailBookingDetails
                 )
             )
         } else {
-            console.log('⚠️ No pilot email available for notification')
+            console.warn('⚠️ No valid pilot email available for notification. Skip sending pilot email.')
         }
 
-        // Wait for emails to be sent (but don't fail if they fail)
+        // --- NEW: SMS NOTIFICATIONS ---
+        const smsPromises = []
+        
+        // SMS to client
+        if (userPhone && userPhone !== 'Not provided') {
+            const clientSmsMessage = `Hello ${userName}, Your booking ${bookingId} for ${service_type} is PENDING! Pilot: ${pilotName}. Track: ${trackingLink}`
+            smsPromises.push(sendSMS(baseUrl, userPhone, clientSmsMessage))
+        }
+
+        // SMS to pilot
+        if (pilotPhone) {
+            const pilotSmsMessage = `AeroHive: NEW JOB assigned! Job: ${bookingId}. Location: ${locationDisplay}. Client: ${userName}. Link: ${acceptJobLink}. Verify OTP ${otp} on site.`
+            smsPromises.push(sendSMS(baseUrl, pilotPhone, pilotSmsMessage))
+        }
+
+        // Wait for emails and SMS to be sent (but don't fail if they fail)
         const emailResults = await Promise.allSettled(emailPromises)
+        console.log('📬 Email Results:', JSON.stringify(emailResults, null, 2))
         const emailsSent = emailResults.filter(r => r.status === 'fulfilled' && (r as any).value?.success).length
+
+        const smsResults = await Promise.allSettled(smsPromises)
+        console.log('📱 SMS Results:', JSON.stringify(smsResults, null, 2))
+        const smsSent = smsResults.filter(r => r.status === 'fulfilled' && (r as any).value?.success).length
 
         // Generate confirmation messages for chatbot display (Client view)
         const clientMessage = `Hello ${userName},
@@ -303,6 +346,7 @@ ${pilotEmail ? `📧 Job details sent to: ${pilotEmail}` : ''}`
             client_message: clientMessage,
             pilot_message: pilotMessage,
             emails_sent: emailsSent,
+            sms_sent: smsSent,
             client_email_sent: !!clientEmail,
             pilot_email_sent: !!pilotEmail
         })
