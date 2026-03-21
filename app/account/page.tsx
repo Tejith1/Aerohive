@@ -101,7 +101,18 @@ export default function AccountPage() {
             const data = await res.json()
             if (data.success) {
                 setShowOTPModal(true)
-                toast({ title: "OTP Sent!", description: `Verification code sent to ${formData.phone}` })
+                const smsSuccess = data.sms_status?.success || data.sms_status?.simulated
+                const emailSuccess = data.email_status?.success
+                
+                if (smsSuccess && emailSuccess) {
+                    toast({ title: "OTP Sent! 🚀", description: "Code sent via SMS and Email." })
+                } else if (smsSuccess) {
+                    toast({ title: "OTP Sent!", description: `SMS sent! (Email backup failed)` })
+                } else if (emailSuccess) {
+                    toast({ title: "OTP Sent! 📧", description: "SMS failed, but code was sent to your Email." })
+                } else {
+                    toast({ title: "Delivery Error", description: "Could not send OTP via SMS or Email. Check server settings.", variant: "destructive" })
+                }
             } else {
                 throw new Error(data.error)
             }
@@ -284,9 +295,9 @@ export default function AccountPage() {
                                             <div className="flex-1">
                                                 <Input
                                                     value={formData.phone}
-                                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                                    className="rounded-xl border-gray-200 focus:ring-blue-500"
-                                                    placeholder="+91-XXXXXXXXXX"
+                                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/[^\d+]/g, '') })}
+                                                    className="rounded-xl border-gray-200 focus:ring-blue-500 font-mono"
+                                                    placeholder="+917416860912"
                                                 />
                                             </div>
                                             {profile?.is_phone_verified && (
@@ -315,42 +326,53 @@ export default function AccountPage() {
                 </div>
             </div>
 
-            {/* OTP Verification Simple UI (using direct div/overly as we don't have Dialog component in this file) */}
+            {/* OTP Verification High-Contrast Modal */}
             {showOTPModal && (
-                <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-                    <Card className="w-full max-w-sm border-0 shadow-2xl rounded-3xl overflow-hidden animate-in zoom-in-95 duration-200">
-                        <CardHeader className="text-center bg-gray-50/50 pb-2">
-                            <div className="h-16 w-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                <Shield className="h-8 w-8" />
+                <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300">
+                    <Card className="w-full max-w-sm border-0 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-[32px] overflow-hidden bg-white animate-in zoom-in-95 duration-200 scale-100">
+                        <CardHeader className="text-center pt-10 pb-4">
+                            <div className="h-20 w-20 bg-blue-100 text-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+                                <Shield className="h-10 w-10" />
                             </div>
-                            <CardTitle className="text-2xl font-bold">Verify Phone</CardTitle>
-                            <CardDescription>Enter the 6-digit code sent to<br/><span className="font-semibold text-gray-900">{formData.phone}</span></CardDescription>
+                            <CardTitle className="text-3xl font-black text-gray-900 tracking-tight">Verify Phone</CardTitle>
+                            <CardDescription className="text-gray-500 mt-2 font-medium">
+                                Enter the 6-digit code sent to<br/>
+                                <span className="text-blue-600 font-bold text-lg select-all">{formData.phone}</span>
+                            </CardDescription>
                         </CardHeader>
-                        <CardContent className="p-8 space-y-6">
+                        <CardContent className="px-10 pb-12 space-y-8">
                             <div className="flex justify-center">
                                 <Input 
                                     value={otpValue}
                                     onChange={(e) => setOTPValue(e.target.value.replace(/\D/g, '').substring(0, 6))}
-                                    placeholder="0 0 0 0 0 0"
-                                    className="text-center text-3xl tracking-[0.5em] font-black h-16 rounded-2xl border-gray-200 focus:ring-blue-500"
+                                    placeholder="••••••"
+                                    className="text-center text-4xl tracking-[0.4em] font-black h-20 rounded-2xl border-2 border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 bg-gray-50/50 transition-all placeholder:tracking-normal placeholder:font-light"
                                 />
                             </div>
-                            <div className="flex flex-col gap-3">
+                            <div className="flex flex-col gap-4">
                                 <Button 
                                     onClick={verifyOTP}
                                     disabled={verifyingOTP || otpValue.length < 6}
-                                    className="w-full h-12 bg-blue-600 hover:bg-blue-700 rounded-xl font-bold shadow-lg shadow-blue-100"
+                                    className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold rounded-2xl shadow-xl shadow-blue-200 active:scale-[0.98] transition-all"
                                 >
-                                    {verifyingOTP ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : 'Confirm Verification'}
+                                    {verifyingOTP ? (
+                                        <div className="flex items-center gap-2">
+                                            <Loader2 className="h-5 w-5 animate-spin" />
+                                            <span>Verifying...</span>
+                                        </div>
+                                    ) : 'Confirm Verification'}
                                 </Button>
                                 <Button 
                                     variant="ghost" 
                                     onClick={() => setShowOTPModal(false)}
-                                    className="w-full text-gray-500 hover:text-gray-700"
+                                    className="w-full h-12 text-gray-500 hover:text-red-500 hover:bg-red-50 font-bold text-base transition-colors duration-200"
                                 >
                                     Cancel
                                 </Button>
                             </div>
+                            <p className="text-center text-[10px] text-gray-400">
+                                Didn't receive the code? Check your email or spam folder.
+                            </p>
                         </CardContent>
                     </Card>
                 </div>

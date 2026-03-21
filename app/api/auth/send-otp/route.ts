@@ -48,23 +48,31 @@ export async function POST(request: NextRequest) {
 
         // 3. Send SMS (async)
         const smsMsg = `AeroHive: Your verification code is ${otp}. Valid for 10 minutes.`
-        const smsPromise = fetch(`${baseUrl}/api/send-sms`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ to: phone, message: smsMsg })
-        }).catch(err => console.error('❌ SMS Call Failed:', err))
+        let smsResult = { success: false, provider: 'none' }
+        try {
+            const smsRes = await fetch(`${baseUrl}/api/send-sms`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ to: phone, message: smsMsg })
+            })
+            smsResult = await smsRes.json()
+            console.log(`📱 SMS request result for ${phone}:`, JSON.stringify(smsResult))
+        } catch (err: any) {
+            console.error('❌ SMS Call Failed:', err.message)
+            smsResult = { success: false, provider: 'none', error: err.message } as any
+        }
 
         // 4. Send Email Backup (async)
-        let emailSent = false
+        let emailResult = { success: false, provider: 'none' }
         if (userData?.email) {
             try {
-                await sendEmailDirect({
+                const res = await sendEmailDirect({
                     to: userData.email,
                     subject: 'AeroHive - Your Verification Code',
-                    type: 'client', // Uses client template for code delivery
+                    type: 'client',
                     bookingDetails: {
                         bookingId: 'AUTH-VERIFY',
-                        orderUUID: otp, // Overloading this for the code display in template if needed
+                        orderUUID: otp,
                         otp: otp,
                         serviceType: 'Mobile Verification',
                         location: 'AeroHive Secure Platform',
@@ -74,16 +82,19 @@ export async function POST(request: NextRequest) {
                         acceptJobLink: `${baseUrl}/account`
                     }
                 })
-                emailSent = true
-                console.log(`📧 SMS Backup OTP sent to ${userData.email}`)
-            } catch (emailErr) {
-                console.error('❌ Backup Email Failed:', emailErr)
+                emailResult = res as any
+                console.log(`📧 Email backup result for ${userData.email}:`, JSON.stringify(emailResult))
+            } catch (emailErr: any) {
+                console.error('❌ Backup Email Failed:', emailErr.message)
+                emailResult = { success: false, provider: 'gmail', error: emailErr.message } as any
             }
         }
 
         return NextResponse.json({
             success: true,
-            message: emailSent ? 'OTP sent to mobile and email!' : 'OTP sent to mobile successfully!',
+            message: emailResult.success ? 'OTP sent to mobile and email!' : 'OTP initiated...',
+            sms_status: smsResult,
+            email_status: emailResult,
             otp: process.env.NODE_ENV === 'development' ? otp : 'SENT'
         })
 
