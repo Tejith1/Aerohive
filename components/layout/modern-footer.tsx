@@ -102,17 +102,13 @@ export function ModernFooter() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-12">
           {/* Company Info */}
           <div className="lg:col-span-2">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center shadow-lg">
-                <div className="text-white font-bold text-xl">A</div>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-bold text-2xl bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
-                  AeroHive
-                </span>
-                <span className="text-sm text-gray-400 font-medium -mt-1">Professional Drones</span>
-              </div>
-            </div>
+            <Link href="/" className="inline-block mb-6">
+              <img
+                src="/aerohive-logo-v2.png"
+                alt="AeroHive"
+                className="h-16 w-auto object-contain"
+              />
+            </Link>
 
             <p className="text-gray-300 leading-relaxed mb-6">
               Leading provider of professional-grade drones and aviation solutions.

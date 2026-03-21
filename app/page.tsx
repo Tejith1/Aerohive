@@ -347,7 +347,7 @@ export default function HomePage() {
                 <CardContent className="p-8 text-center relative">
                   <div className="w-20 h-20 bg-white rounded-2xl overflow-hidden flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border-2 border-blue-100">
                     <Image
-                      src="/aerohive-logo.svg"
+                      src="/aerohive-logo-v2.png"
                       alt="AeroHive Drone Services"
                       width={80}
                       height={80}
@@ -411,7 +411,7 @@ export default function HomePage() {
             <div className="max-w-4xl mx-auto text-center">
               <div className="w-20 h-20 bg-white/90 rounded-2xl overflow-hidden flex items-center justify-center mx-auto mb-8 backdrop-blur-sm shadow-lg">
                 <Image
-                  src="/aerohive-logo.svg"
+                  src="/aerohive-logo-v2.png"
                   alt="AeroHive Logo"
                   width={80}
                   height={80}
