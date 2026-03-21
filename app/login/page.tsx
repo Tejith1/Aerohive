@@ -29,6 +29,14 @@ export default function LoginPage() {
     rememberMe: false,
   })
 
+  // Get redirect param from URL
+  let redirectUrl = "/"
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search)
+    const redirect = params.get('redirect')
+    if (redirect) redirectUrl = redirect
+  }
+
   const handleGoogleLogin = async () => {
     try {
       await signInWithGoogle()
@@ -84,7 +92,7 @@ export default function LoginPage() {
           </span>
         </Link>
         
-        <Link href="/register" className="text-gray-600 hover:text-gray-800">
+        <Link href={`/register${redirectUrl !== "/" ? `?redirect=${encodeURIComponent(redirectUrl)}` : ""}`} className="text-gray-600 hover:text-gray-800">
           Don't have an account?
         </Link>
       </div>
@@ -211,7 +219,7 @@ export default function LoginPage() {
 
                     <div className="text-center">
                       <Link
-                        href="/register"
+                        href={`/register${redirectUrl !== "/" ? `?redirect=${encodeURIComponent(redirectUrl)}` : ""}`}
                         className="text-gray-600 hover:text-gray-800 transition-colors"
                       >
                         Don't have an account? <span className="font-semibold text-blue-600 hover:text-blue-700">Create one</span>

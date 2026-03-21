@@ -24,11 +24,16 @@ import {
   CheckCircle2,
   Plane,
   FileText,
-  IndianRupee,
+   IndianRupee,
   Loader2
 } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
+import { useRouter } from "next/navigation"
 
 export default function DronePilotRegisterPage() {
+  const { user } = useAuth()
+  const router = useRouter()
+  
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -49,6 +54,33 @@ export default function DronePilotRegisterPage() {
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
+  // Pre-fill form from localStorage if it exists (handling case where user was redirected to login)
+  React.useEffect(() => {
+    const savedData = localStorage.getItem('pending_pilot_registration')
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData)
+        // Only restore if user is now logged in or if it's just a refresh
+        setFormData(prev => ({
+          ...prev,
+          ...parsedData,
+          // Don't restore file objects as they can't be JSON serialized
+          profileImage: null,
+          certificateImage: null
+        }))
+        // Clear after restoring to prevent populating on every visit
+        localStorage.removeItem('pending_pilot_registration')
+        
+        toast({
+          title: "Form data restored",
+          description: "We've restored the information you filled in before logging in."
+        })
+      } catch (err) {
+        console.error('Failed to parse saved registration data:', err)
+      }
+    }
+  }, [])
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
@@ -62,6 +94,23 @@ export default function DronePilotRegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Check if user is authenticated
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please login or signup to register as a drone pilot. We'll save your progress!",
+        variant: "default"
+      })
+      
+      // Save form data to localStorage (excluding File objects as they can't be serialized)
+      const { profileImage, certificateImage, ...serializableData } = formData
+      localStorage.setItem('pending_pilot_registration', JSON.stringify(serializableData))
+      
+      // Redirect to login with a fallback to this page
+      router.push('/login?redirect=/drone-pilots/register')
+      return
+    }
     
     // Validate required fields (about is now optional)
     if (!formData.fullName || !formData.email || !formData.phone || !formData.location || 

@@ -33,6 +33,14 @@ export default function RegisterPage() {
     subscribeNewsletter: false,
   })
 
+  // Get redirect param from URL
+  let redirectUrl = "/"
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search)
+    const redirect = params.get('redirect')
+    if (redirect) redirectUrl = redirect
+  }
+
   const handleGoogleSignup = async () => {
     try {
       await signInWithGoogle()
@@ -390,7 +398,7 @@ export default function RegisterPage() {
 
               <div className="text-center text-sm text-gray-600">
                 Already have an account?{" "}
-                <Link href="/login" className="font-semibold text-blue-600 hover:text-blue-700 hover:underline">
+                <Link href={`/login${redirectUrl !== "/" ? `?redirect=${encodeURIComponent(redirectUrl)}` : ""}`} className="font-semibold text-blue-600 hover:text-blue-700 hover:underline">
                   Sign in
                 </Link>
               </div>

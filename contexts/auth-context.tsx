@@ -470,7 +470,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (isAdminEmail) {
           router.push('/admin')
         } else {
-          router.push('/')
+          // Check for redirect parameter in URL
+          const params = new URLSearchParams(window.location.search)
+          const redirect = params.get('redirect')
+          if (redirect) {
+            console.log('🔗 Redirecting to:', redirect)
+            router.push(redirect)
+          } else {
+            router.push('/')
+          }
         }
       }
     } catch (error: any) {
@@ -650,10 +658,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Google Sign-In
   const signInWithGoogle = async () => {
     try {
+      // Check for redirect parameter in URL to pass it along to the OAuth flow
+      const params = new URLSearchParams(window.location.search)
+      const redirect = params.get('redirect')
+      const redirectTo = redirect 
+        ? `${window.location.origin}${redirect.startsWith('/') ? redirect : `/${redirect}`}`
+        : `${window.location.origin}`
+
+      console.log('🌐 Signing in with Google, redirecting back to:', redirectTo)
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}`,
+          redirectTo,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
