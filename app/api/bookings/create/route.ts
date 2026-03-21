@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { sendEmailDirect, BookingEmailDetails } from '../../send-email/route'
 
 // Initialize Supabase
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
@@ -32,30 +33,19 @@ function generateMobileNumber(): string {
     return `${prefix}${rest}`
 }
 
-// Helper function to send notification email
+// Helper function to send notification email (DIRECT CALL)
 async function sendNotificationEmail(
-    baseUrl: string,
     to: string,
     subject: string,
     type: 'client' | 'pilot',
-    bookingDetails: any
+    bookingDetails: BookingEmailDetails
 ) {
     try {
-        const response = await fetch(`${baseUrl}/api/send-email`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                to,
-                subject,
-                type,
-                bookingDetails
-            })
-        })
-        const result = await response.json()
-        console.log(`📧 Email to ${type} (${to}):`, result.success ? '✅ Sent' : '❌ Failed')
+        const result = await sendEmailDirect({ to, subject, type, bookingDetails })
+        console.log(`📧 [Direct] Email to ${type} (${to}):`, result.success ? '✅ Sent' : '❌ Failed')
         return result
     } catch (error) {
-        console.error(`❌ Failed to send ${type} email:`, error)
+        console.error(`❌ Failed to send ${type} email direct:`, error)
         return { success: false, error }
     }
 }
@@ -246,7 +236,6 @@ export async function POST(request: NextRequest) {
             console.log(`📧 Sending booking confirmation email to client: ${clientEmail}`)
             emailPromises.push(
                 sendNotificationEmail(
-                    baseUrl,
                     clientEmail,
                     `Your Drone Pilot Is Assigned | AeroHive Booking Confirmation`,
                     'client',
@@ -262,7 +251,6 @@ export async function POST(request: NextRequest) {
             console.log(`📧 Preparing job assignment email for pilot: '${pilotEmail}'`)
             emailPromises.push(
                 sendNotificationEmail(
-                    baseUrl,
                     pilotEmail,
                     `New Job Assigned | Action Required - AeroHive`,
                     'pilot',

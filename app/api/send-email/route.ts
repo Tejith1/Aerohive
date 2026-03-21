@@ -7,36 +7,38 @@ const GMAIL_USER = process.env.GMAIL_USER
 const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD
 
 // Mediator Email Address
-const MEDIATOR_EMAIL = 'aerohive.help@gmail.com'
+export const MEDIATOR_EMAIL = 'aerohive.help@gmail.com'
+
+export interface BookingEmailDetails {
+    bookingId: string
+    orderUUID: string
+    otp: string
+    pilotName?: string
+    pilotPhone?: string
+    pilotEmail?: string
+    clientName?: string
+    clientPhone?: string
+    clientEmail?: string
+    serviceType: string
+    location: string
+    scheduledAt: string
+    durationHours?: number
+    chargesNote?: string
+    trackingLink?: string
+    acceptJobLink?: string
+    googleMapsLink?: string
+    estimatedAmount?: string
+}
 
 interface EmailRequest {
     to: string
     subject: string
     type: 'client' | 'pilot'
-    bookingDetails: {
-        bookingId: string
-        orderUUID: string
-        otp: string // Keeping OTP for record, though maybe not checking immediately
-        pilotName?: string
-        pilotPhone?: string
-        pilotEmail?: string
-        clientName?: string
-        clientPhone?: string
-        clientEmail?: string
-        serviceType: string
-        location: string
-        scheduledAt: string
-        durationHours?: number
-        chargesNote?: string
-        trackingLink?: string
-        acceptJobLink?: string
-        googleMapsLink?: string
-        estimatedAmount?: string
-    }
+    bookingDetails: BookingEmailDetails
 }
 
 // Create Gmail transporter using Nodemailer
-function createGmailTransporter() {
+export function createGmailTransporter() {
     return nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -47,7 +49,7 @@ function createGmailTransporter() {
 }
 
 // Generate HTML email content
-function generateEmailHtml(type: 'client' | 'pilot', d: EmailRequest['bookingDetails']) {
+export function generateEmailHtml(type: 'client' | 'pilot', d: BookingEmailDetails) {
     if (!d) return ''
 
     const styles = `
@@ -161,7 +163,59 @@ function generateEmailHtml(type: 'client' | 'pilot', d: EmailRequest['bookingDet
 </html>`
     }
 }
+/**
+ * Direct call function to send email without making a network request to the API
+ */
+export async function sendEmailDirect({ to, subject, type, bookingDetails }: EmailRequest) {
+    try {
+        const htmlContent = generateEmailHtml(type, bookingDetails)
+        const fromAddress = `AeroHive Support <${MEDIATOR_EMAIL}>`
+        const replyTo = MEDIATOR_EMAIL
 
+        console.log(`📡 [Internal] Sending email to ${to} (${type})`)
+
+        if (RESEND_API_KEY) {
+            try {
+                const { Resend } = await import('resend')
+                const resend = new Resend(RESEND_API_KEY)
+                const { data, error } = await resend.emails.send({
+                    from: 'AeroHive Support <onboarding@resend.dev>',
+                    replyTo,
+                    to: [to],
+                    subject,
+                    html: htmlContent
+                })
+                if (error) throw error
+                return { success: true, provider: 'resend', id: data?.id }
+            } catch (err) {
+                console.error('❌ Internal Resend failed:', err)
+            }
+        }
+
+        if (GMAIL_USER && GMAIL_APP_PASSWORD) {
+            try {
+                const transporter = createGmailTransporter()
+                const result = await transporter.sendMail({
+                    from: fromAddress,
+                    replyTo: replyTo,
+                    to: to,
+                    subject: subject,
+                    html: htmlContent
+                })
+                return { success: true, provider: 'gmail', id: result.messageId }
+            } catch (err) {
+                console.error('❌ Internal Gmail failed:', err)
+                throw err
+            }
+        }
+
+        console.log(`📧 [Internal Simulated] To: ${to} | Subject: ${subject}`)
+        return { success: true, simulated: true }
+    } catch (error: any) {
+        console.error('❌ sendEmailDirect error:', error)
+        return { success: false, error: error.message }
+    }
+}
 export async function POST(request: NextRequest) {
     try {
         const body: EmailRequest = await request.json()
@@ -174,78 +228,16 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        const htmlContent = generateEmailHtml(type, bookingDetails)
-        const fromAddress = `AeroHive Support <${MEDIATOR_EMAIL}>` 
-        const replyTo = MEDIATOR_EMAIL
-
-        console.log(`📡 Email API - Recipient: ${to} | Type: ${type} | Subject: ${subject}`)
-
-        // Try Resend first
-        if (RESEND_API_KEY) {
-            try {
-                const { Resend } = await import('resend')
-                const resend = new Resend(RESEND_API_KEY)
-
-                const { data, error } = await resend.emails.send({
-                    from: 'AeroHive Support <onboarding@resend.dev>', // Resend demands verified domain or test domain
-                    // NOTE: If using Resend, we might not be able to "spoof" gmail. 
-                    // But we can set Reply-To.
-                    // If user insists on FROM: aerohive.help@gmail.com, sending via Resend won't work unless verified domain.
-                    // So we prefer Gmail/Nodemailer if configured for this specific address.
-                    replyTo: replyTo,
-                    to: [to],
-                    subject: subject,
-                    html: htmlContent
-                })
-
-                if (error) throw error
-
-                console.log(`✅ [Resend] Email sent to ${to}:`, data?.id)
-                return NextResponse.json({ success: true, provider: 'resend', emailId: data?.id })
-            } catch (resendError) {
-                console.error('❌ Resend failed, trying fallback:', resendError)
-            }
+        const result = await sendEmailDirect({ to, subject, type, bookingDetails })
+        
+        if (result.success) {
+            return NextResponse.json({ ...result })
+        } else {
+            return NextResponse.json(
+                { success: false, error: result.error || 'Failed to send' },
+                { status: 500 }
+            )
         }
-
-        // Try Gmail/Nodemailer
-        if (GMAIL_USER && GMAIL_APP_PASSWORD) {
-            try {
-                const transporter = createGmailTransporter()
-
-                const result = await transporter.sendMail({
-                    from: fromAddress,
-                    replyTo: replyTo,
-                    to: to,
-                    subject: subject,
-                    html: htmlContent
-                })
-
-                console.log(`✅ [Gmail] Email sent to ${to}:`, result.messageId)
-                return NextResponse.json({ success: true, provider: 'gmail', messageId: result.messageId })
-            } catch (gmailError) {
-                console.error('❌ Gmail failed:', gmailError)
-                return NextResponse.json(
-                    { success: false, error: 'Failed to send via Gmail' },
-                    { status: 500 }
-                )
-            }
-        }
-
-        // No provider configured - simulate
-        console.log(`📧 [Simulated] Incoming email request:`)
-        console.log(`   To: ${to}`)
-        console.log(`   Subject: ${subject}`)
-        console.log(`   Type: ${type}`)
-        console.log(`   Order UUID: ${bookingDetails.orderUUID}`)
-        console.log(`   Link: ${type === 'client' ? bookingDetails.trackingLink : bookingDetails.acceptJobLink}`)
-
-        return NextResponse.json({
-            success: true,
-            simulated: true,
-            message: 'Email simulated (configure GMAIL_USER/APP_PASSWORD)',
-            details: { to, subject, type, bookingId: bookingDetails.bookingId }
-        })
-
     } catch (error: any) {
         console.error('Email API Error:', error)
         return NextResponse.json(
