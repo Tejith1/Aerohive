@@ -1,20 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Plane, Target, Users, Globe, Award, Shield, Zap, Camera, MapPin, Wind, Clock, Star, CheckCircle, ArrowRight, Play, Pause } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
+import { products } from "@/lib/products-data"
 import Image from "next/image"
-
-const stats = [
-  { label: "Drones Delivered", value: "50,000+", icon: Plane },
-  { label: "Countries Served", value: "75", icon: Globe },
-  { label: "Happy Customers", value: "25,000+", icon: Users },
-  { label: "Years of Excellence", value: "8", icon: Award }
-]
 
 const timeline = [
   {
@@ -73,10 +67,10 @@ const team = [
   },
   {
     name: "Daida Tejith Reddy",
-    role: "Web Developer – Drone Operations Platform",
-    bio: "Expertise in full-stack web development, cloud-based platforms, and API integration.",
+    role: "Chief Software Architect & AI Lead",
+    bio: "Drives the technical vision behind AeroHive's software ecosystem—designing scalable cloud architectures, integrating AI/ML models for autonomous flight, and leading full-stack development of the drone operations platform.",
     image: "/placeholder.svg?height=400&width=400&text=James+VP",
-    specialties: ["Customer Success", "Global Operations", "Service Excellence"]
+    specialties: ["Software Architecture", "AI/ML", "Full-Stack Development", "Cloud Infrastructure"]
   }
 ]
 
@@ -107,18 +101,23 @@ const values = [
   }
 ]
 
-const achievements = [
-  "Industry's First AI-Powered Drone Customization Platform",
-  "Winner of 2024 Innovation Excellence Award",
-  "Certified by FAA, EASA, and 50+ Aviation Authorities",
-  "Carbon-Neutral Shipping & Manufacturing",
-  "24/7 Global Customer Support in 15 Languages",
-  "Over 1M Flight Hours Logged by Our Community"
-]
+
 
 export default function AboutPage() {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false)
   const [currentTimelineIndex, setCurrentTimelineIndex] = useState(0)
+
+  // Compute dynamic stats from product data
+  const stats = useMemo(() => {
+    const totalDronesDelivered = products.reduce((sum, p) => sum + p.stockQuantity, 0)
+    const happyCustomers = products.reduce((sum, p) => sum + p.reviewCount, 0)
+    return [
+      { label: "Drones Delivered", value: totalDronesDelivered.toLocaleString() + "+", icon: Plane },
+      { label: "Countries Served", value: "1", icon: Globe },
+      { label: "Happy Customers", value: happyCustomers.toLocaleString() + "+", icon: Users },
+      { label: "Years of Excellence", value: "2", icon: Award }
+    ]
+  }, [])
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -214,11 +213,11 @@ export default function AboutPage() {
 
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="bg-white text-primary hover:bg-blue-50 px-8 py-4 text-lg font-semibold">
+                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
                   <Target className="h-5 w-5 mr-2" />
                   Our Mission
                 </Button>
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary px-8 py-4 text-lg font-semibold">
+                <Button size="lg" className="bg-white/20 backdrop-blur-sm border border-white/40 text-white hover:bg-white/30 px-8 py-4 text-lg font-semibold transition-all duration-300">
                   <Play className="h-5 w-5 mr-2" />
                   Watch Our Story
                 </Button>
@@ -452,40 +451,7 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Achievements */}
-        <section className="py-24 bg-gradient-to-br from-blue-50 to-indigo-100">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-16">
-              <Badge className="bg-yellow-100 text-yellow-700 mb-6 px-4 py-2">Recognition</Badge>
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-                Industry-Leading Achievements
-              </h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Our commitment to excellence has earned recognition from industry leaders worldwide.
-              </p>
-            </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {achievements.map((achievement, index) => (
-                <Card key={index} className="group bg-white hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-l-4 border-l-primary">
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <CheckCircle className="h-6 w-6 text-primary mt-1 group-hover:scale-110 transition-transform duration-300" />
-                      <p className="text-gray-700 font-medium leading-relaxed">{achievement}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            <div className="text-center mt-12">
-              <Button size="lg" className="btn-aviation px-8 py-4 text-lg">
-                <ArrowRight className="h-5 w-5 mr-2" />
-                View All Certifications
-              </Button>
-            </div>
-          </div>
-        </section>
 
         {/* Call to Action */}
         <section className="py-24 aviation-gradient text-white">
@@ -501,11 +467,11 @@ export default function AboutPage() {
                 quality, and exceptional service can make.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="bg-white text-primary hover:bg-blue-50 px-8 py-4 text-lg font-semibold">
+                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
                   <Plane className="h-5 w-5 mr-2" />
                   Explore Products
                 </Button>
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary px-8 py-4 text-lg font-semibold">
+                <Button size="lg" className="bg-white/20 backdrop-blur-sm border border-white/40 text-white hover:bg-white/30 px-8 py-4 text-lg font-semibold transition-all duration-300">
                   <Users className="h-5 w-5 mr-2" />
                   Contact Our Team
                 </Button>

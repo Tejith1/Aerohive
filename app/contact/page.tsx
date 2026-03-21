@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Mail, Phone, MapPin, Clock, Send, MessageSquare, HeadphonesIcon, Plane, Globe, Shield, Zap, CheckCircle, AlertCircle, User, FileText, Camera, Star, ArrowRight } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Mail, Phone, MapPin, Clock, Send, MessageSquare, HeadphonesIcon, Plane, Globe, Shield, Zap, CheckCircle, AlertCircle, User, FileText, Camera, Star, ArrowRight, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
 import { toast } from "@/hooks/use-toast"
+import { getCustomerReviews, createCustomerReview, type CustomerReview } from "@/lib/supabase"
 
 const contactInfo = [
   {
@@ -50,14 +51,6 @@ const contactInfo = [
 ]
 
 const supportChannels = [
-  {
-    icon: MessageSquare,
-    title: "Live Chat",
-    description: "Instant support with our AI-powered chat system",
-    response: "< 30 seconds",
-    availability: "24/7",
-    color: "text-blue-600"
-  },
   {
     icon: HeadphonesIcon,
     title: "Phone Support",
@@ -115,6 +108,36 @@ const priorities = [
   { value: "urgent", label: "Critical/Emergency", color: "text-red-600" }
 ]
 
+const defaultReviews = [
+  {
+    id: "default-1",
+    reviewer_name: "Priya Reddy",
+    reviewer_role: "Professional Photographer",
+    rating: 5,
+    comment: "AeroHive's customer support is exceptional. They helped me customize the perfect drone for aerial photography.",
+    reviewer_location: "Hyderabad, Telangana",
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "default-2",
+    reviewer_name: "Rajesh Rao",
+    reviewer_role: "Agricultural Manager",
+    rating: 5,
+    comment: "Outstanding technical support and quick response times. The team really knows their products inside and out.",
+    reviewer_location: "Warangal, Telangana",
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "default-3",
+    reviewer_name: "Sneha Gupta",
+    reviewer_role: "Search & Rescue Coordinator",
+    rating: 5,
+    comment: "When we had an emergency equipment failure, AeroHive's 24/7 support got us back in the air within hours.",
+    reviewer_location: "Karimnagar, Telangana",
+    created_at: new Date().toISOString()
+  }
+]
+
 export default function ContactPage() {
   const [formData, setFormData] = useState({
     name: "",
@@ -130,6 +153,57 @@ export default function ContactPage() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
+
+  // Review system state
+  const [reviews, setReviews] = useState<CustomerReview[]>([])
+  const [reviewsLoading, setReviewsLoading] = useState(true)
+  const [reviewSubmitting, setReviewSubmitting] = useState(false)
+  const [showReviewForm, setShowReviewForm] = useState(false)
+  const [reviewFormData, setReviewFormData] = useState({
+    reviewer_name: "",
+    reviewer_role: "",
+    reviewer_location: "",
+    rating: 5,
+    comment: ""
+  })
+
+  // Fetch reviews on mount
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const data = await getCustomerReviews()
+        setReviews(data)
+      } catch (error) {
+        console.error('Failed to fetch reviews:', error)
+      } finally {
+        setReviewsLoading(false)
+      }
+    }
+    fetchReviews()
+  }, [])
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!reviewFormData.reviewer_name || !reviewFormData.comment) {
+      toast({ title: "Please fill in your name and review", variant: "destructive" })
+      return
+    }
+    setReviewSubmitting(true)
+    try {
+      const newReview = await createCustomerReview(reviewFormData)
+      setReviews(prev => [newReview, ...prev])
+      setReviewFormData({ reviewer_name: "", reviewer_role: "", reviewer_location: "", rating: 5, comment: "" })
+      setShowReviewForm(false)
+      toast({ title: "✅ Review Submitted!", description: "Thank you for your feedback!" })
+    } catch (error: any) {
+      console.error('Review submit error:', error)
+      toast({ title: "Error", description: error.message || "Failed to submit review.", variant: "destructive" })
+    } finally {
+      setReviewSubmitting(false)
+    }
+  }
+
+  const displayedReviews = reviews.length > 0 ? reviews : defaultReviews
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -241,11 +315,11 @@ export default function ContactPage() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="bg-white text-primary hover:bg-blue-50 px-8 py-4 text-lg font-semibold">
-                  <MessageSquare className="h-5 w-5 mr-2" />
-                  Start Live Chat
+                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
+                  <Send className="h-5 w-5 mr-2" />
+                  Send Us a Message
                 </Button>
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary px-8 py-4 text-lg font-semibold">
+                <Button size="lg" className="bg-white/20 backdrop-blur-sm border border-white/40 text-white hover:bg-white/30 px-8 py-4 text-lg font-semibold transition-all duration-300">
                   <Phone className="h-5 w-5 mr-2" />
                   Call Now: +91 7075894588
                 </Button>
@@ -650,55 +724,144 @@ export default function ContactPage() {
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">What Our Customers Say</h2>
-              <p className="text-gray-600">Real feedback from our satisfied customers worldwide</p>
+              <p className="text-gray-600 mb-6">Real feedback from our satisfied customers</p>
+              <Button
+                onClick={() => setShowReviewForm(!showReviewForm)}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <Star className="h-5 w-5 mr-2" />
+                {showReviewForm ? "Cancel" : "Write a Review"}
+              </Button>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-              {[
-                {
-                  name: "Priya Reddy",
-                  role: "Professional Photographer",
-                  rating: 5,
-                  comment: "AeroHive's customer support is exceptional. They helped me customize the perfect drone for aerial photography.",
-                  location: "Hyderabad, Telangana"
-                },
-                {
-                  name: "Rajesh Rao",
-                  role: "Agricultural Manager",
-                  rating: 5,
-                  comment: "Outstanding technical support and quick response times. The team really knows their products inside and out.",
-                  location: "Warangal, Telangana"
-                },
-                {
-                  name: "Sneha Gupta",
-                  role: "Search & Rescue Coordinator",
-                  rating: 5,
-                  comment: "When we had an emergency equipment failure, AeroHive's 24/7 support got us back in the air within hours.",
-                  location: "Karimnagar, Telangana"
-                }
-              ].map((review, index) => (
-                <Card key={index} className="border-0 shadow-lg">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-1 mb-4">
-                      {[...Array(review.rating)].map((_, i) => (
-                        <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
-                      ))}
-                    </div>
-                    <p className="text-gray-700 mb-4 leading-relaxed">"{review.comment}"</p>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-primary to-blue-600 rounded-full flex items-center justify-center">
-                        <User className="h-5 w-5 text-white" />
+            {/* Review Form */}
+            {showReviewForm && (
+              <Card className="max-w-2xl mx-auto mb-12 border-0 shadow-xl">
+                <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <Star className="h-5 w-5" />
+                    Share Your Experience
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <form onSubmit={handleReviewSubmit} className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="reviewName" className="font-medium">Your Name *</Label>
+                        <Input
+                          id="reviewName"
+                          placeholder="Enter your name"
+                          value={reviewFormData.reviewer_name}
+                          onChange={(e) => setReviewFormData(prev => ({ ...prev, reviewer_name: e.target.value }))}
+                          required
+                          className="h-11 rounded-xl"
+                        />
                       </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900">{review.name}</h4>
-                        <p className="text-gray-600 text-sm">{review.role}</p>
-                        <p className="text-gray-500 text-xs">{review.location}</p>
+                      <div className="space-y-2">
+                        <Label htmlFor="reviewRole" className="font-medium">Your Role <span className="text-sm font-normal text-gray-500">(optional)</span></Label>
+                        <Input
+                          id="reviewRole"
+                          placeholder="e.g., Photographer, Farmer"
+                          value={reviewFormData.reviewer_role}
+                          onChange={(e) => setReviewFormData(prev => ({ ...prev, reviewer_role: e.target.value }))}
+                          className="h-11 rounded-xl"
+                        />
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="reviewLocation" className="font-medium">Location <span className="text-sm font-normal text-gray-500">(optional)</span></Label>
+                      <Input
+                        id="reviewLocation"
+                        placeholder="e.g., Hyderabad, Telangana"
+                        value={reviewFormData.reviewer_location}
+                        onChange={(e) => setReviewFormData(prev => ({ ...prev, reviewer_location: e.target.value }))}
+                        className="h-11 rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-medium">Rating *</Label>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setReviewFormData(prev => ({ ...prev, rating: star }))}
+                            className="p-1 transition-transform hover:scale-110"
+                          >
+                            <Star
+                              className={`h-8 w-8 transition-colors ${
+                                star <= reviewFormData.rating
+                                  ? "text-yellow-400 fill-current"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          </button>
+                        ))}
+                        <span className="ml-2 text-sm text-gray-600">{reviewFormData.rating}/5</span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="reviewComment" className="font-medium">Your Review *</Label>
+                      <Textarea
+                        id="reviewComment"
+                        placeholder="Tell us about your experience with AeroHive..."
+                        value={reviewFormData.comment}
+                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReviewFormData(prev => ({ ...prev, comment: e.target.value }))}
+                        required
+                        rows={4}
+                        className="rounded-xl resize-none"
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      disabled={reviewSubmitting}
+                      className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      {reviewSubmitting ? (
+                        <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> Submitting...</>
+                      ) : (
+                        <><Send className="h-5 w-5 mr-2" /> Submit Review</>
+                      )}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Reviews Grid */}
+            {reviewsLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                {displayedReviews.map((review) => (
+                  <Card key={review.id} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-1 mb-4">
+                        {[...Array(review.rating)].map((_, i) => (
+                          <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
+                        ))}
+                        {[...Array(5 - review.rating)].map((_, i) => (
+                          <Star key={`empty-${i}`} className="h-5 w-5 text-gray-200" />
+                        ))}
+                      </div>
+                      <p className="text-gray-700 mb-4 leading-relaxed">"{review.comment}"</p>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-primary to-blue-600 rounded-full flex items-center justify-center">
+                          <User className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-900">{review.reviewer_name}</h4>
+                          {review.reviewer_role && <p className="text-gray-600 text-sm">{review.reviewer_role}</p>}
+                          {review.reviewer_location && <p className="text-gray-500 text-xs">{review.reviewer_location}</p>}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       </main>

@@ -1057,3 +1057,50 @@ export const createNotification = async (notification: Omit<Notification, 'id' |
   }
   return data as Notification
 }
+
+// Customer Review types and functions
+export interface CustomerReview {
+  id: string
+  reviewer_name: string
+  reviewer_role: string
+  reviewer_location: string
+  rating: number
+  comment: string
+  created_at: string
+}
+
+export const getCustomerReviews = async (): Promise<CustomerReview[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('customer_reviews')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching reviews:', error)
+      return []
+    }
+
+    return data as CustomerReview[]
+  } catch (error) {
+    console.error('Failed to fetch reviews:', error)
+    return []
+  }
+}
+
+export const createCustomerReview = async (review: Omit<CustomerReview, 'id' | 'created_at'>) => {
+  const { data, error } = await supabase
+    .from('customer_reviews')
+    .insert({
+      ...review,
+      created_at: new Date().toISOString()
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating review:', error)
+    throw error
+  }
+  return data as CustomerReview
+}
