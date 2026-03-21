@@ -129,8 +129,30 @@ export default function DronePilotRegisterPage() {
       
       const result = await createDronePilot(pilotData)
       
-      clearTimeout(timeoutId) // Clear the timeout if successful
       console.log('✅ Success! Database response:', result)
+
+      // Sync with Google Sheets via backend API
+      try {
+        // Create a copy of formData without File objects for the API call
+        const { profileImage, certificateImage, ...cleanFormData } = formData;
+        
+        await fetch('/api/drone-pilot-registration', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...cleanFormData,
+            registrationDate: new Date().toLocaleString(),
+            status: 'Pending Review'
+          })
+        })
+        console.log('✅ Google Sheets sync complete')
+      } catch (gsError) {
+        console.error('⚠️ Google Sheets sync failed but database is OK:', gsError)
+      }
+      
+      clearTimeout(timeoutId) // Successfully completed all syncs
       
       setSubmitted(true)
       setSubmitting(false)
