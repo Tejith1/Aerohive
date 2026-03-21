@@ -125,13 +125,11 @@ export function HeroSection({
               <Image
                 src={backgroundImage}
                 alt="Hero Visual"
-                width={600}
-                height={400}
+                width={1920}
+                height={1080}
                 priority
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="relative z-10 w-full h-auto rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-500"
-                width="1920"
-                height="1080"
               />
 
               {/* Floating elements */}

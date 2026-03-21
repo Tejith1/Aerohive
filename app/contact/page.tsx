@@ -35,7 +35,7 @@ const contactInfo = [
   {
     icon: Mail,
     title: "Email Support",
-    details: ["support@aerohive.co.in"],
+    details: ["support@aerohive.co.in", "aerohive.help@gmail.com"],
     description: "Get detailed responses within 2 hours",
     color: "text-blue-600",
     bgColor: "bg-blue-50"
@@ -43,7 +43,7 @@ const contactInfo = [
   {
     icon: Phone,
     title: "Phone Support",
-    details: ["+91 7075894588", "+91 9032390289"],
+    details: ["+91 7075894588", "+91 9014369289"],
     description: "24/7 technical support available",
     color: "text-green-600",
     bgColor: "bg-green-50"
