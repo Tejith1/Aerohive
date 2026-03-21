@@ -103,7 +103,7 @@ export function ModernHeader() {
             <img
               src="/aerohive-logo-v2.png"
               alt="AeroHive"
-              className="h-20 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+              className="h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
             />
           </Link>
 

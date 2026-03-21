@@ -106,7 +106,7 @@ export function ModernFooter() {
               <img
                 src="/aerohive-logo-v2.png"
                 alt="AeroHive"
-                className="h-16 w-auto object-contain"
+                className="h-12 w-auto object-contain"
               />
             </Link>
 

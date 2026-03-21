@@ -345,12 +345,12 @@ export default function HomePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <Card className="group bg-white border-0 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
                 <CardContent className="p-8 text-center relative">
-                  <div className="w-20 h-20 bg-white rounded-2xl overflow-hidden flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border-2 border-blue-100">
+                  <div className="w-16 h-16 bg-white rounded-2xl overflow-hidden flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border-2 border-blue-100">
                     <Image
                       src="/aerohive-logo-v2.png"
                       alt="AeroHive Drone Services"
-                      width={80}
-                      height={80}
+                      width={64}
+                      height={64}
                       className="h-full w-full object-contain p-2"
                     />
                   </div>
@@ -409,12 +409,12 @@ export default function HomePage() {
           </div>
           <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-4xl mx-auto text-center">
-              <div className="w-20 h-20 bg-white/90 rounded-2xl overflow-hidden flex items-center justify-center mx-auto mb-8 backdrop-blur-sm shadow-lg">
+              <div className="w-16 h-16 bg-white/90 rounded-2xl overflow-hidden flex items-center justify-center mx-auto mb-8 backdrop-blur-sm shadow-lg">
                 <Image
                   src="/aerohive-logo-v2.png"
                   alt="AeroHive Logo"
-                  width={80}
-                  height={80}
+                  width={64}
+                  height={64}
                   className="h-full w-full object-contain p-2"
                 />
               </div>
