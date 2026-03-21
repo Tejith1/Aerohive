@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     
     // Use environment variable with hardcoded fallback
-    const GOOGLE_SHEETS_WEB_APP_URL = process.env.GOOGLE_SHEETS_WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbyZPFAZtXVVMbl2YyxTd169ZluPiOMakSptHbDcaGXW8yhhVxtIJbf8_IuQulzBvjE/exec'
+    const GOOGLE_SHEETS_WEB_APP_URL = process.env.GOOGLE_SHEETS_WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbzGqNhlwM1g5uenNhCFa_DvCyMqRtarO2MeTZ5eIjeqUvkfb6NOfjpaSc3uQkjbhqyc/exec'
     
     console.log('📤 Forwarding registration to Google Sheets:', body)
     
