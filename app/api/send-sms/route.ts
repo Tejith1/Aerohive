@@ -7,8 +7,8 @@ import { NextRequest, NextResponse } from 'next/server'
  * integrated with Twilio, Msg91, or Fast2SMS.
  */
 
-const FONOSTER_PROJECT_ID = process.env.FONOSTER_PROJECT_ID
-const FONOSTER_TOKEN = process.env.FONOSTER_TOKEN
+const FONOSTER_ACCESS_KEY_ID = process.env.FONOSTER_ACCESS_KEY_ID
+const FONOSTER_ACCESS_KEY_SECRET = process.env.FONOSTER_ACCESS_KEY_SECRET
 const FONOSTER_PHONE_NUMBER = process.env.FONOSTER_PHONE_NUMBER
 
 interface SMSRequest {
@@ -32,13 +32,14 @@ export async function POST(request: NextRequest) {
         const cleanTo = to.replace(/[\s\-\(\)]/g, '')
 
         // 1. If Fonoster keys are present, use Fonoster
-        if (FONOSTER_TOKEN && FONOSTER_PHONE_NUMBER) {
+        if (FONOSTER_ACCESS_KEY_ID && FONOSTER_ACCESS_KEY_SECRET && FONOSTER_PHONE_NUMBER) {
             try {
-                // Using Fonoster REST API
+                // Using Fonoster REST API with Basic Auth
+                const auth = Buffer.from(`${FONOSTER_ACCESS_KEY_ID}:${FONOSTER_ACCESS_KEY_SECRET}`).toString('base64')
                 const res = await fetch(`https://api.fonoster.com/v1/sms`, {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${FONOSTER_TOKEN}`,
+                        'Authorization': `Basic ${auth}`,
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
@@ -49,8 +50,8 @@ export async function POST(request: NextRequest) {
                 })
 
                 if (!res.ok) {
-                    const errorData = await res.json()
-                    throw new Error(errorData.message || 'Fonoster delivery failure')
+                    const errorText = await res.text()
+                    throw new Error(errorText || 'Fonoster delivery failure')
                 }
 
                 console.log(`✅ [Fonoster] SMS sent to ${cleanTo}`)
