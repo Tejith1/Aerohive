@@ -135,6 +135,7 @@ export interface User {
   first_name: string
   last_name: string
   phone?: string
+  is_phone_verified: boolean
   is_admin: boolean
   is_active: boolean
   created_at: string
@@ -211,6 +212,7 @@ export interface DronePilot {
   full_name: string
   email: string
   phone: string
+  is_phone_verified: boolean
   location: string
   area: string
   experience: string

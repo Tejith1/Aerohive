@@ -23,6 +23,12 @@ export default function AccountPage() {
     })
     const { toast } = useToast()
 
+    // OTP Verification State
+    const [showOTPModal, setShowOTPModal] = useState(false)
+    const [otpValue, setOTPValue] = useState('')
+    const [verifyingOTP, setVerifyingOTP] = useState(false)
+    const [sendingOTP, setSendingOTP] = useState(false)
+
     useEffect(() => {
         if (authUser) {
             fetchProfile()
@@ -79,6 +85,60 @@ export default function AccountPage() {
         }
     }
 
+    const sendOTP = async () => {
+        if (!formData.phone) {
+            toast({ title: "Phone Required", description: "Please enter your phone number first.", variant: "destructive" })
+            return
+        }
+
+        try {
+            setSendingOTP(true)
+            const res = await fetch('/api/auth/send-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone: formData.phone })
+            })
+            const data = await res.json()
+            if (data.success) {
+                setShowOTPModal(true)
+                toast({ title: "OTP Sent!", description: `Verification code sent to ${formData.phone}` })
+            } else {
+                throw new Error(data.error)
+            }
+        } catch (err: any) {
+            toast({ title: "Failed to send OTP", description: err.message, variant: "destructive" })
+        } finally {
+            setSendingOTP(false)
+        }
+    }
+
+    const verifyOTP = async () => {
+        if (!otpValue || otpValue.length < 4) return
+
+        try {
+            setVerifyingOTP(true)
+            const res = await fetch('/api/auth/verify-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone: formData.phone, otp: otpValue })
+            })
+            const data = await res.json()
+            if (data.success) {
+                // Update profile in DB to reflect verification
+                await updateUserProfile(authUser!.id, { is_phone_verified: true })
+                toast({ title: "Verified! 🎉", description: "Your phone number has been verified successfully." })
+                setShowOTPModal(false)
+                fetchProfile()
+            } else {
+                throw new Error(data.error)
+            }
+        } catch (err: any) {
+            toast({ title: "Verification Failed", description: err.message, variant: "destructive" })
+        } finally {
+            setVerifyingOTP(false)
+        }
+    }
+
     if (loading) {
         return (
             <div className="min-h-screen pt-24 flex items-center justify-center">
@@ -106,6 +166,27 @@ export default function AccountPage() {
                     <h1 className="text-3xl font-bold text-gray-900">My Account</h1>
                     <p className="text-gray-500">Profile & Settings</p>
                 </div>
+
+                {!profile?.is_phone_verified && profile?.phone && (
+                    <div className="mt-6 mb-8 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+                        <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600">
+                                <Phone className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-amber-900 text-sm">Verify Your Phone Number</h4>
+                                <p className="text-amber-700 text-xs">A verified phone number is required for booking services.</p>
+                            </div>
+                        </div>
+                        <Button 
+                            onClick={sendOTP} 
+                            disabled={sendingOTP}
+                            className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs h-9 px-4 shadow-md shadow-amber-200"
+                        >
+                            {sendingOTP ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Verify Now'}
+                        </Button>
+                    </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {/* Sidebar Info */}
@@ -199,12 +280,22 @@ export default function AccountPage() {
                                             <Phone className="h-3.5 w-3.5 text-blue-600" />
                                             Phone Number
                                         </label>
-                                        <Input
-                                            value={formData.phone}
-                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                            className="rounded-xl border-gray-200 focus:ring-blue-500"
-                                            placeholder="+91-XXXXXXXXXX"
-                                        />
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex-1">
+                                                <Input
+                                                    value={formData.phone}
+                                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                                    className="rounded-xl border-gray-200 focus:ring-blue-500"
+                                                    placeholder="+91-XXXXXXXXXX"
+                                                />
+                                            </div>
+                                            {profile?.is_phone_verified && (
+                                                <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-0 h-10 px-4 rounded-xl flex items-center gap-1.5">
+                                                    <Shield className="h-3.5 w-3.5" />
+                                                    Verified
+                                                </Badge>
+                                            )}
+                                        </div>
                                     </div>
 
                                     <div className="pt-4">
@@ -223,6 +314,47 @@ export default function AccountPage() {
                     </div>
                 </div>
             </div>
+
+            {/* OTP Verification Simple UI (using direct div/overly as we don't have Dialog component in this file) */}
+            {showOTPModal && (
+                <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <Card className="w-full max-w-sm border-0 shadow-2xl rounded-3xl overflow-hidden animate-in zoom-in-95 duration-200">
+                        <CardHeader className="text-center bg-gray-50/50 pb-2">
+                            <div className="h-16 w-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <Shield className="h-8 w-8" />
+                            </div>
+                            <CardTitle className="text-2xl font-bold">Verify Phone</CardTitle>
+                            <CardDescription>Enter the 6-digit code sent to<br/><span className="font-semibold text-gray-900">{formData.phone}</span></CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-8 space-y-6">
+                            <div className="flex justify-center">
+                                <Input 
+                                    value={otpValue}
+                                    onChange={(e) => setOTPValue(e.target.value.replace(/\D/g, '').substring(0, 6))}
+                                    placeholder="0 0 0 0 0 0"
+                                    className="text-center text-3xl tracking-[0.5em] font-black h-16 rounded-2xl border-gray-200 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div className="flex flex-col gap-3">
+                                <Button 
+                                    onClick={verifyOTP}
+                                    disabled={verifyingOTP || otpValue.length < 6}
+                                    className="w-full h-12 bg-blue-600 hover:bg-blue-700 rounded-xl font-bold shadow-lg shadow-blue-100"
+                                >
+                                    {verifyingOTP ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : 'Confirm Verification'}
+                                </Button>
+                                <Button 
+                                    variant="ghost" 
+                                    onClick={() => setShowOTPModal(false)}
+                                    className="w-full text-gray-500 hover:text-gray-700"
+                                >
+                                    Cancel
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
         </div>
     )
 }
