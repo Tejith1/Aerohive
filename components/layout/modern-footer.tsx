@@ -135,11 +135,11 @@ export function ModernFooter() {
             <div className="space-y-3">
               <div className="flex items-center space-x-3 text-gray-300">
                 <Mail className="h-5 w-5 text-blue-400" />
-                <span>support@aerohive.co.in</span>
+                <span>support@aerohive.co.in | aerohive.help@gmail.com</span>
               </div>
               <div className="flex items-center space-x-3 text-gray-300">
                 <Phone className="h-5 w-5 text-green-400" />
-                <span>+91 7075894588, +91 9032390289</span>
+                <span>+91 7075894588, +91 9014369289</span>
               </div>
               <div className="flex items-center space-x-3 text-gray-300">
                 <MapPin className="h-5 w-5 text-red-400" />
