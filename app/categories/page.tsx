@@ -12,6 +12,22 @@ import { ModernFooter } from "@/components/layout/modern-footer"
 import { useAuth } from "@/contexts/auth-context"
 import { Lock } from "lucide-react"
 import { ComingSoonOverlay } from "@/components/ui/coming-soon-overlay"
+import { FAQSection } from "@/components/layout/faq-section"
+
+const categoryFAQs = [
+  {
+    question: "What is the most popular drone category?",
+    answer: "Photography drones are our most popular category, followed by racing drones. Each category serves a unique purpose and skill level."
+  },
+  {
+    question: "Do you offer multi-purpose drones?",
+    answer: "Yes, many of our high-end models can be customized with different payloads to perform multiple functions, such as photography and mapping."
+  },
+  {
+    question: "Which category is best for beginners?",
+    answer: "We have a dedicated 'Beginner Drones' category with models that are easy to fly, durable, and affordable, making them perfect for learning."
+  }
+]
 
 // Drone categories data with icons and updated design
 const droneCategories = [
@@ -337,6 +353,7 @@ export default function CategoriesPage() {
         </div>
       </main>
 
+      <FAQSection pageName="Drone Categories" customFAQs={categoryFAQs} />
       <ModernFooter />
     </div>
   )

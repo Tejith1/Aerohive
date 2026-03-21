@@ -11,6 +11,7 @@ import { HeroSection } from "@/components/ui/hero-section"
 import { ModernProductCard } from "@/components/ui/modern-product-card"
 import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
+import { FAQSection } from "@/components/layout/faq-section"
 import { useCartStore } from "@/lib/cart-store"
 import { toast } from "@/hooks/use-toast"
 import { getProducts, Product } from "@/lib/supabase"
@@ -444,6 +445,7 @@ export default function HomePage() {
         </section>
       </main>
 
+      <FAQSection pageName="the Homepage" />
       <ModernFooter />
     </div>
   )

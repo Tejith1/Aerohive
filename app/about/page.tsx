@@ -9,6 +9,22 @@ import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
 import { products } from "@/lib/products-data"
 import Image from "next/image"
+import { FAQSection } from "@/components/layout/faq-section"
+
+const aboutFAQs = [
+  {
+    question: "How long has AeroHive been in operation?",
+    answer: "AeroHive was founded in 2023 with a mission to bring advanced drone technology to everyone. In just two years, we've grown into a global leader in professional solutions."
+  },
+  {
+    question: "Where is AeroHive based?",
+    answer: "Our global headquarters is in Hyderabad, Telangana, India. We serve customers and support pilots around the world."
+  },
+  {
+    question: "Are you hiring for new positions?",
+    answer: "We're always looking for brilliant minds to join our mission. Check our careers section or use the doubt form below to inquire about openings."
+  }
+]
 
 const timeline = [
   {
@@ -481,6 +497,7 @@ export default function AboutPage() {
         </section>
       </main>
 
+      <FAQSection pageName="our Mission" customFAQs={aboutFAQs} />
       <ModernFooter />
 
       <style jsx>{`

@@ -19,6 +19,22 @@ import { toast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
 import { Lock, ArrowRight } from "lucide-react"
 import { ComingSoonOverlay } from "@/components/ui/coming-soon-overlay"
+import { FAQSection } from "@/components/layout/faq-section"
+
+const productFAQs = [
+  {
+    question: "How do I choose the right drone for my needs?",
+    answer: "Consider your primary use case (photography, racing, or commercial) and check the flight time and camera specifications on each product page."
+  },
+  {
+    question: "Do you offer bulk discounts for corporate orders?",
+    answer: "Yes, we offer special pricing for bulk orders and corporate partnerships. Please use the 'Ask a Doubt' form below to get a quote."
+  },
+  {
+    question: "What is your return policy for drones?",
+    answer: "We offer a 15-day return policy for unopened items. For items that have been flown, returns are handled on a case-by-case basis through our support team."
+  }
+]
 
 export default function ProductsPage() {
   const searchParams = useSearchParams()
@@ -384,6 +400,7 @@ export default function ProductsPage() {
         </div>
       </main>
 
+      <FAQSection pageName="Products" customFAQs={productFAQs} />
       <ModernFooter />
     </div>
   )

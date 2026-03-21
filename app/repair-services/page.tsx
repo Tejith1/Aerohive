@@ -9,6 +9,22 @@ import { Badge } from "@/components/ui/badge"
 import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
 import { useAuth } from "@/contexts/auth-context"
+import { FAQSection } from "@/components/layout/faq-section"
+
+const repairFAQs = [
+  {
+    question: "How long do typical repairs take?",
+    answer: "Most common repairs like motor replacements or sensor calibrations take 2-3 business days. More complex structural or gimbal repairs may take up to a week."
+  },
+  {
+    question: "Do you offer warranties on repairs?",
+    answer: "Yes, many of our authorized repair centers offer a 30 to 90-day warranty on the specific parts replaced and the labor performed."
+  },
+  {
+    question: "Can you help with insurance claims?",
+    answer: "Our technicians can provide detailed damage assessment reports and repair estimates that you can submit to your insurance provider."
+  }
+]
 
 interface RepairCenter {
   id: string
@@ -567,6 +583,7 @@ export default function RepairServicesPage() {
         </div>
       </section>
 
+      <FAQSection pageName="Repair Services" customFAQs={repairFAQs} />
       <ModernFooter />
     </div>
   )

@@ -10,6 +10,22 @@ import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
 import { calculateDistance } from "@/lib/supabase"
 import { useAuth } from "@/contexts/auth-context"
+import { FAQSection } from "@/components/layout/faq-section"
+
+const serviceFAQs = [
+  {
+    question: "What types of drone services do you offer?",
+    answer: "We offer a wide range of services including aerial mapping, photography, agricultural spraying, surveillance, and industrial inspections."
+  },
+  {
+    question: "How are service prices determined?",
+    answer: "Prices are set by the service providers and can be based on hourly rates, daily rates, per-project fees, or per-acre for agricultural services."
+  },
+  {
+    question: "Are the service providers insured?",
+    answer: "Many of our providers carry professional liability insurance. You can check the 'Insurance' status on each provider's card."
+  }
+]
 
 interface ServiceProvider {
   id: string
@@ -815,6 +831,8 @@ export default function DroneServicesPage() {
         </div>
       </section>
 
+      {/* FAQ Section */}
+      <FAQSection pageName="Drone Services" customFAQs={serviceFAQs} />
       <ModernFooter />
     </div>
   )

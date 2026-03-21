@@ -29,6 +29,22 @@ import {
   TrendingUp,
   Loader2
 } from "lucide-react"
+import { FAQSection } from "@/components/layout/faq-section"
+
+const pilotFAQs = [
+  {
+    question: "How do you verify the pilots on your platform?",
+    answer: "Every pilot must undergo a rigorous verification process, including background checks, certification validation, and flight skill assessments before being listed."
+  },
+  {
+    question: "What is the booking process for a drone operator?",
+    answer: "Browse our network, select a pilot, click 'Contact' to book. You'll receive details and an OTP. The pilot will then reach out to coordinate the mission."
+  },
+  {
+    question: "How can I join the AeroHive pilot network?",
+    answer: "Click the 'Register as a Drone Pilot' button above to fill out our application. Our team will review your credentials and contact you for next steps."
+  }
+]
 
 export default function DronePilotsPage() {
   const [selectedLocation, setSelectedLocation] = useState("All Locations")
@@ -524,6 +540,7 @@ export default function DronePilotsPage() {
           </Card>
         </section>
       </div>
+      <FAQSection pageName="Drone Pilots" customFAQs={pilotFAQs} />
       <ModernFooter />
 
       {/* Booking Confirmation Dialog */}

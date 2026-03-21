@@ -14,6 +14,22 @@ import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
 import { toast } from "@/hooks/use-toast"
 import { getCustomerReviews, createCustomerReview, type CustomerReview } from "@/lib/supabase"
+import { FAQSection } from "@/components/layout/faq-section"
+
+const contactFAQs = [
+  {
+    question: "How fast can I expect a response?",
+    answer: "Our standard response time is under 2 hours during business hours. For emergency technical support, we respond within minutes."
+  },
+  {
+    question: "Do you offer on-site technical support?",
+    answer: "Yes, for corporate clients and major projects, we provide on-site technical assistance and pilot training."
+  },
+  {
+    question: "How do I claim my drone warranty?",
+    answer: "You can initiate a warranty claim by contacting our 'Warranty & Returns' department through the contact form or by calling our support line."
+  }
+]
 
 const contactInfo = [
   {
@@ -677,47 +693,8 @@ export default function ContactPage() {
           </div>
         </section>
 
-        {/* FAQ Quick Links */}
-        <section className="py-16 bg-gradient-to-br from-gray-50 to-blue-50">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
-              <p className="text-gray-600 max-w-2xl mx-auto">
-                Find quick answers to common questions. Can't find what you're looking for? Contact our support team.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-              {[
-                { title: "Product Warranties", icon: Shield, desc: "Learn about our comprehensive warranty coverage" },
-                { title: "Shipping & Returns", icon: Plane, desc: "Information about delivery and return policies" },
-                { title: "Technical Support", icon: Zap, desc: "Get help with setup, troubleshooting, and repairs" },
-                { title: "Training Resources", icon: User, desc: "Access tutorials, guides, and certification programs" },
-                { title: "Regulatory Compliance", icon: FileText, desc: "Understand drone regulations in your area" },
-                { title: "Product Customization", icon: Camera, desc: "Learn about our customization options" }
-              ].map((faq, index) => (
-                <Card key={index} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
-                  <CardContent className="p-6 text-center">
-                    <faq.icon className="h-12 w-12 text-primary mx-auto mb-4 group-hover:scale-110 transition-transform duration-300" />
-                    <h3 className="font-semibold text-gray-900 mb-2">{faq.title}</h3>
-                    <p className="text-gray-600 text-sm mb-4">{faq.desc}</p>
-                    <Button variant="outline" size="sm" className="group-hover:bg-primary group-hover:text-white transition-colors duration-300">
-                      <ArrowRight className="h-4 w-4 mr-1" />
-                      Learn More
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            <div className="text-center mt-12">
-              <Button size="lg" className="btn-aviation">
-                <FileText className="h-5 w-5 mr-2" />
-                View All FAQs
-              </Button>
-            </div>
-          </div>
-        </section>
+        {/* FAQ Section */}
+        <FAQSection pageName="Contact Support" customFAQs={contactFAQs} />
 
         {/* Customer Reviews */}
         <section className="py-16 bg-white">

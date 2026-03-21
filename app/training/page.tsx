@@ -10,6 +10,22 @@ import { Badge } from "@/components/ui/badge"
 import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
 import { useAuth } from "@/contexts/auth-context"
+import { FAQSection } from "@/components/layout/faq-section"
+
+const trainingFAQs = [
+  {
+    question: "Do I need any previous experience to start training?",
+    answer: "No, we have beginner courses specifically designed for those who have never flown a drone before. We'll guide you from the basics to professional certification."
+  },
+  {
+    question: "What is the Part 107 certification?",
+    answer: "The FAA Part 107 is the required 'Remote Pilot Certificate' for anyone operating drones commercially in the United States. Many other countries have similar requirements."
+  },
+  {
+    question: "Are the courses available online?",
+    answer: "Yes, we offer many courses in a 'Hybrid' format where the theoretical parts are online and the practical flight training is conducted in-person."
+  }
+]
 
 interface TrainingProvider {
   id: string
@@ -556,6 +572,7 @@ export default function TrainingPage() {
         </div>
       </section>
 
+      <FAQSection pageName="Drone Training" customFAQs={trainingFAQs} />
       <ModernFooter />
     </div>
   )
