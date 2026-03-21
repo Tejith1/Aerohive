@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
 
-// Check which email provider is configured
 const RESEND_API_KEY = process.env.RESEND_API_KEY
 const GMAIL_USER = process.env.GMAIL_USER
 const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD
@@ -24,6 +23,7 @@ export interface BookingEmailDetails {
     scheduledAt: string
     durationHours?: number
     chargesNote?: string
+    requirements?: string
     trackingLink?: string
     acceptJobLink?: string
     googleMapsLink?: string
@@ -40,139 +40,154 @@ interface EmailRequest {
 // Create Gmail transporter using Nodemailer
 export function createGmailTransporter() {
     return nodemailer.createTransport({
-        service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true, // Use SSL
         auth: {
             user: GMAIL_USER,
             pass: GMAIL_APP_PASSWORD?.replace(/\s+/g, '') // Remove spaces from App Password
+        },
+        tls: {
+            rejectUnauthorized: false
         }
     })
 }
 
-// Generate HTML email content
+// Elite HTML Template Generator
 export function generateEmailHtml(type: 'client' | 'pilot', d: BookingEmailDetails) {
     if (!d) return ''
 
-    const styles = `
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .header { background: #1e293b; padding: 25px; text-align: center; }
-        .header h1 { color: white; margin: 0; font-size: 22px; font-weight: 600; }
-        .content { padding: 30px; color: #334155; line-height: 1.6; }
-        .section { margin-bottom: 25px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; }
-        .section:last-child { border-bottom: none; }
-        .label { font-size: 13px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
-        .value { font-size: 16px; color: #1e293b; font-weight: 500; }
-        .btn { display: inline-block; background: #2563eb; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; text-align: center; margin-top: 10px; }
-        .footer { background: #f8fafc; padding: 20px; text-align: center; color: #94a3b8; font-size: 12px; }
-        .note { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; padding: 12px; border-radius: 6px; font-size: 14px; margin-top: 15px; }
-    `
+    const isPilot = type === 'pilot'
+    const bgColor = isPilot ? '#0f172a' : '#f8fafc'
+    const accentColor = isPilot ? '#3b82f6' : '#2563eb'
+    const title = isPilot ? 'NEW MISSION ASSIGNED' : 'BOOKING CONFIRMED'
+    const subtitle = isPilot ? 'A new drone mission is ready for your expertise.' : 'Your professional drone pilot is scheduled.'
 
-    if (type === 'client') {
-        return `
-<!DOCTYPE html>
+    return `<!DOCTYPE html>
 <html>
-<head><style>${styles}</style></head>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroHive - ${title}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f1f5f9; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+        .wrapper { width: 100%; table-layout: fixed; background-color: #f1f5f9; padding-bottom: 40px; }
+        .main { background-color: #ffffff; margin: 0 auto; width: 100%; max-width: 600px; border-spacing: 0; color: #1e293b; border-radius: 24px; overflow: hidden; margin-top: 40px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+        .header { background-color: ${bgColor}; padding: 48px 40px; text-align: center; }
+        .badge { display: inline-block; padding: 6px 12px; background-color: rgba(255,255,255,0.1); border-radius: 100px; color: #94a3b8; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.15); }
+        .header h1 { color: #ffffff; font-size: 32px; font-weight: 800; margin: 0; letter-spacing: -0.025em; line-height: 1.1; }
+        .header p { color: #94a3b8; font-size: 16px; margin-top: 12px; margin-bottom: 0; }
+        .content { padding: 48px 40px; }
+        .grid-row { display: flex; flex-wrap: wrap; margin-bottom: 32px; gap: 24px; }
+        .grid-item { flex: 1; min-width: 200px; }
+        .label { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+        .value { font-size: 16px; font-weight: 600; color: #1e293b; }
+        .highlight-box { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; padding: 24px; margin-bottom: 32px; }
+        .otp-display { text-align: center; background: linear-gradient(135deg, ${accentColor}, #1d4ed8); border-radius: 16px; padding: 24px; color: white; margin-bottom: 32px; }
+        .otp-display span { font-size: 48px; font-weight: 800; letter-spacing: 0.1em; display: block; margin-bottom: 4px; }
+        .otp-display p { font-size: 12px; font-weight: 600; opacity: 0.8; margin: 0; text-transform: uppercase; }
+        .btn-container { text-align: center; padding-bottom: 48px; }
+        .btn { display: inline-block; background-color: ${accentColor}; color: #ffffff !important; padding: 18px 36px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px; transition: all 0.2s; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3); }
+        .footer { padding: 40px; text-align: center; color: #64748b; font-size: 14px; }
+        .footer b { color: #1e293b; }
+    </style>
+</head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Booking Confirmation</h1>
-        </div>
-        <div class="content">
-            <p>Hello,</p>
-            <p>Your drone pilot has been assigned for the requested service.</p>
+    <div class="wrapper">
+        <table class="main">
+            <tr>
+                <td class="header">
+                    <div class="badge">AEROHIVE MISSION CONTROL</div>
+                    <h1>${title}</h1>
+                    <p>${subtitle}</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="content">
+                    <div class="grid-row">
+                        <div class="grid-item">
+                            <div class="label">Booking ID</div>
+                            <div class="value">${d.bookingId}</div>
+                        </div>
+                        <div class="grid-item">
+                            <div class="label">Service Type</div>
+                            <div class="value">${d.serviceType}</div>
+                        </div>
+                    </div>
 
-            <div class="section">
-                <div class="label">Pilot Assigned</div>
-                <div class="value">${d.pilotName || 'Assignments Team'}</div>
-                <div class="value">📞 ${d.pilotPhone || 'N/A'}</div>
-            </div>
+                    <div class="grid-row">
+                        <div class="grid-item">
+                            <div class="label">Date & Time</div>
+                            <div class="value">${d.scheduledAt}</div>
+                        </div>
+                        <div class="grid-item">
+                            <div class="label">Location</div>
+                            <div class="value">${d.location}</div>
+                        </div>
+                    </div>
 
-            <div class="section">
-                <div class="label">Order ID</div>
-                <div class="value" style="font-family: monospace;">${d.orderUUID}</div>
-            </div>
+                    <div class="highlight-box">
+                        <div class="label">${isPilot ? 'Pilot Mission Notes' : 'Estimated Charges'}</div>
+                        <div class="value" style="color: ${accentColor}; font-size: 20px;">
+                            ${isPilot ? (d.requirements || 'No special requirements.') : (d.estimatedAmount || 'Contact for Quote')}
+                        </div>
+                        <p style="font-size: 12px; color: #64748b; margin-top: 8px; margin-bottom: 0;">${d.chargesNote}</p>
+                    </div>
 
-            <div class="section">
-                <div class="label">Service Details</div>
-                <div class="value">📅 Date: ${d.scheduledAt.split(',')[0]}</div>
-                <div class="value">⏰ Time: ${d.scheduledAt.split(',')[1] || ''}</div>
-                <div class="value">⏳ Duration: ${d.durationHours} Hours</div>
-            </div>
+                    ${!isPilot ? `
+                    <div class="otp-display">
+                        <span>${d.otp}</span>
+                        <p>SECURITY VERIFICATION OTP</p>
+                    </div>
+                    ` : `
+                    <div class="label">Mission Access Pin (Requested on Arrival)</div>
+                    <div class="value" style="font-size: 14px; margin-bottom: 24px;">Ask the client for the 4-digit code to start the service.</div>
+                    `}
 
-            <div class="section" style="text-align: center;">
-                <a href="${d.trackingLink}" class="btn" style="background: #10b981;">Track Pilot Live</a>
-                <p style="font-size: 13px; color: #64748b; margin-top: 8px;">Click to view live status map</p>
-            </div>
-
-            ${d.chargesNote ? `<div class="note"><strong>Note:</strong> ${d.chargesNote}</div>` : ''}
-        </div>
-        <div class="footer">
-            AeroHive Drone Services<br>
-            For support, reply to this email.
-        </div>
+                    <div class="btn-container">
+                        <a href="${isPilot ? d.acceptJobLink : d.trackingLink}" class="btn">
+                            ${isPilot ? 'Accept & Confirm Job' : 'Track Booking Status'}
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="footer">
+                    Sent via <b>AeroHive Network</b> &bull; Secure Drone Services<br>
+                    Need help? Contact <a href="mailto:aerohive.help@gmail.com" style="color: ${accentColor};">AeroHive Support</a>
+                </td>
+            </tr>
+        </table>
     </div>
 </body>
 </html>`
-    } else {
-        // Pilot Email
-        return `
-<!DOCTYPE html>
-<html>
-<head><style>${styles}</style></head>
-<body>
-    <div class="container">
-        <div class="header" style="background: #0f172a;">
-            <h1>New Job Assignment</h1>
-        </div>
-        <div class="content">
-            <p>Hello Pilot,</p>
-            <p>You have a new job assignment. Action is required to accept this job.</p>
-
-            <div class="section">
-                <div class="label">Client Details</div>
-                <div class="value">${d.clientName || 'Valued Client'}</div>
-                <div class="value">📞 ${d.clientPhone || 'N/A'}</div>
-            </div>
-
-            <div class="section">
-                <div class="label">Service Schedule</div>
-                <div class="value">📅 ${d.scheduledAt}</div>
-                <div class="value">⏳ Expected Hours: ${d.durationHours} hrs</div>
-                <div class="value" style="color: #059669;">💰 Est. Earning: ${d.estimatedAmount}</div>
-            </div>
-
-            <div class="section">
-                <div class="label">Location</div>
-                <div class="value">${d.location}</div>
-                <div style="margin-top: 8px;">
-                    <a href="${d.googleMapsLink}" style="color: #2563eb; text-decoration: underline;">Open in Google Maps</a>
-                </div>
-            </div>
-
-            <div class="section" style="text-align: center;">
-                <a href="${d.acceptJobLink}" class="btn">Accept Job</a>
-                <p style="font-size: 13px; color: #64748b; margin-top: 8px;">Secure Job Acceptance Link</p>
-            </div>
-        </div>
-        <div class="footer">
-            AeroHive Pilot Network<br>
-            Please accept promptly.
-        </div>
-    </div>
-</body>
-</html>`
-    }
 }
-/**
- * Direct call function to send email without making a network request to the API
- */
+
 export async function sendEmailDirect({ to, subject, type, bookingDetails }: EmailRequest) {
     try {
         const htmlContent = generateEmailHtml(type, bookingDetails)
-        const fromAddress = `AeroHive Support <${MEDIATOR_EMAIL}>`
-        const replyTo = MEDIATOR_EMAIL
+        const fromAddress = `AeroHive Support <${GMAIL_USER}>`
+        const replyTo = GMAIL_USER
 
-        console.log(`📡 [Internal] Sending email to ${to} (${type})`)
+        console.log(`📡 [Direct] Sending elite email to ${to} (${type})`)
+
+        if (GMAIL_USER && GMAIL_APP_PASSWORD) {
+            try {
+                const transporter = createGmailTransporter()
+                const result = await transporter.sendMail({
+                    from: fromAddress,
+                    replyTo: replyTo,
+                    to,
+                    subject,
+                    html: htmlContent
+                })
+                console.log(`✅ [Gmail] Elite email sent: ${result.messageId}`)
+                return { success: true, provider: 'gmail', messageId: result.messageId }
+            } catch (err: any) {
+                console.error('❌ Elite Gmail failed:', err.message)
+            }
+        }
 
         if (RESEND_API_KEY) {
             try {
@@ -186,57 +201,36 @@ export async function sendEmailDirect({ to, subject, type, bookingDetails }: Ema
                     html: htmlContent
                 })
                 if (error) throw error
+                console.log(`✅ [Resend] Elite email sent: ${data?.id}`)
                 return { success: true, provider: 'resend', id: data?.id }
-            } catch (err) {
-                console.error('❌ Internal Resend failed:', err)
+            } catch (err: any) {
+                console.error('❌ Elite Resend failed:', err.message)
             }
         }
 
-        if (GMAIL_USER && GMAIL_APP_PASSWORD) {
-            try {
-                const transporter = createGmailTransporter()
-                const result = await transporter.sendMail({
-                    from: fromAddress,
-                    replyTo: replyTo,
-                    to: to,
-                    subject: subject,
-                    html: htmlContent
-                })
-                return { success: true, provider: 'gmail', id: result.messageId }
-            } catch (err) {
-                console.error('❌ Internal Gmail failed:', err)
-                throw err
-            }
-        }
-
-        console.log(`📧 [Internal Simulated] To: ${to} | Subject: ${subject}`)
-        return { success: true, simulated: true }
+        throw new Error('All email delivery providers failed')
     } catch (error: any) {
-        console.error('❌ sendEmailDirect error:', error)
+        console.error('sendEmailDirect Error:', error.message)
         return { success: false, error: error.message }
     }
 }
+
 export async function POST(request: NextRequest) {
     try {
-        const body: EmailRequest = await request.json()
-        const { to, subject, type, bookingDetails } = body
-
-        if (!to || !subject || !bookingDetails) {
+        if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
             return NextResponse.json(
-                { success: false, error: 'Missing required fields' },
-                { status: 400 }
+                { success: false, error: 'Email provider not configured' },
+                { status: 500 }
             )
         }
 
-        const result = await sendEmailDirect({ to, subject, type, bookingDetails })
-        
+        const body: EmailRequest = await request.json()
+        const result = await sendEmailDirect(body)
+
         if (result.success) {
-            return NextResponse.json({ ...result })
+            return NextResponse.json(result)
         } else {
-            return NextResponse.json(
-                { success: false, error: result.error || 'Failed to send' },
-                { status: 500 }
-            )
+            return NextResponse.json(result, { status: 500 })
         }
     } catch (error: any) {
         console.error('Email API Error:', error)

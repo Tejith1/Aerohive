@@ -34,28 +34,37 @@ export async function POST(request: NextRequest) {
         // 1. If Fonoster keys are present, use Fonoster
         if (FONOSTER_ACCESS_KEY_ID && FONOSTER_ACCESS_KEY_SECRET && FONOSTER_PHONE_NUMBER) {
             try {
-                // Using Fonoster REST API with Basic Auth
-                const auth = Buffer.from(`${FONOSTER_ACCESS_KEY_ID}:${FONOSTER_ACCESS_KEY_SECRET}`).toString('base64')
-                const res = await fetch(`https://api.fonoster.com/v1/sms`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Basic ${auth}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        from: FONOSTER_PHONE_NUMBER,
-                        to: cleanTo,
-                        message: message,
+                // Method A: Basic Auth (Access Key ID + Secret)
+                const basicAuth = Buffer.from(`${FONOSTER_ACCESS_KEY_ID}:${FONOSTER_ACCESS_KEY_SECRET}`).toString('base64')
+                
+                // Attempting several variations for maximum reliability
+                const authMethods = [
+                    { name: 'Basic', headers: { 'Authorization': `Basic ${basicAuth}` } },
+                    { name: 'Bearer (Secret)', headers: { 'Authorization': `Bearer ${FONOSTER_ACCESS_KEY_SECRET}` } }
+                ]
+
+                for (const method of authMethods) {
+                    console.log(`📡 [Fonoster] Attempting SMS with ${method.name} auth...`)
+                    const res = await fetch(`https://api.fonoster.com/v1/sms`, {
+                        method: 'POST',
+                        headers: {
+                            ...method.headers,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            from: FONOSTER_PHONE_NUMBER,
+                            to: cleanTo.startsWith('+') ? cleanTo : `+${cleanTo}`,
+                            message: message,
+                        })
                     })
-                })
 
-                if (!res.ok) {
-                    const errorText = await res.text()
-                    throw new Error(errorText || 'Fonoster delivery failure')
+                    if (res.ok) {
+                        console.log(`✅ [Fonoster] SMS delivered successfully via ${method.name}`)
+                        return NextResponse.json({ success: true, provider: 'fonoster', method: method.name })
+                    }
                 }
-
-                console.log(`✅ [Fonoster] SMS sent to ${cleanTo}`)
-                return NextResponse.json({ success: true, provider: 'fonoster' })
+                
+                throw new Error('All Fonoster authentication methods failed')
             } catch (error: any) {
                 console.error('❌ Fonoster SMS failed, falling back to simulation:', error.message)
             }
