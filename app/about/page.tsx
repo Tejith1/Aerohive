@@ -64,29 +64,33 @@ const team = [
     name: "Veerla SivaRamaKrishna",
     role: "Chief Executive Officer",
     bio: "Young engineer with good expereince in aerospace technology.",
-    image: "/placeholder.svg?height=400&width=400&text=Sarah+Chen+CEO",
-    specialties: ["Aerospace Engineering", "Strategic Leadership", "Innovation"]
+    image: "/veerla-sivaramakrishna.jpg",
+    specialties: ["Aerospace Engineering", "Strategic Leadership", "Innovation"],
+    linkedin: "https://www.linkedin.com/in/krishna-veerla-2010782b2/"
   },
   {
     name: "Dr. Dhulipalla Ramya Krishna",
     role: "Chief Technology Advisor",
     bio: "Doctorate in Applications of UAV in Precision Agriculture, Best Women Researcher, Pioneer in Data Science Engineering",
-    image: "/placeholder.svg?height=400&width=400&text=Marcus+CTO",
-    specialties: ["AI/ML", "Autonomous Systems", "Computer Vision", "Image Processing"]
+    image: "/dr-ramya-krishna.jpg",
+    specialties: ["AI/ML", "Autonomous Systems", "Computer Vision", "Image Processing"],
+    linkedin: "https://www.linkedin.com/in/dr-ramya-krishna-dhulipalla-2290a828b/"
   },
   {
     name: "Meka Charan Sai Tej",
     role: "Chief Hardware and Operations Officer ",
     bio: "Pioneer in Flight Controller Design & Integration, Hardware Testing, Calibration, and Validation",
-    image: "/placeholder.svg?height=400&width=400&text=Emily+Innovation",
-    specialties: ["R&D", "Patent Strategy", "Product Development"]
+    image: "/meka-charan-sai-tej.jpg",
+    specialties: ["R&D", "Patent Strategy", "Product Development"],
+    linkedin: "https://www.linkedin.com/in/meka-charan-sai-tej/"
   },
   {
     name: "Daida Tejith Reddy",
     role: "Chief Software Architect & AI Lead",
     bio: "Drives the technical vision behind AeroHive's software ecosystem—designing scalable cloud architectures, integrating AI/ML models for autonomous flight, and leading full-stack development of the drone operations platform.",
-    image: "/placeholder.svg?height=400&width=400&text=James+VP",
-    specialties: ["Software Architecture", "AI/ML", "Full-Stack Development", "Cloud Infrastructure"]
+    image: "/daida-tejith-reddy.jpg",
+    specialties: ["Software Architecture", "AI/ML", "Full-Stack Development", "Cloud Infrastructure"],
+    linkedin: "https://www.linkedin.com/in/tejith-reddy-daida/"
   }
 ]
 
@@ -227,17 +231,7 @@ export default function AboutPage() {
                 ))}
               </div>
 
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
-                  <Target className="h-5 w-5 mr-2" />
-                  Our Mission
-                </Button>
-                <Button size="lg" className="bg-white/20 backdrop-blur-sm border border-white/40 text-white hover:bg-white/30 px-8 py-4 text-lg font-semibold transition-all duration-300">
-                  <Play className="h-5 w-5 mr-2" />
-                  Watch Our Story
-                </Button>
-              </div>
+
             </div>
           </div>
 
@@ -339,7 +333,7 @@ export default function AboutPage() {
             <div className="text-center mb-16">
               <Badge className="bg-blue-100 text-blue-700 mb-6 px-4 py-2">Our Journey</Badge>
               <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-                Eight Years of Innovation
+                Years of Innovation
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
                 From a small startup to a global leader, discover the milestones that shaped our journey.
@@ -437,7 +431,8 @@ export default function AboutPage() {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               {team.map((member, index) => (
-                <Card key={index} className="group bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all duration-300 hover:-translate-y-2">
+                <a key={index} href={member.linkedin} target="_blank" rel="noopener noreferrer" className="block h-full">
+                <Card className="group bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all duration-300 hover:-translate-y-2 cursor-pointer h-full">
                   <CardContent className="p-6 text-center">
                     <div className="relative mb-6">
                       <div className="w-24 h-24 mx-auto rounded-full overflow-hidden ring-4 ring-white/30 group-hover:ring-white/50 transition-all duration-300">
@@ -462,6 +457,7 @@ export default function AboutPage() {
                     </div>
                   </CardContent>
                 </Card>
+                </a>
               ))}
             </div>
           </div>
