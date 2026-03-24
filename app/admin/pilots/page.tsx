@@ -136,9 +136,25 @@ export default function PilotApprovals() {
                     </div>
                   </div>
                 </div>
-                <div>
-                  <h4 className="text-sm font-semibold text-slate-500">About</h4>
-                  <p className="text-sm bg-slate-50 p-3 rounded-md mt-1 h-full whitespace-pre-wrap">{selectedPilot.about || "No bio provided."}</p>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-sm font-semibold text-slate-500">About</h4>
+                    <p className="text-sm bg-slate-50 p-3 rounded-md mt-1 whitespace-pre-wrap">{selectedPilot.about || "No bio provided."}</p>
+                  </div>
+                  <div className="flex gap-4">
+                    {selectedPilot.profile_image_url && (
+                      <div className="flex-1">
+                        <h4 className="text-sm font-semibold text-slate-500 mb-2">Profile Photo</h4>
+                        <img src={selectedPilot.profile_image_url} alt="Profile" className="w-full h-32 object-cover rounded-md border" />
+                      </div>
+                    )}
+                    {selectedPilot.certificate_image_url && (
+                      <div className="flex-1">
+                        <h4 className="text-sm font-semibold text-slate-500 mb-2">DGCA Certificate</h4>
+                        <img src={selectedPilot.certificate_image_url} alt="Certificate" className="w-full h-32 object-cover rounded-md border" />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}

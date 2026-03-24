@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseAdmin } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,42 +34,6 @@ export async function POST(request: NextRequest) {
         console.log('✅ Successfully sent to Google Sheets. Response:', responseText)
     }
 
-    // Save to Supabase drone_pilots DB for admin panel approval functionality
-    try {
-      const adminClient = getSupabaseAdmin()
-      if (adminClient) {
-        const { error: dbError } = await adminClient
-          .from('drone_pilots')
-          .insert({
-            full_name: body.fullName,
-            email: body.email,
-            phone: body.phone,
-            is_phone_verified: false,
-            location: body.location || '',
-            area: body.area || '',
-            experience: body.experience || '',
-            certifications: body.certifications || '',
-            specializations: body.specializations || '',
-            about: body.about || '',
-            dgca_number: body.dgcaNumber || '',
-            is_verified: false,
-            is_active: false,
-            rating: 0,
-            completed_jobs: 0,
-            hourly_rate: 0
-          })
-        if (dbError) {
-          console.error('❌ Error saving pilot to Supabase:', dbError)
-        } else {
-          console.log('✅ Successfully saved pilot to Supabase for admin approval')
-        }
-      } else {
-        console.warn('⚠️ getSupabaseAdmin returned null, skipping Supabase insert')
-      }
-    } catch (dbErr) {
-      console.error('❌ Exception saving pilot to Supabase:', dbErr)
-    }
-    
     return NextResponse.json({ success: true })
   } catch (error: any) {
     console.error('❌ Error in drone-pilot-registration API:', error)

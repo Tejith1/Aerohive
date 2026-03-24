@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
-import { createDronePilot, processAndStoreImage } from "@/lib/supabase"
+import { createDronePilot, uploadImage } from "@/lib/supabase"
 import { toast } from "@/hooks/use-toast"
 import { 
   ArrowLeft,
@@ -93,6 +93,14 @@ export default function DronePilotRegisterPage() {
     }
   }
 
+  const isFormValid = !!(
+    formData.fullName && formData.email && formData.phone && 
+    formData.location && formData.area && formData.experience && 
+    formData.certifications && formData.specializations && formData.droneAcademy &&
+    formData.hourlyRate && formData.about && formData.dgcaNumber && 
+    formData.hasDrone && formData.profileImage && formData.certificateImage
+  )
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -113,14 +121,11 @@ export default function DronePilotRegisterPage() {
       return
     }
     
-    // Validate required fields (about is now optional)
-    if (!formData.fullName || !formData.email || !formData.phone || !formData.location || 
-        !formData.area || !formData.experience || !formData.certifications || 
-        !formData.specializations || !formData.hourlyRate || 
-        !formData.dgcaNumber || !formData.hasDrone) {
+    // Additional strict validation check just in case
+    if (!isFormValid) {
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields.",
+        description: "Please fill in all required fields and upload the necessary documents.",
         variant: "destructive"
       })
       return
@@ -152,9 +157,17 @@ export default function DronePilotRegisterPage() {
         hasDrone: formData.hasDrone
       })
       
-      // Skip image processing for now to test basic functionality
-      const profileImageUrl = null
-      const certificateImageUrl = null
+      // Upload documents to Supabase storage
+      let profileImageUrl = null
+      let certificateImageUrl = null
+
+      if (formData.profileImage) {
+        profileImageUrl = await uploadImage(formData.profileImage, 'pilot-documents')
+      }
+      
+      if (formData.certificateImage) {
+        certificateImageUrl = await uploadImage(formData.certificateImage, 'pilot-documents')
+      }
 
       // Create pilot data
       const pilotData = {
@@ -172,7 +185,8 @@ export default function DronePilotRegisterPage() {
         dgca_number: formData.dgcaNumber,
         profile_image_url: profileImageUrl,
         certificate_image_url: certificateImageUrl,
-        user_id: null
+        is_phone_verified: false,
+        user_id: user.id
       }
 
       console.log('📤 Submitting to database...')
@@ -518,24 +532,26 @@ export default function DronePilotRegisterPage() {
                     </select>
                   </div>
                   <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="droneAcademy">Drone Academy <span className="text-sm font-normal text-gray-500">(optional)</span></Label>
+                    <Label htmlFor="droneAcademy">Drone Academy *</Label>
                     <Input
                       id="droneAcademy"
                       name="droneAcademy"
                       placeholder="e.g., Indian Institute of Drones, RPTO Academy"
                       value={formData.droneAcademy}
                       onChange={handleInputChange}
+                      required
                       className="rounded-xl"
                     />
                   </div>
                   <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="about">About You <span className="text-sm font-normal text-gray-500">(recommended)</span></Label>
+                    <Label htmlFor="about">About You *</Label>
                     <Textarea
                       id="about"
                       name="about"
                       placeholder="Tell us about your experience, equipment, and services you offer..."
                       value={formData.about}
                       onChange={handleInputChange}
+                      required
                       rows={4}
                       className="rounded-xl"
                     />
@@ -551,7 +567,7 @@ export default function DronePilotRegisterPage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="profileImage">Profile Photo</Label>
+                    <Label htmlFor="profileImage">Profile Photo *</Label>
                     <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-500 transition-colors cursor-pointer">
                       <input
                         id="profileImage"
@@ -562,14 +578,14 @@ export default function DronePilotRegisterPage() {
                       />
                       <label htmlFor="profileImage" className="cursor-pointer">
                         <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 truncate">
                           {formData.profileImage ? formData.profileImage.name : "Click to upload profile photo"}
                         </p>
                       </label>
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="certificateImage">DGCA Certificate</Label>
+                    <Label htmlFor="certificateImage">DGCA Certificate *</Label>
                     <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-500 transition-colors cursor-pointer">
                       <input
                         id="certificateImage"
@@ -580,7 +596,7 @@ export default function DronePilotRegisterPage() {
                       />
                       <label htmlFor="certificateImage" className="cursor-pointer">
                         <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 truncate">
                           {formData.certificateImage ? formData.certificateImage.name : "Click to upload certificate"}
                         </p>
                       </label>
@@ -597,8 +613,8 @@ export default function DronePilotRegisterPage() {
                 <Button
                   type="submit"
                   size="lg"
-                  disabled={submitting}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl px-8 shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+                  disabled={submitting || !isFormValid}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl px-8 shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submitting ? (
                     <>

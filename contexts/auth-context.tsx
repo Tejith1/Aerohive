@@ -171,7 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 email: authUser.email!,
                 first_name: authUser.user_metadata?.full_name?.split(' ')[0] || authUser.user_metadata?.first_name || 'User',
                 last_name: authUser.user_metadata?.full_name?.split(' ').slice(1).join(' ') || authUser.user_metadata?.last_name || '',
-                is_admin: authUser.email === 'admin1@gmail.com' || authUser.email === 'admin@aerohive.com',
+                is_admin: authUser.email === 'admin1@gmail.com' || authUser.email === 'charansaitej021206@gmail.com',
                 provider: authUser.app_metadata?.provider || 'email'
               })
             }
@@ -448,12 +448,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             email: authUser.email!,
             first_name: authUser.user_metadata?.full_name?.split(' ')[0] || authUser.user_metadata?.first_name || 'User',
             last_name: authUser.user_metadata?.full_name?.split(' ').slice(1).join(' ') || authUser.user_metadata?.last_name || '',
-            is_admin: authUser.email === 'admin1@gmail.com' || authUser.email === 'admin@aerohive.com',
+            is_admin: authUser.email === 'admin1@gmail.com' || authUser.email === 'charansaitej021206@gmail.com',
             provider: authUser.app_metadata?.provider || 'email'
           })
         }
 
-        const isAdminEmail = authUser.email === 'admin1@gmail.com' || authUser.email === 'admin@aerohive.com'
+        const isAdminEmail = authUser.email === 'admin1@gmail.com' || authUser.email === 'charansaitej021206@gmail.com'
 
         toast({
           title: "Welcome back!",

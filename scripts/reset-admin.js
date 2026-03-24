@@ -22,7 +22,7 @@ if(!supabaseUrl || !supabaseKey) {
 const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
 async function setAdminPassword() {
-  const email = 'admin@aerohive.com';
+  const email = 'charansaitej021206@gmail.com';
   const newPassword = 'Aerohive@123';
   
   console.log(`Checking for admin user: ${email}...`);
