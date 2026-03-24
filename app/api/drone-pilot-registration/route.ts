@@ -19,16 +19,19 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),
-      // Important for Google Apps Script redirects
       redirect: 'follow'
     })
     
+    const responseText = await response.text()
+    console.log('📊 Google Sheets Response Status:', response.status)
+    
     if (!response.ok) {
-        const errorText = await response.text()
-        console.error('❌ Google Sheets API response not OK:', response.status, errorText)
-        // We don't necessarily want to fail the whole registration if Google Sheets fails
+        console.error('❌ Google Sheets API response not OK:', response.status, responseText.substring(0, 200))
+    } else if (responseText.includes('<!DOCTYPE html>') || responseText.includes('<html')) {
+        console.error('⚠️ Google Sheets returned HTML instead of JSON. This usually means a redirect to login. PLEASE CHECK YOUR SCRIPT PERMISSIONS.')
+        console.log('📄 Response starts with:', responseText.substring(0, 100))
     } else {
-        console.log('✅ Successfully sent to Google Sheets')
+        console.log('✅ Successfully sent to Google Sheets. Response:', responseText)
     }
     
     return NextResponse.json({ success: true })

@@ -47,6 +47,7 @@ export default function DronePilotRegisterPage() {
     hourlyRate: "",
     about: "",
     dgcaNumber: "",
+    hasDrone: "",
     profileImage: null as File | null,
     certificateImage: null as File | null
   })
@@ -116,7 +117,7 @@ export default function DronePilotRegisterPage() {
     if (!formData.fullName || !formData.email || !formData.phone || !formData.location || 
         !formData.area || !formData.experience || !formData.certifications || 
         !formData.specializations || !formData.hourlyRate || 
-        !formData.dgcaNumber) {
+        !formData.dgcaNumber || !formData.hasDrone) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields.",
@@ -147,7 +148,8 @@ export default function DronePilotRegisterPage() {
         area: formData.area,
         experience: formData.experience,
         hourlyRate: formData.hourlyRate,
-        dgcaNumber: formData.dgcaNumber
+        dgcaNumber: formData.dgcaNumber,
+        hasDrone: formData.hasDrone
       })
       
       // Skip image processing for now to test basic functionality
@@ -165,7 +167,7 @@ export default function DronePilotRegisterPage() {
         certifications: formData.certifications,
         specializations: formData.specializations,
         hourly_rate: parseInt(formData.hourlyRate),
-        about: formData.about,
+        about: formData.hasDrone ? `[Owns a Drone: ${formData.hasDrone}]\n${formData.about}`.trim() : formData.about,
         drone_academy: formData.droneAcademy || null,
         dgca_number: formData.dgcaNumber,
         profile_image_url: profileImageUrl,
@@ -227,6 +229,7 @@ export default function DronePilotRegisterPage() {
           hourlyRate: "",
           about: "",
           dgcaNumber: "",
+          hasDrone: "",
           profileImage: null,
           certificateImage: null
         })
@@ -498,6 +501,21 @@ export default function DronePilotRegisterPage() {
                       required
                       className="rounded-xl"
                     />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="hasDrone">Do you have a drone? *</Label>
+                    <select
+                      id="hasDrone"
+                      name="hasDrone"
+                      value={formData.hasDrone}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full h-10 px-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 bg-white"
+                    >
+                      <option value="">Select option</option>
+                      <option value="YES">YES</option>
+                      <option value="NO">NO</option>
+                    </select>
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="droneAcademy">Drone Academy <span className="text-sm font-normal text-gray-500">(optional)</span></Label>
