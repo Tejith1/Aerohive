@@ -253,22 +253,12 @@ export default function HomePage() {
         {/* Featured Products */}
         <section className="py-24 bg-white relative">
           <div className="container mx-auto px-4 relative">
-            {/* Blur Overlay */}
-            <div className="absolute inset-0 z-20 backdrop-blur-md bg-white/30 flex items-center justify-center rounded-3xl pointer-events-auto">
-              <div className="bg-white/90 px-12 py-6 rounded-2xl shadow-2xl border border-blue-100 transform hover:scale-105 transition-transform duration-300">
-                <h3 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  Coming Soon
-                </h3>
-                <p className="text-gray-600 mt-2 text-center text-lg">Stay tuned for our latest arrivals!</p>
-              </div>
-            </div>
-
             <div className="text-center mb-20">
               <h2 className="text-5xl md:text-6xl font-bold text-slate-900 mb-6">
-                Featured Drones
+                Explore Drone Categories
               </h2>
               <p className="text-2xl text-slate-700 max-w-4xl mx-auto leading-relaxed">
-                Handpicked selection of our most popular and cutting-edge drone models
+                Handpicked selection of our most popular and cutting-edge drone models across all specialized categories
               </p>
             </div>
 
@@ -354,7 +344,7 @@ export default function HomePage() {
                       className="h-full w-full object-contain p-2"
                     />
                   </div>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Drone Services</h3>
+                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Drone-as-a-Service</h3>
                   <p className="text-gray-600 leading-relaxed text-lg mb-6">
                     Professional drone services including aerial photography, mapping, surveying, and custom operations.
                   </p>
@@ -370,7 +360,7 @@ export default function HomePage() {
                   <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
                     <Settings className="h-10 w-10 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Repair Services</h3>
+                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Drone Repair Services</h3>
                   <p className="text-gray-600 leading-relaxed text-lg mb-6">
                     Expert repair services and maintenance programs to keep your drones flying at peak performance.
                   </p>
@@ -386,7 +376,7 @@ export default function HomePage() {
                   <div className="w-20 h-20 bg-gradient-to-br from-green-600 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
                     <Users className="h-10 w-10 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Training & Certification</h3>
+                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Drone Training & Certification</h3>
                   <p className="text-gray-600 leading-relaxed text-lg mb-6">
                     Comprehensive training programs and certifications from licensed pilots and aviation experts.
                   </p>

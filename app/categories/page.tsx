@@ -224,7 +224,7 @@ export default function CategoriesPage() {
         </section>
 
         <div className="relative">
-          <div className={`transition-all duration-300 ${!isAdmin ? 'filter blur-sm select-none pointer-events-none opacity-50' : ''}`}>
+          <div className={`transition-all duration-300 ${!isAdmin ? 'filter blur-md select-none pointer-events-none opacity-50' : ''}`}>
             {/* Search and Filter Section */}
             <section className="py-12 bg-white border-b border-gray-200">
               <div className="container mx-auto px-4">

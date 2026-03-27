@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, MapPin, Clock, Star, Wrench, Phone, Mail, Shield, Award, Filter, Lock } from "lucide-react"
+import { Search, MapPin, Clock, Star, Wrench, Phone, Mail, Shield, Award, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
 import { useAuth } from "@/contexts/auth-context"
+import { ComingSoonOverlay } from "@/components/ui/coming-soon-overlay"
 import { FAQSection } from "@/components/layout/faq-section"
 
 const repairFAQs = [
@@ -550,22 +551,10 @@ export default function RepairServicesPage() {
             </div>
           )}
 
-          {/* Coming Soon Overlay */}
-          {!isAdmin && !isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center z-20 px-4">
-              <div className="max-w-md w-full bg-white/95 backdrop-blur-sm border border-gray-200 p-8 rounded-3xl shadow-2xl text-center transform transition-all duration-500 animate-in fade-in zoom-in slide-in-from-bottom-4">
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-200">
-                  <Lock className="h-10 w-10 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                  Coming Soon
-                </h3>
-                <p className="text-gray-600 mb-4 leading-relaxed">
-                  Our drone repair services network is being established. Certified repair centers will be available soon.
-                </p>
-              </div>
-            </div>
-          )}
+          <ComingSoonOverlay
+            show={!isAdmin && !isLoading}
+            description="Our drone repair services network is being established. Certified repair centers will be available soon."
+          />
         </div>
       </section>
 

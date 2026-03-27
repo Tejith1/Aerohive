@@ -20,6 +20,30 @@ export default function PilotApprovals() {
 
   useEffect(() => {
     fetchPilots()
+
+    // Set up real-time subscription for drone pilots
+    if (!supabase) return
+
+    const channel = supabase
+      .channel('admin_drone_pilots_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'drone_pilots'
+        },
+        (payload: any) => {
+          console.log('Real-time pilot change detected:', payload)
+          // Refresh the list when a change is detected
+          fetchPilots()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   const fetchPilots = async () => {
