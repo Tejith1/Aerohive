@@ -692,6 +692,11 @@ export const uploadImage = async (file: File, bucket: string = 'product-images')
         message: error.message,
         error: error
       })
+      
+      if (error.message.includes('Bucket not found')) {
+        throw new Error(`Upload failed: Bucket "${bucket}" not found. Please run "node scripts/create-storage-buckets.js" to set up your storage infrastructure.`)
+      }
+      
       throw new Error(`Upload failed: ${error.message}`)
     }
 
