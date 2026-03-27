@@ -220,6 +220,7 @@ export interface DronePilot {
   specializations: string
   hourly_rate: number
   about: string
+  drone_academy?: string | null
   dgca_number: string
   profile_image_url?: string | null
   certificate_image_url?: string | null

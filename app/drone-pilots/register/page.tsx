@@ -24,7 +24,7 @@ import {
   CheckCircle2,
   Plane,
   FileText,
-   IndianRupee,
+  IndianRupee,
   Loader2
 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
@@ -96,10 +96,29 @@ export default function DronePilotRegisterPage() {
   const isFormValid = !!(
     formData.fullName && formData.email && formData.phone && 
     formData.location && formData.area && formData.experience && 
-    formData.certifications && formData.specializations && formData.droneAcademy &&
+    formData.certifications && formData.specializations &&
     formData.hourlyRate && formData.about && formData.dgcaNumber && 
     formData.hasDrone && formData.profileImage && formData.certificateImage
   )
+
+  const getMissingFields = () => {
+    const missing = []
+    if (!formData.fullName) missing.push("Full Name")
+    if (!formData.email) missing.push("Email")
+    if (!formData.phone) missing.push("Phone Number")
+    if (!formData.location) missing.push("City/Location")
+    if (!formData.area) missing.push("Area/Locality")
+    if (!formData.experience) missing.push("Experience")
+    if (!formData.certifications) missing.push("Certifications")
+    if (!formData.specializations) missing.push("Specializations")
+    if (!formData.hourlyRate) missing.push("Hourly Rate")
+    if (!formData.about) missing.push("About You")
+    if (!formData.dgcaNumber) missing.push("DGCA Number")
+    if (!formData.hasDrone) missing.push("Do you have a drone?")
+    if (!formData.profileImage) missing.push("Profile Photo")
+    if (!formData.certificateImage) missing.push("DGCA Certificate")
+    return missing
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -122,12 +141,16 @@ export default function DronePilotRegisterPage() {
     }
     
     // Additional strict validation check just in case
+    // Additional strict validation check
     if (!isFormValid) {
+      const missing = getMissingFields()
       toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields and upload the necessary documents.",
+        title: "Missing Required Fields",
+        description: `Please fill in the following: ${missing.join(", ")}`,
         variant: "destructive"
       })
+      
+      // Scroll to the first missing field if possible (optional enhancement)
       return
     }
     
@@ -532,14 +555,13 @@ export default function DronePilotRegisterPage() {
                     </select>
                   </div>
                   <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="droneAcademy">Drone Academy *</Label>
+                    <Label htmlFor="droneAcademy">Drone Academy <span className="text-sm font-normal text-gray-500">(Optional)</span></Label>
                     <Input
                       id="droneAcademy"
                       name="droneAcademy"
                       placeholder="e.g., Indian Institute of Drones, RPTO Academy"
                       value={formData.droneAcademy}
                       onChange={handleInputChange}
-                      required
                       className="rounded-xl"
                     />
                   </div>
@@ -610,11 +632,11 @@ export default function DronePilotRegisterPage() {
                 <p className="text-sm text-gray-600">
                   By registering, you agree to our terms and conditions
                 </p>
-                <Button
+                 <Button
                   type="submit"
                   size="lg"
-                  disabled={submitting || !isFormValid}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl px-8 shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={submitting}
+                  className={`bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl px-8 shadow-lg hover:shadow-xl transition-all duration-300 ${!isFormValid ? 'opacity-80' : ''}`}
                 >
                   {submitting ? (
                     <>
