@@ -25,6 +25,7 @@ except Exception as e:
 class SupabaseDB:
     def __init__(self):
         self.client = supabase
+        self.supabase = supabase
     
     def select(self, table: str, columns: str = "*", filters: Optional[dict] = None):
         """Select data from table with optional filters"""
@@ -76,6 +77,10 @@ db = SupabaseDB()
 
 # Dependency to get database client
 def get_db():
+    return db
+
+# Alias for Supabase-specific imports
+def get_supabase_db():
     return db
 
 # Authentication helpers

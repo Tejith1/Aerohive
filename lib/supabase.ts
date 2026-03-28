@@ -122,6 +122,20 @@ export const getSupabaseAdmin = () => {
         autoRefreshToken: false,
         persistSession: false,
       },
+      global: {
+        fetch: async (url: RequestInfo | URL, options?: RequestInit) => {
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 60000) // 60s timeout
+          try {
+            const response = await fetch(url, { ...options, signal: controller.signal })
+            clearTimeout(timeoutId)
+            return response
+          } catch (error: any) {
+            clearTimeout(timeoutId)
+            throw error
+          }
+        },
+      },
     })
   }
 

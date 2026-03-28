@@ -1,51 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-// Use service role key for admin operations (bypasses RLS and has full access)
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-if (!supabaseUrl || !supabaseServiceKey) {
-  console.error('❌ CRITICAL: Missing environment variables in signup route!')
-}
-
-// Initialize lazily or with a check to prevent top-level crash
-const getSupabaseAdmin = () => {
-  if (!supabaseUrl || !supabaseServiceKey) {
-    return null
-  }
-  return createClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  })
-}
+import { getSupabaseAdminWithRetry, withRetry } from '@/lib/supabase-admin'
 
 export async function POST(request: NextRequest) {
   try {
     console.log('🔵 Signup API called')
 
-    console.log('--- DEBUG ENV VARS ---')
-    console.log('URL:', supabaseUrl)
-    console.log('ServiceKey Length:', supabaseServiceKey?.length)
-    console.log('Is "your-project-id" present?:', supabaseUrl?.includes('your-project-id'))
-    console.log('Is "your-service-role-key" present?:', supabaseServiceKey?.includes('your-service-role-key'))
-    console.log('----------------------')
+    const supabaseAdmin = getSupabaseAdminWithRetry()
 
-    // Validate environment variables or check for placeholder/demo values
-    const isMockCreds = supabaseUrl?.includes('your-project-id') ||
-      supabaseServiceKey?.includes('your-service-role-key') ||
-      supabaseUrl?.includes('placeholder')
-
-    if (!supabaseUrl || !supabaseServiceKey || isMockCreds) {
-      if (isMockCreds) {
-        console.warn('⚠️ Demo Mode: Placeholder credentials detected')
-      } else {
-        console.error('❌ Missing Supabase environment variables')
-      }
+    if (!supabaseAdmin) {
       console.warn('⚠️ Demo Mode: Missing Supabase environment variables')
-      console.log('⚠️ Simulating successful signup for demo...')
 
       // MOCK RESPONSE FOR DEMO
       return NextResponse.json({
@@ -58,19 +21,10 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    const supabaseAdmin = getSupabaseAdmin()
-    if (!supabaseAdmin) {
-      return NextResponse.json(
-        { error: 'Server configuration error: Failed to initialize Supabase admin' },
-        { status: 500 }
-      )
-    }
-
     const body = await request.json()
     const { email, password, firstName, lastName, phone } = body
 
     console.log('📧 Server-side signup request for:', email)
-    console.log('📦 Request body:', { email, firstName, lastName, phone: phone || 'not provided' })
 
     // Validate input
     if (!email || !password || !firstName || !lastName) {
@@ -80,18 +34,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Use admin API to create user (this bypasses CORS and email confirmation for testing)
+    // Use admin API to create user (with retry for network issues)
     console.log('Creating user with admin API...')
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true, // Auto-confirm for now to test
-      user_metadata: {
-        first_name: firstName,
-        last_name: lastName,
-        phone: phone || null
-      }
-    })
+    const { data: authData, error: authError } = await withRetry(
+      () => supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          first_name: firstName,
+          last_name: lastName,
+          phone: phone || null
+        }
+      }),
+      3,
+      'user auth creation'
+    )
 
     if (authError) {
       console.error('❌ Auth error:', authError)
@@ -103,21 +61,24 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ User created in Auth:', authData.user?.id)
 
-    // Create user profile in database
+    // Create user profile in database (with retry)
     if (authData.user) {
       console.log('📝 Creating user profile in database...')
-      const { error: profileError } = await supabaseAdmin
-        .from('users')
-        .insert({
-          id: authData.user.id,
-          email: authData.user.email!,
-          password_hash: 'managed_by_supabase_auth',
-          first_name: firstName,
-          last_name: lastName,
-          phone: phone || null,
-          is_admin: false,
-          is_active: true
-        })
+      const { error: profileError } = await withRetry(
+        () => (supabaseAdmin.from('users') as any)
+          .insert({
+            id: authData.user.id,
+            email: authData.user.email!,
+            password_hash: 'managed_by_supabase_auth',
+            first_name: firstName,
+            last_name: lastName,
+            phone: phone || null,
+            is_admin: false,
+            is_active: true
+          }),
+        3,
+        'user profile insert'
+      ) as any
 
       if (profileError) {
         if (profileError.message.includes('duplicate key')) {
@@ -143,12 +104,7 @@ export async function POST(request: NextRequest) {
       message: 'Account created successfully!'
     })
   } catch (error: any) {
-    console.error('❌ Server error:', error)
-    console.error('Error details:', {
-      message: error?.message,
-      stack: error?.stack,
-      name: error?.name
-    })
+    console.error('❌ Server error:', error?.message || error)
     return NextResponse.json(
       { error: error?.message || 'Registration failed' },
       { status: 500 }

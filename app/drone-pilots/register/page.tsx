@@ -10,7 +10,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
-import { createDronePilot, uploadImage } from "@/lib/supabase"
 import { toast } from "@/hooks/use-toast"
 import { 
   ArrowLeft,
@@ -169,7 +168,7 @@ export default function DronePilotRegisterPage() {
     }, 30000) // 30 second timeout
     
     try {
-      console.log('🚀 Starting registration process...')
+      console.log('🚀 Starting registration process via server-side API...')
       console.log('📝 Form data:', {
         fullName: formData.fullName,
         email: formData.email,
@@ -182,48 +181,47 @@ export default function DronePilotRegisterPage() {
         hasDrone: formData.hasDrone
       })
       
-      // Upload documents to Supabase storage
-      let profileImageUrl = null
-      let certificateImageUrl = null
+      // Build FormData to send everything (including files) to the server-side API
+      const apiFormData = new FormData()
+      apiFormData.append('full_name', formData.fullName)
+      apiFormData.append('email', formData.email)
+      apiFormData.append('phone', formData.phone)
+      apiFormData.append('location', formData.location)
+      apiFormData.append('area', formData.area)
+      apiFormData.append('experience', formData.experience)
+      apiFormData.append('certifications', formData.certifications)
+      apiFormData.append('specializations', formData.specializations)
+      apiFormData.append('hourly_rate', formData.hourlyRate)
+      apiFormData.append('about', formData.hasDrone ? `[Owns a Drone: ${formData.hasDrone}]\n${formData.about}`.trim() : formData.about)
+      apiFormData.append('drone_academy', formData.droneAcademy || '')
+      apiFormData.append('dgca_number', formData.dgcaNumber)
+      apiFormData.append('is_phone_verified', 'false')
+      apiFormData.append('user_id', user.id)
 
       if (formData.profileImage) {
-        profileImageUrl = await uploadImage(formData.profileImage, 'pilot-documents')
+        apiFormData.append('profile_image', formData.profileImage)
       }
-      
       if (formData.certificateImage) {
-        certificateImageUrl = await uploadImage(formData.certificateImage, 'pilot-documents')
+        apiFormData.append('certificate_image', formData.certificateImage)
       }
 
-      // Create pilot data
-      const pilotData = {
-        full_name: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        location: formData.location,
-        area: formData.area,
-        experience: formData.experience,
-        certifications: formData.certifications,
-        specializations: formData.specializations,
-        hourly_rate: parseInt(formData.hourlyRate),
-        about: formData.hasDrone ? `[Owns a Drone: ${formData.hasDrone}]\n${formData.about}`.trim() : formData.about,
-        drone_academy: formData.droneAcademy || null,
-        dgca_number: formData.dgcaNumber,
-        profile_image_url: profileImageUrl,
-        certificate_image_url: certificateImageUrl,
-        is_phone_verified: false,
-        user_id: user.id
+      console.log('📤 Submitting to server-side API (bypasses RLS)...')
+      
+      const response = await fetch('/api/drone-pilots/register', {
+        method: 'POST',
+        body: apiFormData,
+      })
+
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Registration failed')
       }
 
-      console.log('📤 Submitting to database...')
-      console.log('📊 Pilot data:', pilotData)
-      
-      const result = await createDronePilot(pilotData)
-      
-      console.log('✅ Success! Database response:', result)
+      console.log('✅ Success! Server response:', result)
 
       // Sync with Google Sheets via backend API
       try {
-        // Create a copy of formData without File objects for the API call
         const { profileImage, certificateImage, ...cleanFormData } = formData;
         
         await fetch('/api/drone-pilot-registration', {
@@ -242,7 +240,7 @@ export default function DronePilotRegisterPage() {
         console.error('⚠️ Google Sheets sync failed but database is OK:', gsError)
       }
       
-      clearTimeout(timeoutId) // Successfully completed all syncs
+      clearTimeout(timeoutId)
       
       setSubmitted(true)
       setSubmitting(false)
@@ -274,15 +272,8 @@ export default function DronePilotRegisterPage() {
         })
       }, 3000)
     } catch (error: any) {
-      clearTimeout(timeoutId) // Clear the timeout on error
+      clearTimeout(timeoutId)
       console.error('❌ Registration error:', error)
-      console.error('📋 Error details:', {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint,
-        stack: error.stack
-      })
       
       setSubmitting(false)
       
@@ -290,13 +281,7 @@ export default function DronePilotRegisterPage() {
       let errorTitle = "Registration Failed"
       
       if (error.message) {
-        if (error.message.includes('relation') && error.message.includes('does not exist')) {
-          errorTitle = "Database Not Set Up"
-          errorMessage = "The database table hasn't been created yet. Please ask the administrator to run the SQL setup script."
-        } else if (error.message.includes('column') && error.message.includes('does not exist')) {
-          errorTitle = "Database Schema Outdated"
-          errorMessage = "The database schema is missing some required columns. Please ask the administrator to run the migration script."
-        } else if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
+        if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
           errorTitle = "Duplicate Entry"
           if (error.message.includes('email')) {
             errorMessage = "This email address is already registered."
@@ -305,9 +290,6 @@ export default function DronePilotRegisterPage() {
           } else {
             errorMessage = "This information is already registered. Please use different email or DGCA number."
           }
-        } else if (error.code === 'PGRST301') {
-          errorTitle = "Permission Denied"
-          errorMessage = "You don't have permission to register. Please contact support."
         } else {
           errorMessage = error.message
         }
