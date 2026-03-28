@@ -122,8 +122,9 @@ export default function DronePilotRegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    // Check if user is authenticated
+    console.log('🔘 Register Now button clicked!')
+    console.log('👥 Current User:', user ? user.id : 'Not Logged In')
+    console.log('✅ Form is valid:', isFormValid)
     if (!user) {
       toast({
         title: "Login Required",
@@ -144,6 +145,7 @@ export default function DronePilotRegisterPage() {
     // Additional strict validation check
     if (!isFormValid) {
       const missing = getMissingFields()
+      console.log('⚠️ Validation failed. Missing fields:', missing)
       toast({
         title: "Missing Required Fields",
         description: `Please fill in the following: ${missing.join(", ")}`,
@@ -291,6 +293,9 @@ export default function DronePilotRegisterPage() {
         if (error.message.includes('relation') && error.message.includes('does not exist')) {
           errorTitle = "Database Not Set Up"
           errorMessage = "The database table hasn't been created yet. Please ask the administrator to run the SQL setup script."
+        } else if (error.message.includes('column') && error.message.includes('does not exist')) {
+          errorTitle = "Database Schema Outdated"
+          errorMessage = "The database schema is missing some required columns. Please ask the administrator to run the migration script."
         } else if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
           errorTitle = "Duplicate Entry"
           if (error.message.includes('email')) {
