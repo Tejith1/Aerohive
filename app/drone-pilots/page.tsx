@@ -285,7 +285,7 @@ export default function DronePilotsPage() {
                 Find certified and experienced drone pilots in your area for aerial photography, surveying, inspections, and more
               </p>
 
-              {/* Pilot Registration Button */}
+              {/* Pilot Registration & Login Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
                 <Button
                   asChild
@@ -295,6 +295,17 @@ export default function DronePilotsPage() {
                   <Link href="/drone-pilots/register">
                     <UserPlus className="h-5 w-5 mr-2" />
                     Register as a Drone Pilot
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 hover:border-blue-700 hover:text-blue-700 rounded-xl px-8 py-6 text-lg font-semibold transition-all duration-300 hover:scale-105 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl"
+                >
+                  <Link href="/pilot-panel/login">
+                    <Plane className="h-5 w-5 mr-2" />
+                    Pilot Login
                   </Link>
                 </Button>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
