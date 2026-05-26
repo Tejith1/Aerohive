@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { sendEmailDirect, BookingEmailDetails } from '../../send-email/route'
+import { sendEmailDirect, type BookingEmailDetails } from '@/lib/email'
 
 // Initialize Supabase
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
