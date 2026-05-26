@@ -1,0 +1,714 @@
+'use client'
+
+import { useState, useEffect, useRef, Suspense } from 'react'
+import dynamic from 'next/dynamic'
+import { MessageCircle, X, Send, MapPin, User, Calendar, Clock, CheckCircle, Loader2, Bot } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { useToast } from '@/hooks/use-toast'
+import { getCurrentUser, getNearbyPilots, createBooking, DronePilot } from '@/lib/supabase'
+import { sendBookingNotification } from '@/lib/notifications'
+import { BookingConfirmDialog } from '@/components/BookingConfirmDialog'
+import { BookingDetailsDialog } from '@/components/BookingDetailsDialog'
+import { BookingLimitReachedDialog } from '@/components/BookingLimitReachedDialog'
+
+type ChatState = 'INIT' | 'REQUIREMENTS' | 'LOCATION' | 'RADIUS' | 'SEARCHING' | 'RESULTS' | 'CONFIRM' | 'BOOKING' | 'SUCCESS' | 'ERROR'
+
+interface Message {
+    id: string
+    role: 'bot' | 'user'
+    content: string | React.ReactNode
+    type?: 'text' | 'action_request' | 'pilot_list' | 'booking_details' | 'booking_confirm' | 'booking_success' | 'error_box'
+    data?: any
+}
+
+import type { MissionMapProps } from './MissionMap'
+
+// Dynamic import for Leaflet (SSR safe) - with no SSR and custom loading
+const MissionMap = dynamic(
+    () => import('./MissionMap').then(mod => mod.default),
+    {
+        ssr: false,
+        loading: () => <div className="h-full w-full bg-muted animate-pulse rounded-md flex items-center justify-center text-xs">Initializing Mission Map...</div>
+    }
+)
+
+export default function Chatbot() {
+    const [isOpen, setIsOpen] = useState(false)
+    const [messages, setMessages] = useState<Message[]>([])
+    const [inputValue, setInputValue] = useState('')
+    const [chatState, setChatState] = useState<ChatState>('INIT')
+    const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null)
+    const [foundPilots, setFoundPilots] = useState<DronePilot[]>([])
+    const [selectedPilot, setSelectedPilot] = useState<DronePilot | null>(null)
+    const [requirements, setRequirements] = useState('')
+    const [currentUser, setCurrentUser] = useState<any>(null)
+    const scrollRef = useRef<HTMLDivElement>(null)
+    const [userAddress, setUserAddress] = useState<string>('')
+    const [userName, setUserName] = useState<string>('')
+    const [userPhone, setUserPhone] = useState<string>('')
+    const { toast } = useToast()
+
+    // Booking dialogs state
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+    const [showDetailsDialog, setShowDetailsDialog] = useState(false)
+    const [showLimitDialog, setShowLimitDialog] = useState(false)
+    const [bookingLimitData, setBookingLimitData] = useState<{
+        canBook: boolean
+        currentCount: number
+        maxBookings: number
+        bookings: any[]
+    } | null>(null)
+    const [pendingBookingPilot, setPendingBookingPilot] = useState<DronePilot | null>(null)
+    const [completedBookingDetails, setCompletedBookingDetails] = useState<any>(null)
+
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollIntoView({ behavior: 'smooth' })
+        }
+    }, [messages])
+
+    const [trackingData, setTrackingData] = useState<{ lat: number, lng: number } | null>(null)
+    const socketRef = useRef<WebSocket | null>(null)
+
+    useEffect(() => {
+        // Check auth on load
+        getCurrentUser().then(user => {
+            setCurrentUser(user)
+        })
+
+        return () => {
+            if (socketRef.current) socketRef.current.close()
+        }
+    }, [])
+
+    const startTracking = (bookingId: string) => {
+        if (socketRef.current) socketRef.current.close()
+
+        // Sanitize bookingId to remove any '#' or fragments that might break WebSocket construction
+        const sanitizedId = bookingId.replace('#', '')
+        const wsUrl = `ws://localhost:8000/ws/tracking/${sanitizedId}`
+        const ws = new WebSocket(wsUrl)
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data)
+                if (data.location) {
+                    setTrackingData(data.location)
+                }
+            } catch (err) {
+                console.error("WS Parse Error", err)
+            }
+        }
+
+        socketRef.current = ws
+    }
+
+    const [language, setLanguage] = useState<'en' | 'te' | 'hi' | null>(null)
+
+    const addMessage = (role: 'bot' | 'user', content: string | React.ReactNode, type?: Message['type'], data?: any) => {
+        setMessages(prev => [...prev, { id: Math.random().toString(36), role, content, type, data }])
+    }
+
+    const handleOpen = async () => {
+        setIsOpen(true)
+        if (messages.length === 0 && !language) {
+            // Show language selection
+            addMessage('bot', (
+                <div className="flex flex-col gap-3">
+                    <p>Please select your preferred language:</p>
+                    <div className="grid grid-cols-1 gap-2">
+                        <Button variant="outline" onClick={() => handleLanguageSelect('en')}>English</Button>
+                        <Button variant="outline" onClick={() => handleLanguageSelect('te')}>Telugu (తెలుగు)</Button>
+                        <Button variant="outline" onClick={() => handleLanguageSelect('hi')}>Hindi (हिंदी)</Button>
+                    </div>
+                </div>
+            ))
+        }
+    }
+
+    const handleLanguageSelect = async (lang: 'en' | 'te' | 'hi') => {
+        setLanguage(lang)
+
+        // Remove the selection message cleanup if strictly needed, but appending is fine.
+        // Actually, let's clear the selection buttons to keep chat clean or just append.
+        // Better to append the user's choice as a user message for visual consistency.
+        const langLabel = lang === 'en' ? "English" : lang === 'te' ? "Telugu" : "Hindi"
+        addMessage('user', langLabel)
+
+        try {
+            // Initial call to backend to get greeting in selected language
+            const res = await callBackend("hello", "INIT", { language: lang })
+            addMessage('bot', res.message)
+            setChatState(res.next_state as ChatState)
+        } catch (e) {
+            console.error("Backend offline, falling back", e)
+            addMessage('bot', "Hello! I'm your AeroHive assistant. (Offline Mode)")
+            setChatState('REQUIREMENTS')
+        }
+    }
+
+    const callBackend = async (msg: string, state: ChatState, context?: any) => {
+        try {
+            const fullContext = {
+                lat: userLocation?.lat,
+                lng: userLocation?.lng,
+                language: language || context?.language || 'en',
+                ...(context || {})
+            }
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: msg,
+                    state: state,
+                    context: fullContext
+                })
+            })
+            if (!response.ok) throw new Error("Backend error")
+            return await response.json()
+        } catch (e) {
+            console.error(e)
+            throw e
+        }
+    }
+
+    const handleSend = async () => {
+        if (!inputValue.trim()) return
+
+        const userMsg = inputValue
+        setInputValue('')
+        addMessage('user', userMsg)
+
+        try {
+            // General handling via Backend
+            const res = await callBackend(userMsg, chatState, {
+                lat: userLocation?.lat,
+                lng: userLocation?.lng,
+                requirements: requirements
+            })
+
+            addMessage('bot', res.message)
+
+            // Capture location if returned by backend (e.g. from text-based extraction)
+            if (res.data?.lat && res.data?.lng) {
+                setUserLocation({ lat: res.data.lat, lng: res.data.lng })
+            }
+
+            if (res.user_name) setUserName(res.user_name)
+            if (res.user_phone) setUserPhone(res.user_phone)
+
+            setChatState(res.next_state as ChatState)
+
+            // Handle actions returned by AI
+            if (res.action === 'request_location') {
+                setRequirements(userMsg)
+                addMessage('bot', (
+                    <div className="flex flex-col gap-2 mt-2">
+                        <Button variant="secondary" size="sm" className="w-full flex items-center gap-2" onClick={requestLocation}>
+                            <MapPin className="h-4 w-4" /> Share My Location
+                        </Button>
+                    </div>
+                ))
+            } else if (res.action === 'request_radius') {
+                setChatState('RADIUS')
+                addMessage('bot', (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                        {[10, 20, 50].map(r => (
+                            <Button key={r} variant="outline" size="sm" onClick={() => handleSelectRadius(r)}>
+                                {r} km
+                            </Button>
+                        ))}
+                    </div>
+                ))
+            } else if (res.action === 'show_results' && res.data?.pilots) {
+                const pilots = res.data.pilots
+                setFoundPilots(pilots)
+                addMessage('bot', (
+                    <div className="flex flex-col gap-2 mt-2 max-h-[200px] overflow-y-auto pr-2">
+                        {pilots.map((pilot: any) => (
+                            <Card key={pilot.id} className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleSelectPilot(pilot)}>
+                                <CardContent className="p-3 flex items-start gap-3">
+                                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                                        <User className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="font-semibold text-sm truncate">{pilot.full_name}</p>
+                                        <p className="text-[10px] text-muted-foreground truncate">{pilot.specialization || pilot.specializations}</p>
+                                        <p className="text-xs font-medium mt-1">₹{pilot.hourly_rate}/hr • {pilot.rating} ★</p>
+                                        {pilot.distance_km != null && <p className="text-[10px] text-muted-foreground">{pilot.distance_km}km away</p>}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                ))
+            }
+            else if (res.action === 'process_booking') {
+                if (selectedPilot) processBooking(selectedPilot)
+            }
+
+        } catch (e) {
+            addMessage('bot', "I'm having trouble connecting to my AI brain. Please try again later.")
+        }
+    }
+
+    const requestLocation = () => {
+        if (!navigator.geolocation) {
+            addMessage('bot', "Geolocation is not supported by your browser.")
+            setChatState('ERROR')
+            return
+        }
+
+        addMessage('user', "Sharing location...")
+        setChatState('SEARCHING')
+
+        const getLocation = (options: PositionOptions): Promise<GeolocationPosition> => {
+            return new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, options)
+            })
+        }
+
+        const processPosition = async (position: GeolocationPosition) => {
+            const { latitude, longitude } = position.coords
+            setUserLocation({ lat: latitude, lng: longitude })
+
+            try {
+                // 1. Call backend immediately with coordinates (Fastest interaction)
+                const aiRes = await callBackend("Location Shared", "LOCATION", { lat: latitude, lng: longitude })
+                addMessage('bot', aiRes.message)
+                setChatState(aiRes.next_state as ChatState)
+
+                if (aiRes.action === 'request_radius' || aiRes.action === 'show_results') {
+                    // The handleSend logic already handles these actions
+                }
+
+                // 2. Reverse geocode in background (UI enhancement only)
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+                    const data = await res.json()
+                    if (data.address) {
+                        const city = data.address.city || data.address.town || ""
+                        const state = data.address.state || ""
+                        const addr = city && state ? `${city}, ${state}` : (city || state)
+                        if (addr) setUserAddress(addr)
+                    }
+                } catch (err) {
+                    console.error("Geocoding failed", err)
+                }
+
+            } catch (e) {
+                console.error(e)
+                addMessage('bot', "Error communicating with backend.")
+                setChatState('ERROR')
+            }
+        }
+
+        getLocation({ enableHighAccuracy: true, timeout: 5000, maximumAge: 0 })
+            .then(processPosition)
+            .catch((err) => {
+                console.warn("High accuracy location failed, trying low accuracy...", err)
+                getLocation({ enableHighAccuracy: false, timeout: 10000, maximumAge: 0 })
+                    .then(processPosition)
+                    .catch((finalErr) => {
+                        console.error("All location attempts failed", finalErr)
+                        let errorMsg = "I couldn't get your location."
+                        if (finalErr.code === 1) errorMsg = "Location permission denied. Please enable it in browser settings."
+                        else if (finalErr.code === 3) errorMsg = "Location request timed out."
+
+                        addMessage('bot', errorMsg + " You can type your city name instead.")
+                        setChatState('LOCATION')
+                    })
+            })
+    }
+
+    const handleSelectRadius = async (radius: number) => {
+        addMessage('user', `${radius} km radius`)
+        setChatState('SEARCHING')
+        try {
+            const res = await callBackend(`${radius}km`, 'RADIUS', { radius_km: radius })
+            addMessage('bot', res.message)
+            setChatState(res.next_state as ChatState)
+            if (res.action === 'show_results' && res.data?.pilots) {
+                const pilots = res.data.pilots
+                setFoundPilots(pilots)
+                addMessage('bot', (
+                    <div className="flex flex-col gap-2 mt-2 max-h-[200px] overflow-y-auto pr-2">
+                        {pilots.map((pilot: any) => (
+                            <Card key={pilot.id} className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleSelectPilot(pilot)}>
+                                <CardContent className="p-3 flex items-start gap-3">
+                                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                                        <User className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="font-semibold text-sm truncate">{pilot.full_name}</p>
+                                        <p className="text-[10px] text-muted-foreground truncate">{pilot.specialization || pilot.specializations}</p>
+                                        <p className="text-xs font-medium mt-1">₹{pilot.hourly_rate}/hr • {pilot.rating} ★</p>
+                                        {pilot.distance_km != null && <p className="text-[10px] text-muted-foreground">{pilot.distance_km}km away</p>}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                ))
+            }
+        } catch (e) {
+            addMessage('bot', "Search failed. Please try again.")
+            setChatState('RADIUS')
+        }
+    }
+
+    const handleSelectPilot = (pilot: DronePilot) => {
+        setSelectedPilot(pilot)
+        setChatState('CONFIRM')
+        addMessage('bot', (
+            <div className="flex flex-col gap-2">
+                <span>You selected <strong>{pilot.full_name}</strong>.</span>
+                <span>Please confirm the booking details:</span>
+                <div className="p-3 border rounded-md bg-background text-sm space-y-2">
+                    <div className="flex items-center gap-2"><Calendar className="h-4 w-4" /> Date: Today (ASAP)</div>
+                    <div className="flex items-center gap-2"><Clock className="h-4 w-4" /> Duration: 2 Hours</div>
+                    <div className="flex items-center gap-2"><MapPin className="h-4 w-4" /> Location: {userAddress || "Your shared location"}</div>
+                    <div className="border-t pt-2 mt-2 font-bold">Total Estimate: ₹{pilot.hourly_rate * 2}</div>
+                </div>
+                {!currentUser ? (
+                    <Button variant="destructive" className="w-full mt-2" onClick={() => window.location.href = '/login'}>
+                        Log in to Book
+                    </Button>
+                ) : (
+                    <Button className="w-full mt-2" onClick={() => processBooking(pilot)}>
+                        Confirm & Book
+                    </Button>
+                )}
+            </div>
+        ))
+    }
+
+    // Check booking limit and initiate booking flow
+    const initiateBooking = async (pilot: DronePilot) => {
+        if (!currentUser || !userLocation) return
+
+        setPendingBookingPilot(pilot)
+
+        try {
+            // Check booking limit first
+            const limitRes = await fetch(`/api/bookings/check-limit?userId=${currentUser.id}`)
+            const limitData = await limitRes.json()
+
+            setBookingLimitData(limitData)
+
+            if (!limitData.canBook) {
+                // Show limit reached dialog
+                setShowLimitDialog(true)
+                return
+            }
+
+            // Show confirmation dialog
+            setShowConfirmDialog(true)
+
+        } catch (error) {
+            console.error('Error checking booking limit:', error)
+            // On error, proceed with booking (fallback)
+            setBookingLimitData({ canBook: true, currentCount: 0, maxBookings: 2, bookings: [] })
+            setShowConfirmDialog(true)
+        }
+    }
+
+    // Process booking after user confirms
+    const processBookingAfterConfirm = async () => {
+        setShowConfirmDialog(false)
+
+        const pilot = pendingBookingPilot
+        if (!currentUser || !userLocation || !pilot) return
+
+        setChatState('BOOKING')
+        addMessage('user', "Confirm & Book")
+        addMessage('bot', <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Finalizing production booking...</div>)
+
+        try {
+            // Production API Call
+            const bookingRes = await fetch('/api/bookings/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    client_id: currentUser.id,
+                    pilot_id: pilot.id,
+                    service_type: pilot.specializations || "General",
+                    lat: userLocation.lat,
+                    lng: userLocation.lng,
+                    scheduled_at: new Date().toISOString(),
+                    duration_hours: 2,
+                    payment_method: 'UPI',
+                    requirements: { note: requirements },
+                    user_name: userName,
+                    user_phone: userPhone,
+                    user_email: currentUser.email
+                })
+            })
+
+            const bookingDataRes = await bookingRes.json()
+            if (!bookingRes.ok) throw new Error(bookingDataRes.detail || "Booking failed")
+
+            setChatState('SUCCESS')
+            startTracking(bookingDataRes.booking_id)
+
+            // Set completed booking details for dialog
+            setCompletedBookingDetails({
+                bookingId: bookingDataRes.booking_id,
+                otp: bookingDataRes.otp,
+                serviceType: pilot.specializations || "General",
+                location: userAddress || `${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`,
+                scheduledAt: new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }),
+                pilot: {
+                    id: pilot.id,
+                    full_name: bookingDataRes.pilot_name || pilot.full_name,
+                    phone: bookingDataRes.pilot_phone || pilot.phone,
+                    email: bookingDataRes.pilot_email || pilot.email,
+                    rating: bookingDataRes.pilot_rating || pilot.rating
+                }
+            })
+
+            // Show booking details popup
+            setShowDetailsDialog(true)
+
+            addMessage('bot', "Mission Hub Initialized", 'booking_success', {
+                booking_id: bookingDataRes.booking_id,
+                pilot: pilot,
+                otp: bookingDataRes.otp,
+                client_message: bookingDataRes.client_message,
+                pilot_message: bookingDataRes.pilot_message
+            })
+
+        } catch (e: any) {
+            console.error(e)
+            addMessage('bot', (
+                <div className="text-destructive text-xs p-2 bg-destructive/10 rounded-md">
+                    <strong>Booking Failed:</strong> {e.message || "Unknown Error"}
+                </div>
+            ))
+            setChatState('CONFIRM')
+        }
+    }
+
+    // Legacy function for backwards compatibility
+    const processBooking = async (pilot: DronePilot) => {
+        initiateBooking(pilot)
+    }
+
+    return (
+        <>
+            {/* Separate Backdrop Layer - Highlights Chatbot section when open */}
+            {isOpen && (
+                <div
+                    className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[40] animate-in fade-in duration-300"
+                    onClick={() => setIsOpen(false)}
+                />
+            )}
+
+            <div className="fixed bottom-4 right-4 z-[50] flex flex-col items-end">
+                {isOpen && (
+                    <Card className="w-[380px] mb-4 shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-primary/20 animate-in slide-in-from-bottom-5 bg-white/95 backdrop-blur-xl overflow-hidden flex flex-col ring-1 ring-white/20">
+                        <div className="p-4 border-b flex items-center justify-between bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm shadow-inner"><MessageCircle className="h-4 w-4" /></div>
+                                <div>
+                                    <span className="font-bold text-sm block leading-none">AeroHive AI</span>
+                                    <span className="text-[10px] text-primary-foreground/70 uppercase tracking-widest font-medium">Principal Architect</span>
+                                </div>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary-foreground hover:bg-white/10 rounded-full transition-colors" onClick={() => setIsOpen(false)}>
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+
+                        <CardContent className="p-0 flex flex-col h-[480px]">
+                            <ScrollArea className="flex-1 p-4 overscroll-contain">
+                                <div className="flex flex-col gap-5">
+                                    {messages.map(msg => (
+                                        <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                            <div className={`max-w-[88%] rounded-2xl p-3.5 text-sm shadow-sm transition-all duration-200 ${msg.role === 'user'
+                                                ? 'bg-primary text-primary-foreground rounded-br-none'
+                                                : 'bg-muted/50 text-foreground rounded-bl-none border border-border/50'
+                                                }`}>
+                                                {msg.type === 'booking_success' ? (
+                                                    <div className="space-y-4">
+                                                        <div className="bg-primary/5 p-3 rounded-lg border border-primary/20 space-y-2">
+                                                            <div className="flex items-center justify-between text-[10px] uppercase tracking-wider font-bold text-primary">
+                                                                <span>Booking Confirmed</span>
+                                                                <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Secure</span>
+                                                            </div>
+                                                            <div className="flex justify-between items-end">
+                                                                <div>
+                                                                    <p className="text-[10px] text-muted-foreground uppercase font-medium">Reference</p>
+                                                                    <p className="text-sm font-bold">{msg.data?.booking_id}</p>
+                                                                </div>
+                                                                <div className="text-right">
+                                                                    <p className="text-[10px] text-muted-foreground uppercase font-medium">Security OTP</p>
+                                                                    <p className="text-sm font-bold text-blue-600 tracking-widest">{msg.data?.otp}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="space-y-3">
+                                                            <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg text-xs border show-sm">
+                                                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-tight">1. Message for Client (User)</p>
+                                                                <div className="whitespace-pre-wrap leading-relaxed text-slate-800 dark:text-slate-100 font-medium">
+                                                                    {msg.data?.client_message}
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg text-xs border shadow-sm">
+                                                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-tight">2. Message for Pilot (Provider)</p>
+                                                                <div className="whitespace-pre-wrap leading-relaxed text-slate-800 dark:text-slate-100 font-medium">
+                                                                    {msg.data?.pilot_message}
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="h-[180px] w-full rounded-lg overflow-hidden border bg-muted/20 relative group">
+                                                                <div className="absolute top-2 right-2 z-10 bg-white/90 backdrop-blur px-1.5 py-0.5 rounded text-[8px] font-bold border shadow-sm flex items-center gap-1">
+                                                                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" /> LIVE TRACKING
+                                                                </div>
+                                                                {userLocation ? (
+                                                                    <div className="h-full w-full flex items-center justify-center text-[10px] text-muted-foreground bg-slate-100 rounded">
+                                                                        📍 Map: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="h-full w-full flex items-center justify-center text-[10px] text-muted-foreground animate-pulse">
+                                                                        Syncing coordinates...
+                                                                    </div>
+                                                                )}
+                                                            </div>
+
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="w-full text-[10px] h-8 font-medium hover:bg-primary hover:text-primary-foreground transition-all"
+                                                                onClick={() => setIsOpen(false)}
+                                                            >
+                                                                Minimize Hub
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                ) : msg.content}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {['SEARCHING', 'BOOKING'].includes(chatState) && (
+                                        <div className="flex justify-start">
+                                            <div className="bg-muted/50 rounded-2xl px-4 py-2 border border-border/50 flex items-center gap-2">
+                                                <span className="flex gap-1">
+                                                    <span className="w-1.5 h-1.5 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                                    <span className="w-1.5 h-1.5 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                                    <span className="w-1.5 h-1.5 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                                </span>
+                                                <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">AI Processing...</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div ref={scrollRef} />
+                                </div>
+                            </ScrollArea>
+
+                            <div className="p-4 border-t bg-white/50 backdrop-blur-md">
+                                <form
+                                    className="flex gap-2"
+                                    onSubmit={(e) => {
+                                        e.preventDefault()
+                                        handleSend()
+                                    }}
+                                >
+                                    <Input
+                                        placeholder="Consult with Mission Coordinator..."
+                                        className="bg-muted/30 border-none shadow-inner focus-visible:ring-1 focus-visible:ring-primary h-11"
+                                        value={inputValue}
+                                        onChange={e => setInputValue(e.target.value)}
+                                        disabled={['SEARCHING', 'BOOKING'].includes(chatState)}
+                                    />
+                                    <Button
+                                        type="submit"
+                                        size="icon"
+                                        className="h-11 w-11 shrink-0 rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all"
+                                        disabled={!inputValue.trim() || ['SEARCHING', 'BOOKING'].includes(chatState)}
+                                    >
+                                        <Send className="h-5 w-5" />
+                                    </Button>
+                                </form>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                <div className="relative group">
+                    {/* Flash Waves Animation - Only show when closed and logged in to highlight */}
+                    {!isOpen && currentUser && (
+                        <>
+                            {/* Outer Ripples */}
+                            <div className="absolute inset-0 rounded-[22px] bg-blue-500/40 animate-ripple" style={{ animationDelay: '0s' }} />
+                            <div className="absolute inset-0 rounded-[22px] bg-blue-500/40 animate-ripple" style={{ animationDelay: '1s' }} />
+
+                            {/* Inner Glow */}
+                            <div className="absolute inset-0 rounded-[22px] bg-blue-400/20 animate-pulse scale-110" />
+                        </>
+                    )}
+
+                    <Button
+                        onClick={() => isOpen ? setIsOpen(false) : handleOpen()}
+                        size="lg"
+                        className={`relative h-16 w-16 rounded-[22px] shadow-2xl p-0 hover:scale-110 active:scale-90 transition-all duration-300 overflow-hidden border-2 border-white/20
+                            ${isOpen ? 'bg-destructive' : 'bg-blue-600 hover:bg-blue-500'}
+                        `}
+                    >
+                        {/* Shine effect */}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                        {isOpen ? (
+                            <X className="h-7 w-7 text-white" />
+                        ) : (
+                            <div className="relative">
+                                {/* Inner glow for the bot icon */}
+                                <div className="absolute inset-0 bg-blue-400 blur-md opacity-50" />
+                                <Bot className="h-8 w-8 text-white relative z-10 drop-shadow-md animate-wave-hand" />
+                            </div>
+                        )}
+                    </Button>
+                </div>
+            </div>
+
+            {/* Booking Confirmation Dialog */}
+            <BookingConfirmDialog
+                isOpen={showConfirmDialog}
+                onConfirm={processBookingAfterConfirm}
+                onCancel={() => {
+                    setShowConfirmDialog(false)
+                    setPendingBookingPilot(null)
+                }}
+                currentBookings={bookingLimitData?.currentCount || 0}
+                maxBookings={bookingLimitData?.maxBookings || 2}
+                pilotName={pendingBookingPilot?.full_name}
+            />
+
+            {/* Booking Details Dialog (shown after successful booking) */}
+            <BookingDetailsDialog
+                isOpen={showDetailsDialog}
+                onClose={() => {
+                    setShowDetailsDialog(false)
+                    setCompletedBookingDetails(null)
+                }}
+                booking={completedBookingDetails}
+            />
+
+            {/* Booking Limit Reached Dialog */}
+            <BookingLimitReachedDialog
+                isOpen={showLimitDialog}
+                onClose={() => {
+                    setShowLimitDialog(false)
+                    setPendingBookingPilot(null)
+                }}
+                maxBookings={bookingLimitData?.maxBookings || 2}
+                existingBookings={bookingLimitData?.bookings || []}
+            />
+        </>
+    )
+}
