@@ -200,7 +200,7 @@ export async function POST(request: NextRequest) {
         // Get base URL for links
         const baseUrl = request.nextUrl.origin
         const trackingLink = `${baseUrl}/track/${orderUUID}`
-        const acceptJobLink = `${baseUrl}/pilots/accept-job?id=${orderUUID}`
+        const acceptJobLink = `${baseUrl}/pilot-panel/dashboard`
         const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
 
         // Calculate estimated amount
@@ -228,40 +228,59 @@ export async function POST(request: NextRequest) {
             estimatedAmount: estimatedAmount > 0 ? `₹${estimatedAmount}` : 'TBD'
         }
 
-        // Send email notifications (non-blocking)
-        const emailPromises = []
+        // Send email notifications SEQUENTIALLY (avoid Gmail rate-limit on concurrent SMTP)
+        let emailsSent = 0
+        const emailResults: { type: string; to: string; success: boolean; error?: string }[] = []
 
-        // Send to client if email available
+        // 1. Send to CLIENT first
         if (clientEmail) {
-            console.log(`📧 Sending booking confirmation email to client: ${clientEmail}`)
-            emailPromises.push(
-                sendNotificationEmail(
+            console.log(`📧 [1/2] Sending booking confirmation email to CLIENT: ${clientEmail}`)
+            try {
+                const clientResult = await sendNotificationEmail(
                     clientEmail,
                     `Your Drone Pilot Is Assigned | AeroHive Booking Confirmation`,
                     'client',
                     emailBookingDetails
                 )
-            )
+                const ok = !!clientResult?.success
+                emailResults.push({ type: 'client', to: clientEmail, success: ok, error: ok ? undefined : (clientResult as any)?.error })
+                if (ok) emailsSent++
+                console.log(`📧 [1/2] Client email result: ${ok ? '✅ SUCCESS' : '❌ FAILED'} → ${clientEmail}`)
+                if (!ok) console.error(`📧 [1/2] Client email error detail:`, JSON.stringify(clientResult))
+            } catch (err: any) {
+                console.error(`📧 [1/2] Client email EXCEPTION:`, err.message)
+                emailResults.push({ type: 'client', to: clientEmail, success: false, error: err.message })
+            }
         } else {
             console.log('⚠️ No client email available for notification')
         }
 
-        // Send to pilot if email available
+        // 2. Send to PILOT second (sequential to avoid Gmail concurrent connection issues)
         if (pilotEmail && pilotEmail.trim() !== '') {
-            console.log(`📧 Preparing job assignment email for pilot: '${pilotEmail}'`)
-            emailPromises.push(
-                sendNotificationEmail(
+            console.log(`📧 [2/2] Sending job assignment email to PILOT: '${pilotEmail}'`)
+            try {
+                const pilotResult = await sendNotificationEmail(
                     pilotEmail,
-                    `New Job Assigned | Action Required - AeroHive`,
+                    `New Booking Request | Action Required - AeroHive`,
                     'pilot',
                     emailBookingDetails
                 )
-            )
+                const ok = !!pilotResult?.success
+                emailResults.push({ type: 'pilot', to: pilotEmail, success: ok, error: ok ? undefined : (pilotResult as any)?.error })
+                if (ok) emailsSent++
+                console.log(`📧 [2/2] Pilot email result: ${ok ? '✅ SUCCESS' : '❌ FAILED'} → ${pilotEmail}`)
+                if (!ok) console.error(`📧 [2/2] Pilot email error detail:`, JSON.stringify(pilotResult))
+            } catch (err: any) {
+                console.error(`📧 [2/2] Pilot email EXCEPTION:`, err.message)
+                emailResults.push({ type: 'pilot', to: pilotEmail, success: false, error: err.message })
+            }
         } else {
-            console.warn('⚠️ No valid pilot email available for notification. Skip sending pilot email.')
+            console.warn(`⚠️ No valid pilot email available for notification. pilotEmail='${pilotEmail}'. Skip sending pilot email.`)
         }
 
-        // --- NEW: SMS NOTIFICATIONS ---
+        console.log('📬 Final Email Results:', JSON.stringify(emailResults, null, 2))
+
+        // --- SMS NOTIFICATIONS ---
         const smsPromises = []
         
         // SMS to client
@@ -272,14 +291,9 @@ export async function POST(request: NextRequest) {
 
         // SMS to pilot
         if (pilotPhone) {
-            const pilotSmsMessage = `AeroHive: NEW JOB assigned! Job: ${bookingId}. Location: ${locationDisplay}. Client: ${userName}. Link: ${acceptJobLink}. Verify OTP ${otp} on site.`
+            const pilotSmsMessage = `AeroHive: NEW BOOKING REQUEST! Job: ${bookingId}. Location: ${locationDisplay}. Client: ${userName}. Accept/Reject in your Pilot Panel: ${acceptJobLink}`
             smsPromises.push(sendSMS(baseUrl, pilotPhone, pilotSmsMessage))
         }
-
-        // Wait for emails and SMS to be sent (but don't fail if they fail)
-        const emailResults = await Promise.allSettled(emailPromises)
-        console.log('📬 Email Results:', JSON.stringify(emailResults, null, 2))
-        const emailsSent = emailResults.filter(r => r.status === 'fulfilled' && (r as any).value?.success).length
 
         const smsResults = await Promise.allSettled(smsPromises)
         console.log('📱 SMS Results:', JSON.stringify(smsResults, null, 2))
@@ -288,7 +302,7 @@ export async function POST(request: NextRequest) {
         // Generate confirmation messages for chatbot display (Client view)
         const clientMessage = `Hello ${userName},
 
-Your booking for *${service_type}* is PENDING pilot acceptance.
+Your booking for *${service_type}* has been placed and is awaiting pilot confirmation.
 
 📍 Location: ${locationDisplay}  
 📅 Slot: ${dateTimeDisplay}
@@ -306,7 +320,7 @@ You can track the pilot live via the link in the email once the job starts.
 Thank you for choosing AeroHive.`
 
         // Pilot Message is usually not shown in chatbot response unless for debugging, but we keep it
-        const pilotMessage = `NEW JOB ASSIGNMENT
+        const pilotMessage = `NEW BOOKING REQUEST
 
 🆔 Job ID: ${bookingId}  
 🛠 Service: ${service_type}  
@@ -317,10 +331,10 @@ Client Details:
 👤 Name: ${userName}  
 📞 Contact: ${userPhone}
 
-⚠️ Job Status: PENDING  
-🔐 Verify client OTP: *${otp}* before starting the service.
+⚠️ Status: PENDING — Accept or Reject in your Pilot Panel.  
+🔐 After accepting, collect the 4-digit OTP from the client to start.
 
-${pilotEmail ? `📧 Job details sent to: ${pilotEmail}` : ''}`
+${pilotEmail ? `📧 Booking details sent to: ${pilotEmail}` : ''}`
 
         return NextResponse.json({
             status: "success",

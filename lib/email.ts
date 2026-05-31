@@ -1,8 +1,6 @@
 import nodemailer from 'nodemailer'
 
-const GMAIL_USER = process.env.GMAIL_USER
-const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD
-const RESEND_API_KEY = process.env.RESEND_API_KEY
+// Process env variables will be read dynamically inside the functions at runtime to avoid static bundling caching in Next.js.
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -31,20 +29,23 @@ export interface BookingEmailDetails {
 export interface EmailRequest {
     to: string
     subject: string
-    type: 'client' | 'pilot'
+    type: 'client' | 'pilot' | 'client_declined'
     bookingDetails: BookingEmailDetails
 }
 
 // ─── Gmail Transporter ───────────────────────────────────────────────────────
 
 export function createGmailTransporter() {
+    const user = process.env.GMAIL_USER
+    const pass = process.env.GMAIL_APP_PASSWORD
+    console.log(`🔌 Initializing Nodemailer SMTP with USER: '${user}' | PASS: ${pass ? '✅ CONFIGURED' : '❌ MISSING'}`)
     return nodemailer.createTransport({
         host: 'smtp.gmail.com',
         port: 465,
         secure: true,
         auth: {
-            user: GMAIL_USER,
-            pass: GMAIL_APP_PASSWORD?.replace(/\s+/g, '')
+            user: user,
+            pass: pass?.replace(/\s+/g, '')
         },
         tls: {
             rejectUnauthorized: false
@@ -54,16 +55,24 @@ export function createGmailTransporter() {
 
 // ─── HTML Template ───────────────────────────────────────────────────────────
 
-export function generateEmailHtml(type: 'client' | 'pilot', d: BookingEmailDetails) {
+export function generateEmailHtml(type: 'client' | 'pilot' | 'client_declined', d: BookingEmailDetails) {
     if (!d) return ''
 
     const isPilot = type === 'pilot'
-    const bgColor = isPilot ? '#0f172a' : '#f8fafc'
-    const accentColor = isPilot ? '#3b82f6' : '#2563eb'
-    const title = isPilot ? 'NEW MISSION ASSIGNED' : 'BOOKING CONFIRMED'
+    const isDeclined = type === 'client_declined'
+    const bgColor = isPilot ? '#0f172a' : isDeclined ? '#fff1f2' : '#f8fafc'
+    const accentColor = isPilot ? '#3b82f6' : isDeclined ? '#e11d48' : '#2563eb'
+    const title = isPilot ? 'NEW BOOKING REQUEST' : isDeclined ? 'MISSION DECLINED BY PILOT' : 'BOOKING CONFIRMED'
     const subtitle = isPilot
-        ? 'A new drone mission is ready for your expertise.'
-        : 'Your professional drone pilot is scheduled.'
+        ? 'A new drone booking request needs your confirmation.'
+        : isDeclined
+        ? 'We apologize, but your assigned pilot has declined this mission slot.'
+        : 'Your booking is placed! Waiting for pilot confirmation.'
+    const headerTextColor = isPilot ? '#ffffff' : isDeclined ? '#9f1239' : '#0f172a'
+    const subtitleTextColor = isPilot ? '#94a3b8' : isDeclined ? '#b91c1c' : '#475569'
+    const badgeBg = isPilot ? 'rgba(255,255,255,0.1)' : isDeclined ? 'rgba(225,29,72,0.1)' : 'rgba(15,23,42,0.05)'
+    const badgeText = isPilot ? '#94a3b8' : isDeclined ? '#e11d48' : '#475569'
+    const badgeBorder = isPilot ? 'rgba(255,255,255,0.15)' : isDeclined ? 'rgba(225,29,72,0.2)' : 'rgba(15,23,42,0.1)'
 
     return `<!DOCTYPE html>
 <html>
@@ -77,9 +86,9 @@ export function generateEmailHtml(type: 'client' | 'pilot', d: BookingEmailDetai
         .wrapper { width: 100%; table-layout: fixed; background-color: #f1f5f9; padding-bottom: 40px; }
         .main { background-color: #ffffff; margin: 0 auto; width: 100%; max-width: 600px; border-spacing: 0; color: #1e293b; border-radius: 24px; overflow: hidden; margin-top: 40px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
         .header { background-color: ${bgColor}; padding: 48px 40px; text-align: center; }
-        .badge { display: inline-block; padding: 6px 12px; background-color: rgba(255,255,255,0.1); border-radius: 100px; color: #94a3b8; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.15); }
-        .header h1 { color: #ffffff; font-size: 32px; font-weight: 800; margin: 0; letter-spacing: -0.025em; line-height: 1.1; }
-        .header p { color: #94a3b8; font-size: 16px; margin-top: 12px; margin-bottom: 0; }
+        .badge { display: inline-block; padding: 6px 12px; background-color: ${badgeBg}; border-radius: 100px; color: ${badgeText}; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 16px; border: 1px solid ${badgeBorder}; }
+        .header h1 { color: ${headerTextColor}; font-size: 32px; font-weight: 800; margin: 0; letter-spacing: -0.025em; line-height: 1.1; }
+        .header p { color: ${subtitleTextColor}; font-size: 16px; margin-top: 12px; margin-bottom: 0; }
         .content { padding: 48px 40px; }
         .grid-row { display: flex; flex-wrap: wrap; margin-bottom: 32px; gap: 24px; }
         .grid-item { flex: 1; min-width: 200px; }
@@ -161,19 +170,29 @@ export function generateEmailHtml(type: 'client' | 'pilot', d: BookingEmailDetai
                         <p style="font-size: 12px; color: #64748b; margin-top: 8px; margin-bottom: 0;">${d.chargesNote || ''}</p>
                     </div>
 
-                    ${!isPilot ? `
+                    ${(!isPilot && !isDeclined) ? `
                     <div class="otp-display">
                         <span>${d.otp}</span>
                         <p>SECURITY VERIFICATION OTP</p>
                     </div>
+                    <div style="text-align: center; font-size: 13px; color: #64748b; margin-bottom: 24px;">
+                        Share this OTP with the pilot <strong>only upon arrival</strong> to verify identity.
+                    </div>
+                    ` : isDeclined ? `
+                    <div style="background: #fff1f2; border: 1px solid #fecdd3; border-radius: 16px; padding: 20px; margin-bottom: 24px; text-align: center;">
+                        <div style="font-size: 14px; font-weight: 700; color: #9f1239; margin-bottom: 6px;">BOOKING DECLINED</div>
+                        <div style="font-size: 13px; color: #b91c1c;">This booking request has been declined. You can view the cancellation details in your tracking console.</div>
+                    </div>
                     ` : `
-                    <div class="label">Mission Access Pin (Requested on Arrival)</div>
-                    <div class="value" style="font-size: 14px; margin-bottom: 24px;">Ask the client for the 4-digit OTP to start the service.</div>
+                    <div style="background: #fef3c7; border: 1px solid #fcd34d; border-radius: 16px; padding: 20px; margin-bottom: 24px; text-align: center;">
+                        <div style="font-size: 14px; font-weight: 700; color: #92400e; margin-bottom: 6px;">ACTION REQUIRED</div>
+                        <div style="font-size: 13px; color: #78350f;">Log in to your <strong>Pilot Panel</strong> to Accept or Reject this booking.<br/>After accepting, you will need to collect the client's 4-digit OTP to verify and start the service.</div>
+                    </div>
                     `}
 
                     <div class="btn-container">
-                        <a href="${isPilot ? d.acceptJobLink : d.trackingLink}" class="btn">
-                            ${isPilot ? 'Accept &amp; Confirm Job' : 'Track Booking Status'}
+                        <a href="${isPilot ? d.acceptJobLink : d.trackingLink}" class="btn" style="background-color: ${accentColor}; box-shadow: 0 10px 15px -3px ${isDeclined ? 'rgba(225,29,72,0.3)' : 'rgba(37,99,235,0.3)'};">
+                            ${isPilot ? 'Open Pilot Panel' : isDeclined ? 'View Tracking Status' : 'Track Booking Status'}
                         </a>
                     </div>
                 </td>
@@ -181,7 +200,7 @@ export function generateEmailHtml(type: 'client' | 'pilot', d: BookingEmailDetai
             <tr>
                 <td class="footer">
                     Sent via <b>AeroHive Network</b> &bull; Secure Drone Services<br>
-                    Need help? Contact <a href="mailto:aerohive.help@gmail.com" style="color: ${accentColor};">AeroHive Support</a>
+                    Need help? Contact <a href="mailto:${process.env.GMAIL_USER || 'aerohive.help@gmail.com'}" style="color: ${accentColor};">AeroHive Support</a>
                 </td>
             </tr>
         </table>
@@ -194,35 +213,113 @@ export function generateEmailHtml(type: 'client' | 'pilot', d: BookingEmailDetai
 
 export async function sendEmailDirect({ to, subject, type, bookingDetails }: EmailRequest) {
     try {
+        const user = process.env.GMAIL_USER
+        const pass = process.env.GMAIL_APP_PASSWORD
+        const resendApiKey = process.env.RESEND_API_KEY
+
         const htmlContent = generateEmailHtml(type, bookingDetails)
-        const fromAddress = `AeroHive Support <${GMAIL_USER}>`
-        const replyTo = GMAIL_USER
+        const fromAddress = `AeroHive Drones <${user || 'aerohive.help@gmail.com'}>`
+        const replyTo = user || 'aerohive.help@gmail.com'
 
-        console.log(`📡 [Direct] Sending email to ${to} (${type})`)
+        // Plain-text fallback (improves spam score significantly)
+        const plainText = [
+            `AeroHive - ${type === 'pilot' ? 'New Booking Request' : type === 'client_declined' ? 'Booking Declined' : 'Booking Confirmation'}`,
+            `Booking ID: ${bookingDetails?.bookingId || 'N/A'}`,
+            `Service: ${bookingDetails?.serviceType || 'N/A'}`,
+            `Location: ${bookingDetails?.location || 'N/A'}`,
+            `Scheduled: ${bookingDetails?.scheduledAt || 'N/A'}`,
+            type === 'pilot' ? `Client: ${bookingDetails?.clientName || 'N/A'} | Phone: ${bookingDetails?.clientPhone || 'N/A'}` : `Pilot: ${bookingDetails?.pilotName || 'N/A'}`,
+            '',
+            'This is an automated notification from AeroHive Drone Services.',
+            'Visit https://aerohive.co.in for more information.'
+        ].join('\n')
 
-        // Provider 1 – Gmail / Nodemailer
-        if (GMAIL_USER && GMAIL_APP_PASSWORD) {
+        // Anti-spam headers to improve deliverability for new sender accounts
+        const antiSpamHeaders = {
+            'X-Mailer': 'AeroHive-Notifications/2.0',
+            'X-Priority': '3',
+            'Precedence': 'bulk',
+            'List-Unsubscribe': `<mailto:${user || 'aerohive.help@gmail.com'}?subject=unsubscribe>`,
+            'MIME-Version': '1.0',
+            'X-Entity-Ref-ID': bookingDetails?.orderUUID || crypto.randomUUID()
+        }
+
+        console.log(`📡 [Direct] Dispatching email to: ${to} (${type})`)
+        console.log(`📡 SMTP Details: USER='${user}' | PASS_EXISTS=${!!pass} | RESEND_EXISTS=${!!resendApiKey}`)
+
+        // Provider 1 – Gmail / Nodemailer (with secure dual-port fallback)
+        if (user && pass) {
             try {
-                const transporter = createGmailTransporter()
+                console.log("🔌 Attempting Gmail SMTP via Port 465 (Secure SSL)...")
+                const transporter = nodemailer.createTransport({
+                    host: 'smtp.gmail.com',
+                    port: 465,
+                    secure: true,
+                    auth: {
+                        user: user,
+                        pass: pass.replace(/\s+/g, '')
+                    },
+                    tls: {
+                        rejectUnauthorized: false
+                    },
+                    connectionTimeout: 8000 // 8 second timeout to fail fast on port block
+                })
                 const result = await transporter.sendMail({
                     from: fromAddress,
+                    sender: user,
                     replyTo,
                     to,
                     subject,
-                    html: htmlContent
+                    text: plainText,
+                    html: htmlContent,
+                    headers: antiSpamHeaders
                 })
-                console.log(`✅ [Gmail] Email sent: ${result.messageId}`)
-                return { success: true, provider: 'gmail', messageId: result.messageId }
+                console.log(`✅ [Gmail Port 465] Email successfully sent: ${result.messageId}`)
+                return { success: true, provider: 'gmail_port_465', messageId: result.messageId }
             } catch (err: any) {
-                console.error('❌ Gmail failed:', err.message)
+                console.error('❌ Gmail SMTP Port 465 direct send failed:', err.message)
+                
+                // Fallback to Port 587 (STARTTLS)
+                try {
+                    console.log("🔌 Attempting Gmail SMTP Fallback via Port 587 (STARTTLS)...")
+                    const transporter = nodemailer.createTransport({
+                        host: 'smtp.gmail.com',
+                        port: 587,
+                        secure: false, // false for 587 STARTTLS
+                        auth: {
+                            user: user,
+                            pass: pass.replace(/\s+/g, '')
+                        },
+                        tls: {
+                            rejectUnauthorized: false
+                        },
+                        connectionTimeout: 8000
+                    })
+                    const result = await transporter.sendMail({
+                        from: fromAddress,
+                        sender: user,
+                        replyTo,
+                        to,
+                        subject,
+                        text: plainText,
+                        html: htmlContent,
+                        headers: antiSpamHeaders
+                    })
+                    console.log(`✅ [Gmail Port 587] Email successfully sent: ${result.messageId}`)
+                    return { success: true, provider: 'gmail_port_587', messageId: result.messageId }
+                } catch (fallbackErr: any) {
+                    console.error('❌ Gmail SMTP Port 587 fallback send failed:', fallbackErr.message)
+                }
             }
+        } else {
+            console.warn('⚠️ Gmail SMTP is not configured or missing environment variables.')
         }
 
         // Provider 2 – Resend (fallback)
-        if (RESEND_API_KEY) {
+        if (resendApiKey) {
             try {
                 const { Resend } = await import('resend')
-                const resend = new Resend(RESEND_API_KEY)
+                const resend = new Resend(resendApiKey)
                 const { data, error } = await resend.emails.send({
                     from: 'AeroHive Support <onboarding@resend.dev>',
                     replyTo,
@@ -231,16 +328,16 @@ export async function sendEmailDirect({ to, subject, type, bookingDetails }: Ema
                     html: htmlContent
                 })
                 if (error) throw error
-                console.log(`✅ [Resend] Email sent: ${data?.id}`)
+                console.log(`✅ [Resend] Email successfully sent: ${data?.id}`)
                 return { success: true, provider: 'resend', id: data?.id }
             } catch (err: any) {
-                console.error('❌ Resend failed:', err.message)
+                console.error('❌ Resend fallback failed:', err.message)
             }
         }
 
-        throw new Error('All email delivery providers failed. Configure GMAIL_USER + GMAIL_APP_PASSWORD in .env.local')
+        throw new Error('All configured email delivery providers failed. Please ensure GMAIL_USER + GMAIL_APP_PASSWORD are correctly declared in .env.local')
     } catch (error: any) {
-        console.error('sendEmailDirect Error:', error.message)
+        console.error('❌ sendEmailDirect critical exception:', error.message)
         return { success: false, error: error.message }
     }
 }
