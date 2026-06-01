@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, CreditCard, MapPin, Package, Check } from "lucide-react"
 import { Elements } from "@stripe/react-stripe-js"
@@ -70,8 +70,13 @@ export default function CheckoutPage() {
   const tax = subtotal * 0.08
   const total = subtotal + shipping + tax
 
+  useEffect(() => {
+    if (items.length === 0) {
+      router.push("/cart")
+    }
+  }, [items, router])
+
   if (items.length === 0) {
-    router.push("/cart")
     return null
   }
 
