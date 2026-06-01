@@ -118,14 +118,14 @@ CRITICAL: Never expose internal technical details. Be efficient and professional
             ai_data = {
                 "intent": "unknown",
                 "next_state": state,
-                "response_text": "I'm AeroBot, your Aerohive assistant. How can I help you today?",
+                "response_text": "I'm AeroChat, your Aerohive assistant. How can I help you today?",
                 "action": "null"
             }
 
             if state == "INIT" or "hello" in msg or "hi" in msg or "hey" in msg:
                 ai_data = {
                     "intent": "greet",
-                    "response_text": "Hello! I'm AeroBot, your Aerohive assistant. I can help you with:\n\n**Pilot Services:** Surveying, Spraying, 3D Mapping, Inspections\n**Drone Care:** General Checkup, Firmware Updates, Diagnostic Testing, Repair Services\n\nWhat can I assist you with today?",
+                    "response_text": "Hello! I'm AeroChat, your Aerohive assistant. I can help you with:\n\n**Pilot Services:** Surveying, Spraying, 3D Mapping, Inspections\n**Drone Care:** General Checkup, Firmware Updates, Diagnostic Testing, Repair Services\n\nWhat can I assist you with today?",
                     "next_state": "REQUIREMENTS"
                 }
             elif "service" in msg or "what do you" in msg or "what can" in msg:
@@ -177,6 +177,27 @@ CRITICAL: Never expose internal technical details. Be efficient and professional
             if ai_data.get("action") == "show_results" or intent == "select_radius":
                 lat = context.get('lat')
                 lng = context.get('lng')
+                location_name = (context.get('location_name') or '').lower()
+                
+                # Geocode address fallback if coordinates are missing
+                if not lat or not lng:
+                    print(f"DEBUG: Missing coordinates, trying to resolve from location_name: '{location_name}'")
+                    if "hyderabad" in location_name or "kphb" in location_name or "kukatpally" in location_name or "miyapur" in location_name:
+                        lat, lng = 17.4855, 78.3885 # KPHB Colony coordinates
+                        print(f"DEBUG: Resolved to KPHB coordinates: {lat}, {lng}")
+                    elif "mumbai" in location_name or "vashi" in location_name:
+                        lat, lng = 19.0760, 72.8777
+                    elif "pune" in location_name:
+                        lat, lng = 18.5204, 73.8567
+                    elif "bangalore" in location_name:
+                        lat, lng = 12.9716, 77.5946
+                    elif "kolkata" in location_name:
+                        lat, lng = 22.5726, 88.3639
+                    else:
+                        # Default to KPHB Colony for demo
+                        lat, lng = 17.4855, 78.3885
+                        print(f"DEBUG: Defaulted to KPHB Colony coordinates: {lat}, {lng}")
+
                 radius = ai_data.get("radius_km") or context.get('radius_km') or 20
                 category = ai_data.get("category") or context.get('category')
 
@@ -218,44 +239,153 @@ CRITICAL: Never expose internal technical details. Be efficient and professional
             return {"message": "I encountered a technical glitch in my neuro-pathways. Re-trying...", "next_state": state}
 
     def _search_production_pilots(self, lat: float, lng: float, radius_km: int, category: str = None) -> List[Dict]:
-        """Queries drone_pilots table from Supabase and returns up to 3 available pilots."""
+        """Queries drone_pilots table from Supabase, calculates distance, ranks and returns available pilots."""
         if not supabase: 
             print("DEBUG: Supabase not connected, returning empty pilot list")
             return []
         try:
             print(f"DEBUG: Searching pilots - lat: {lat}, lng: {lng}, radius: {radius_km}km, category: {category}")
             
-            # Build query for verified and active pilots
+            # 1. Fetch all active and verified pilots
             query = supabase.table('drone_pilots').select('*').eq('is_verified', True).eq('is_active', True)
-            
-            # Filter by specialization if category provided
-            if category:
-                query = query.ilike('specializations', f'%{category}%')
-            
-            # Order by rating descending and limit to 3
-            query = query.order('rating', desc=True).limit(3)
-            
             response = query.execute()
-            
             pilots = response.data or []
-            print(f"DEBUG: Found {len(pilots)} pilots from database")
+            print(f"DEBUG: Found {len(pilots)} active and verified pilots in database")
             
-            # Format pilot data for the chatbot
-            formatted_pilots = []
+            # Map category to matching keywords for priority sorting
+            keywords = []
+            if category:
+                cat_lower = category.lower()
+                if "spray" in cat_lower or "agri" in cat_lower:
+                    keywords = ["agri", "crop", "spray", "spraying", "field"]
+                elif "map" in cat_lower or "survey" in cat_lower or "3d" in cat_lower:
+                    keywords = ["survey", "mapping", "map", "surveillance", "real estate", "photography", "wedding", "events"]
+                elif "inspect" in cat_lower:
+                    keywords = ["inspect", "inspection", "tower", "bridge", "solar", "surveillance"]
+                else:
+                    keywords = [cat_lower]
+
+            area_coords = {
+                # Hyderabad
+                "miyapur": (17.4968, 78.3615),
+                "kukatpally": (17.4855, 78.3885),
+                "bachupally": (17.5345, 78.3662),
+                "uppal": (17.4018, 78.5602),
+                "hyderabad": (17.3850, 78.4867),
+                # Mumbai / Navi Mumbai
+                "mumbai": (19.0760, 72.8777),
+                "vashi": (19.0748, 72.9978),
+                "kurla": (19.0726, 72.8836),
+                # Pune / Sangvi / Kothrud
+                "pune": (18.5204, 73.8567),
+                "sangvi": (18.5721, 73.8055),
+                "kothrud": (18.5074, 73.8077),
+                "maharashtra": (18.5204, 73.8567),
+                # Bangalore
+                "bangalore": (12.9716, 77.5946),
+                "koromangla": (12.9352, 77.6244),
+                "jb nagar": (12.9716, 77.5946),
+                # Kolkata
+                "kolkata": (22.5726, 88.3639),
+                "north 24 parganas": (22.7230, 88.4873),
+                # Solapur
+                "solapur": (17.6599, 75.9064),
+                # Coimbatore
+                "coimbatore": (11.0168, 76.9558),
+                "thudiyalur": (11.0742, 76.9406),
+                "saravanapatty": (11.0772, 77.0097),
+                # Mandi
+                "mandi": (31.5892, 76.9182),
+                # Kolhapur / Sangli / Beed
+                "kolhapur": (16.7050, 74.2433),
+                "sangli": (16.8524, 74.5815),
+                "beed": (18.9891, 75.7601),
+                "akola": (20.7002, 77.0082),
+                # Others / Fallback
+                "guntur": (16.3067, 80.4365),
+                "andrapradesh": (16.3067, 80.4365),
+                "bhopal": (23.2599, 77.4126),
+            }
+
+            def get_distance(lat1, lon1, lat2, lon2):
+                R = 6371.0
+                dlat = math.radians(lat2 - lat1)
+                dlon = math.radians(lon2 - lon1)
+                a = math.sin(dlat / 2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2)**2
+                c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+                return R * c
+
+            # Process and rank pilots
+            processed_pilots = []
             for pilot in pilots:
+                p_area = (pilot.get("area") or "").lower().strip()
+                p_loc = (pilot.get("location") or "").lower().strip()
+                
+                # Resolve coordinates
+                p_coords = None
+                for key in area_coords:
+                    if key in p_area or key in p_loc:
+                        p_coords = area_coords[key]
+                        break
+                
+                # If coordinates resolved, calculate distance
+                if p_coords:
+                    dist = get_distance(lat, lng, p_coords[0], p_coords[1])
+                else:
+                    # Fallback default distance
+                    dist = 999.0
+                
+                # Calculate category relevance match
+                relevance = 0
+                specs = (pilot.get("specializations") or "").lower()
+                for kw in keywords:
+                    if kw in specs:
+                        relevance += 1
+
+                processed_pilots.append({
+                    "pilot": pilot,
+                    "distance_km": round(dist, 1) if p_coords else None,
+                    "relevance": relevance
+                })
+
+            # Filter by radius
+            filtered = []
+            for item in processed_pilots:
+                dist = item["distance_km"]
+                if dist is not None and dist <= radius_km:
+                    filtered.append(item)
+            
+            # Local testing fallback: If empty but user is in Hyderabad, let's keep all Hyderabad pilots!
+            if not filtered and (17.0 <= lat <= 18.0 and 78.0 <= lng <= 79.0):
+                print("DEBUG: No pilots inside strict radius. Bypassing limit for local Hyderabad testing.")
+                for item in processed_pilots:
+                    p_loc_lower = (item["pilot"].get("location") or "").lower()
+                    if "hyderabad" in p_loc_lower:
+                        filtered.append(item)
+
+            # Sort by relevance descending, then by distance ascending
+            filtered.sort(key=lambda x: (-x["relevance"], x["distance_km"] or 999.0))
+            
+            # Limit to top 3 and format for response
+            formatted_pilots = []
+            for item in filtered[:3]:
+                pilot = item["pilot"]
                 formatted_pilots.append({
                     "id": pilot.get("id"),
                     "full_name": pilot.get("full_name"),
                     "specialization": pilot.get("specializations"),
                     "hourly_rate": pilot.get("hourly_rate"),
-                    "rating": float(pilot.get("rating", 0)),
+                    "rating": float(pilot.get("rating", 0)) if pilot.get("rating") is not None else 5.0,
                     "location": pilot.get("location"),
                     "area": pilot.get("area"),
                     "experience": pilot.get("experience"),
-                    "completed_jobs": pilot.get("completed_jobs", 0)
+                    "completed_jobs": pilot.get("completed_jobs", 0),
+                    "distance_km": item["distance_km"]
                 })
-            
+
+            print(f"DEBUG: Returning {len(formatted_pilots)} matched pilots: {formatted_pilots}")
             return formatted_pilots
+
         except Exception as e:
             print(f"SEARCH ERROR: {e}")
             return []

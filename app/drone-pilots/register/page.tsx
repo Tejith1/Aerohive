@@ -48,7 +48,14 @@ export default function DronePilotRegisterPage() {
     dgcaNumber: "",
     hasDrone: "",
     profileImage: null as File | null,
-    certificateImage: null as File | null
+    certificateImage: null as File | null,
+    aadharNumber: "",
+    dob: "",
+    homeAddress: "",
+    gender: "",
+    bloodGroup: "",
+    emergencyContact: "",
+    panNumber: ""
   })
 
   const [submitted, setSubmitted] = useState(false)
@@ -193,7 +200,8 @@ export default function DronePilotRegisterPage() {
       apiFormData.append('specializations', formData.specializations)
       apiFormData.append('hourly_rate', formData.hourlyRate)
       apiFormData.append('about', formData.hasDrone ? `[Owns a Drone: ${formData.hasDrone}]\n${formData.about}`.trim() : formData.about)
-      apiFormData.append('drone_academy', formData.droneAcademy || '')
+      const formattedAcademy = `AADHAR: ${formData.aadharNumber.trim() || 'N/A'} | DOB: ${formData.dob || 'N/A'} | HOME: ${formData.homeAddress.trim() || 'N/A'} | GENDER: ${formData.gender || 'N/A'} | BLOOD: ${formData.bloodGroup || 'N/A'} | EMERGENCY: ${formData.emergencyContact.trim() || 'N/A'} | PAN: ${formData.panNumber.trim() || 'N/A'} | ACADEMY: ${formData.droneAcademy.trim() || 'None'}`
+      apiFormData.append('drone_academy', formattedAcademy)
       apiFormData.append('dgca_number', formData.dgcaNumber)
       apiFormData.append('is_phone_verified', 'false')
       apiFormData.append('user_id', user.id)
@@ -268,7 +276,14 @@ export default function DronePilotRegisterPage() {
           dgcaNumber: "",
           hasDrone: "",
           profileImage: null,
-          certificateImage: null
+          certificateImage: null,
+          aadharNumber: "",
+          dob: "",
+          homeAddress: "",
+          gender: "",
+          bloodGroup: "",
+          emergencyContact: "",
+          panNumber: ""
         })
       }, 3000)
     } catch (error: any) {
@@ -464,6 +479,116 @@ export default function DronePilotRegisterPage() {
                       <option value="5+">5+ years</option>
                     </select>
                   </div>
+                </div>
+
+                {/* Extended Verification Details - Skippable for now */}
+                <div className="mt-8 pt-6 border-t border-gray-100 space-y-4">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <div>
+                      <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Extended Verification</h4>
+                      <p className="text-xs text-gray-500 mt-0.5">These details are optional and can be skipped during initial registration.</p>
+                    </div>
+                    <span className="inline-flex items-center text-xs font-bold text-amber-700 bg-amber-50 border border-amber-100 rounded-full px-2.5 py-0.5">
+                      💡 Optional - Can be skipped
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="aadharNumber">Aadhar Card Number</Label>
+                      <Input
+                        id="aadharNumber"
+                        name="aadharNumber"
+                        placeholder="12-digit Aadhar number"
+                        value={formData.aadharNumber}
+                        onChange={handleInputChange}
+                        className="rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="dob">Date of Birth</Label>
+                      <Input
+                        id="dob"
+                        name="dob"
+                        type="date"
+                        value={formData.dob}
+                        onChange={handleInputChange}
+                        className="rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="homeAddress">Home Address</Label>
+                      <Input
+                        id="homeAddress"
+                        name="homeAddress"
+                        placeholder="Complete billing or home address"
+                        value={formData.homeAddress}
+                        onChange={handleInputChange}
+                        className="rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="gender">Gender</Label>
+                      <select
+                        id="gender"
+                        name="gender"
+                        value={formData.gender}
+                        onChange={handleInputChange}
+                        className="w-full h-10 px-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 bg-white"
+                      >
+                        <option value="">Select gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                        <option value="Skip">Skip / Prefer not to say</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="bloodGroup">Blood Group</Label>
+                      <select
+                        id="bloodGroup"
+                        name="bloodGroup"
+                        value={formData.bloodGroup}
+                        onChange={handleInputChange}
+                        className="w-full h-10 px-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 bg-white"
+                      >
+                        <option value="">Select blood group</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="Skip">Skip / Don't know</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="emergencyContact">Emergency Contact Number</Label>
+                      <Input
+                        id="emergencyContact"
+                        name="emergencyContact"
+                        placeholder="Emergency mobile number"
+                        value={formData.emergencyContact}
+                        onChange={handleInputChange}
+                        className="rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="panNumber">PAN Card Number</Label>
+                      <Input
+                        id="panNumber"
+                        name="panNumber"
+                        placeholder="10-digit PAN number"
+                        value={formData.panNumber}
+                        onChange={handleInputChange}
+                        className="rounded-xl uppercase"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-gray-400">
+                    * If skipped, your application will be reviewed but flagged as incomplete on the administration board until details are filled.
+                  </p>
                 </div>
               </div>
 

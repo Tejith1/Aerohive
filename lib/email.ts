@@ -1,8 +1,6 @@
 import nodemailer from 'nodemailer'
 
-const GMAIL_USER = process.env.GMAIL_USER
-const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD
-const RESEND_API_KEY = process.env.RESEND_API_KEY
+// Process env variables will be read dynamically inside the functions at runtime to avoid static bundling caching in Next.js.
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -31,20 +29,23 @@ export interface BookingEmailDetails {
 export interface EmailRequest {
     to: string
     subject: string
-    type: 'client' | 'pilot'
+    type: 'client' | 'pilot' | 'client_declined'
     bookingDetails: BookingEmailDetails
 }
 
 // ─── Gmail Transporter ───────────────────────────────────────────────────────
 
 export function createGmailTransporter() {
+    const user = process.env.GMAIL_USER
+    const pass = process.env.GMAIL_APP_PASSWORD
+    console.log(`🔌 Initializing Nodemailer SMTP with USER: '${user}' | PASS: ${pass ? '✅ CONFIGURED' : '❌ MISSING'}`)
     return nodemailer.createTransport({
         host: 'smtp.gmail.com',
         port: 465,
         secure: true,
         auth: {
-            user: GMAIL_USER,
-            pass: GMAIL_APP_PASSWORD?.replace(/\s+/g, '')
+            user: user,
+            pass: pass?.replace(/\s+/g, '')
         },
         tls: {
             rejectUnauthorized: false
@@ -54,138 +55,286 @@ export function createGmailTransporter() {
 
 // ─── HTML Template ───────────────────────────────────────────────────────────
 
-export function generateEmailHtml(type: 'client' | 'pilot', d: BookingEmailDetails) {
+export function generateEmailHtml(type: 'client' | 'pilot' | 'client_declined', d: BookingEmailDetails) {
     if (!d) return ''
 
     const isPilot = type === 'pilot'
-    const bgColor = isPilot ? '#0f172a' : '#f8fafc'
-    const accentColor = isPilot ? '#3b82f6' : '#2563eb'
-    const title = isPilot ? 'NEW MISSION ASSIGNED' : 'BOOKING CONFIRMED'
-    const subtitle = isPilot
-        ? 'A new drone mission is ready for your expertise.'
-        : 'Your professional drone pilot is scheduled.'
+    const isDeclined = type === 'client_declined'
+
+    // Theme values matching Book Haven pastel teal palette
+    const headerBg = '#bfe3e7'
+    const headerText = '#0f768a'
+    const btnColor = '#0f768a'
+    const btnHover = '#0c6172'
+
+    // Build the dynamic greeting and introductory paragraph
+    let greeting = ''
+    let introParagraph = ''
+    if (isPilot) {
+        greeting = `Dear ${d.pilotName || 'Professional Pilot'},`
+        introParagraph = 'A new premium flight mission request has been routed to your queue in the Aerohive Network. Please review the flight requirements and coordinate with the client below.'
+    } else if (isDeclined) {
+        greeting = `Dear ${d.clientName || 'Valued Client'},`
+        introParagraph = 'We apologize, but your assigned pilot has declined the requested flight mission slot. We are already routing your mission request to nearby drone operators.'
+    } else {
+        greeting = `Dear ${d.clientName || 'Valued Client'},`
+        introParagraph = 'Welcome to Aerohive! We are thrilled to have you as part of our premium drone flight community. Your booking request has been securely placed and is waiting for pilot confirmation.'
+    }
+
+    // Build tabular metadata for the email card
+    const detailsHtml = isPilot ? `
+        <tr>
+            <td style="width: 50%; padding: 12px 15px; border-bottom: 1px solid #eef2f3;">
+                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Pilot Name</div>
+                <div style="font-size: 14px; font-weight: 600; color: #2d3748; margin-top: 3px;">${d.pilotName || 'N/A'}</div>
+            </td>
+            <td style="width: 50%; padding: 12px 15px; border-bottom: 1px solid #eef2f3;">
+                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Mission Category</div>
+                <div style="font-size: 14px; font-weight: 600; color: #2d3748; margin-top: 3px;">${d.serviceType || 'General'}</div>
+            </td>
+        </tr>
+        <tr>
+            <td style="width: 50%; padding: 12px 15px; border-bottom: 1px solid #eef2f3;">
+                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Client Name</div>
+                <div style="font-size: 14px; font-weight: 600; color: #2d3748; margin-top: 3px;">${d.clientName || 'N/A'}</div>
+            </td>
+            <td style="width: 50%; padding: 12px 15px; border-bottom: 1px solid #eef2f3;">
+                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Client Contact</div>
+                <div style="font-size: 14px; font-weight: 600; color: #2d3748; margin-top: 3px;">${d.clientPhone || 'N/A'}</div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="padding: 12px 15px; border-bottom: 1px solid #eef2f3;">
+                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Flight Location</div>
+                <div style="font-size: 13px; font-weight: 600; color: #2d3748; margin-top: 3px; line-height: 1.4;">${d.location || 'N/A'}</div>
+            </td>
+        </tr>
+        <tr>
+            <td style="width: 50%; padding: 12px 15px;">
+                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Duration</div>
+                <div style="font-size: 14px; font-weight: 600; color: #2d3748; margin-top: 3px;">${d.durationHours || 1} Hour(s)</div>
+            </td>
+            <td style="width: 50%; padding: 12px 15px;">
+                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Estimated Earnings</div>
+                <div style="font-size: 15px; font-weight: 700; color: #0f768a; margin-top: 3px;">${d.estimatedAmount || 'Contact support'}</div>
+            </td>
+        </tr>
+    ` : `
+        <tr>
+            <td style="width: 50%; padding: 12px 15px; border-bottom: 1px solid #eef2f3;">
+                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Name</div>
+                <div style="font-size: 14px; font-weight: 600; color: #2d3748; margin-top: 3px;">${d.clientName || 'N/A'}</div>
+            </td>
+            <td style="width: 50%; padding: 12px 15px; border-bottom: 1px solid #eef2f3;">
+                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Address / Location</div>
+                <div style="font-size: 13px; font-weight: 600; color: #2d3748; margin-top: 3px; line-height: 1.4;">${d.location || 'N/A'}</div>
+            </td>
+        </tr>
+        <tr>
+            <td style="width: 50%; padding: 12px 15px; border-bottom: 1px solid #eef2f3;">
+                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Email Address</div>
+                <div style="font-size: 13px; font-weight: 600; color: #2d3748; margin-top: 3px;">${d.clientEmail || 'N/A'}</div>
+            </td>
+            <td style="width: 50%; padding: 12px 15px; border-bottom: 1px solid #eef2f3;">
+                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Contact</div>
+                <div style="font-size: 14px; font-weight: 600; color: #2d3748; margin-top: 3px;">${d.clientPhone || 'N/A'}</div>
+            </td>
+        </tr>
+        <tr>
+            <td style="width: 50%; padding: 12px 15px;">
+                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Assigned Pilot</div>
+                <div style="font-size: 14px; font-weight: 600; color: #2d3748; margin-top: 3px;">${d.pilotName || 'Searching...'}</div>
+            </td>
+            <td style="width: 50%; padding: 12px 15px;">
+                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Flight Date &amp; Time</div>
+                <div style="font-size: 13px; font-weight: 600; color: #2d3748; margin-top: 3px;">${d.scheduledAt}</div>
+            </td>
+        </tr>
+    `
+
+    // Build the dynamic checklist
+    let checklistHtml = ''
+    if (isPilot) {
+        checklistHtml = `
+            <div style="background-color: #f4fbfc; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+                <div style="margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px;">
+                    <span style="color: #4caf50; font-weight: bold; font-size: 16px;">☑</span>
+                    <span style="font-size: 13.5px; color: #4a5568; line-height: 1.45;">Premium compensation &amp; travel allowance covered.</span>
+                </div>
+                <div style="margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px;">
+                    <span style="color: #4caf50; font-weight: bold; font-size: 16px;">☑</span>
+                    <span style="font-size: 13.5px; color: #4a5568; line-height: 1.45;">Encrypted flight security OTP must be verified at the site.</span>
+                </div>
+                <div style="margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px;">
+                    <span style="color: #4caf50; font-weight: bold; font-size: 16px;">☑</span>
+                    <span style="font-size: 13.5px; color: #4a5568; line-height: 1.45;">High-definition mapping overlays synced to your dashboard.</span>
+                </div>
+                <div style="display: flex; align-items: flex-start; gap: 10px;">
+                    <span style="color: #4caf50; font-weight: bold; font-size: 16px;">☑</span>
+                    <span style="font-size: 13.5px; color: #4a5568; line-height: 1.45;">Direct digital payments triggered on client security release.</span>
+                </div>
+            </div>
+        `
+    } else if (isDeclined) {
+        checklistHtml = `
+            <div style="background-color: #fcf4f4; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+                <div style="margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px;">
+                    <span style="color: #e53e3e; font-weight: bold; font-size: 16px;">⚠</span>
+                    <span style="font-size: 13.5px; color: #4a5568; line-height: 1.45;">Automatic search routing for a closer replacement pilot is active.</span>
+                </div>
+                <div style="margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px;">
+                    <span style="color: #e53e3e; font-weight: bold; font-size: 16px;">⚠</span>
+                    <span style="font-size: 13.5px; color: #4a5568; line-height: 1.45;">Zero fee booking cancellation guarantees immediate rebooking.</span>
+                </div>
+                <div style="display: flex; align-items: flex-start; gap: 10px;">
+                    <span style="color: #e53e3e; font-weight: bold; font-size: 16px;">⚠</span>
+                    <span style="font-size: 13.5px; color: #4a5568; line-height: 1.45;">Mission dispatch specialists are assisting you 24/7.</span>
+                </div>
+            </div>
+        `
+    } else {
+        checklistHtml = `
+            <div style="background-color: #f4fbfc; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+                <div style="margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px;">
+                    <span style="color: #4caf50; font-weight: bold; font-size: 16px;">☑</span>
+                    <span style="font-size: 13.5px; color: #4a5568; line-height: 1.45;">Explore nearest certified drone pilots across custom radiuses.</span>
+                </div>
+                <div style="margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px;">
+                    <span style="color: #4caf50; font-weight: bold; font-size: 16px;">☑</span>
+                    <span style="font-size: 13.5px; color: #4a5568; line-height: 1.45;">Get real-time location telemetry &amp; live pilot arrival tracking.</span>
+                </div>
+                <div style="margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px;">
+                    <span style="color: #4caf50; font-weight: bold; font-size: 16px;">☑</span>
+                    <span style="font-size: 13.5px; color: #4a5568; line-height: 1.45;">Enjoy direct secure UPI payouts and detailed receipts.</span>
+                </div>
+                <div style="display: flex; align-items: flex-start; gap: 10px;">
+                    <span style="color: #4caf50; font-weight: bold; font-size: 16px;">☑</span>
+                    <span style="font-size: 13.5px; color: #4a5568; line-height: 1.45;">Easily track your current mission parameters on our hub.</span>
+                </div>
+            </div>
+        `
+    }
+
+    // Build segmented custom digital boxes for OTP just like in Image 2
+    let otpSegmentedHtml = ''
+    if (!isPilot && !isDeclined && d.otp) {
+        const otpStr = String(d.otp).trim()
+        const otpChars = otpStr.split('')
+        const boxes = otpChars.map(char => `
+            <span style="display: inline-block; width: 44px; height: 44px; line-height: 44px; text-align: center; font-size: 22px; font-weight: 800; color: #0f768a; background-color: #e6f4f6; border: 1.5px solid #bfe3e7; border-radius: 8px; margin: 0 4px; font-family: 'Helvetica Neue', Arial, sans-serif;">${char}</span>
+        `).join('')
+
+        otpSegmentedHtml = `
+            <div style="text-align: center; background-color: #f7fbfb; border: 1px dashed #bfe3e7; border-radius: 16px; padding: 25px; margin: 30px 0;">
+                <div style="font-size: 12px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 15px;">Your Booking Security Code</div>
+                <div style="margin-bottom: 15px;">
+                    ${boxes}
+                </div>
+                <div style="font-size: 12.5px; color: #64748b; line-height: 1.45;">
+                    Provide this secure verification OTP to the pilot <strong>only when they arrive</strong> at your location.
+                </div>
+            </div>
+        `
+    }
+
+    const ctaLink = isPilot ? d.acceptJobLink : d.trackingLink
+    const ctaLabel = isPilot ? 'ACCEPT MISSION BLOCK' : 'TRACK MISSION HUB'
 
     return `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AeroHive - ${title}</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f1f5f9; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
-        .wrapper { width: 100%; table-layout: fixed; background-color: #f1f5f9; padding-bottom: 40px; }
-        .main { background-color: #ffffff; margin: 0 auto; width: 100%; max-width: 600px; border-spacing: 0; color: #1e293b; border-radius: 24px; overflow: hidden; margin-top: 40px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
-        .header { background-color: ${bgColor}; padding: 48px 40px; text-align: center; }
-        .badge { display: inline-block; padding: 6px 12px; background-color: rgba(255,255,255,0.1); border-radius: 100px; color: #94a3b8; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.15); }
-        .header h1 { color: #ffffff; font-size: 32px; font-weight: 800; margin: 0; letter-spacing: -0.025em; line-height: 1.1; }
-        .header p { color: #94a3b8; font-size: 16px; margin-top: 12px; margin-bottom: 0; }
-        .content { padding: 48px 40px; }
-        .grid-row { display: flex; flex-wrap: wrap; margin-bottom: 32px; gap: 24px; }
-        .grid-item { flex: 1; min-width: 200px; }
-        .label { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
-        .value { font-size: 16px; font-weight: 600; color: #1e293b; }
-        .highlight-box { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; padding: 24px; margin-bottom: 32px; }
-        .otp-display { text-align: center; background: linear-gradient(135deg, ${accentColor}, #1d4ed8); border-radius: 16px; padding: 24px; color: white; margin-bottom: 32px; }
-        .otp-display span { font-size: 48px; font-weight: 800; letter-spacing: 0.1em; display: block; margin-bottom: 4px; }
-        .otp-display p { font-size: 12px; font-weight: 600; opacity: 0.8; margin: 0; text-transform: uppercase; }
-        .btn-container { text-align: center; padding-bottom: 48px; }
-        .btn { display: inline-block; background-color: ${accentColor}; color: #ffffff !important; padding: 18px 36px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 10px 15px -3px rgba(37,99,235,0.3); }
-        .footer { padding: 40px; text-align: center; color: #64748b; font-size: 14px; }
-        .footer b { color: #1e293b; }
-    </style>
+    <title>Aerohive booking notification</title>
 </head>
-<body>
-    <div class="wrapper">
-        <table class="main">
-            <tr>
-                <td class="header">
-                    <div class="badge">AEROHIVE MISSION CONTROL</div>
-                    <h1>${title}</h1>
-                    <p>${subtitle}</p>
-                </td>
-            </tr>
-            <tr>
-                <td class="content">
-                    <div class="grid-row">
-                        <div class="grid-item">
-                            <div class="label">Booking ID</div>
-                            <div class="value">${d.bookingId}</div>
-                        </div>
-                        <div class="grid-item">
-                            <div class="label">Service Type</div>
-                            <div class="value">${d.serviceType}</div>
-                        </div>
-                    </div>
+<body style="margin: 0; padding: 0; background-color: #f0f4f5; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f0f4f5; padding: 40px 0;">
+        <tr>
+            <td align="center">
+                <!-- Outer Envelope Card -->
+                <table width="100%" max-width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #dcdfdc; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);" cellspacing="0" cellpadding="0">
+                    
+                    <!-- Soft Teal Banner Header -->
+                    <tr>
+                        <td align="center" style="background-color: ${headerBg}; padding: 28px 20px;">
+                            <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: ${headerText}; letter-spacing: 0.02em; font-family: 'Helvetica Neue', Arial, sans-serif;">
+                                ${isPilot ? 'AeroHive - New Mission Dispatched' : 'AeroHive - Flight Scheduled'}
+                            </h2>
+                        </td>
+                    </tr>
 
-                    <div class="grid-row">
-                        <div class="grid-item">
-                            <div class="label">Date &amp; Time</div>
-                            <div class="value">${d.scheduledAt}</div>
-                        </div>
-                        <div class="grid-item">
-                            <div class="label">Location</div>
-                            <div class="value">${d.location}</div>
-                        </div>
-                    </div>
+                    <!-- Body Content -->
+                    <tr>
+                        <td style="padding: 40px 35px 30px 35px;">
+                            <p style="font-size: 16px; font-weight: 700; color: #2d3748; margin-top: 0; margin-bottom: 12px;">
+                                ${greeting}
+                            </p>
+                            
+                            <p style="font-size: 14px; color: #4a5568; line-height: 1.6; margin-bottom: 30px;">
+                                ${introParagraph}
+                            </p>
 
-                    ${isPilot ? `
-                    <div class="grid-row">
-                        <div class="grid-item">
-                            <div class="label">Client Name</div>
-                            <div class="value">${d.clientName || 'N/A'}</div>
-                        </div>
-                        <div class="grid-item">
-                            <div class="label">Client Phone</div>
-                            <div class="value">${d.clientPhone || 'N/A'}</div>
-                        </div>
-                    </div>
-                    ` : `
-                    <div class="grid-row">
-                        <div class="grid-item">
-                            <div class="label">Pilot Name</div>
-                            <div class="value">${d.pilotName || 'N/A'}</div>
-                        </div>
-                        <div class="grid-item">
-                            <div class="label">Pilot Phone</div>
-                            <div class="value">${d.pilotPhone || 'N/A'}</div>
-                        </div>
-                    </div>
-                    `}
+                            <!-- Structured Grey Tabular Details Grid -->
+                            <table width="100%" cellspacing="0" cellpadding="0" style="border: 1px solid #eef2f3; border-radius: 12px; background-color: #fbfcff; margin-bottom: 30px; border-collapse: separate; overflow: hidden;">
+                                ${detailsHtml}
+                            </table>
 
-                    <div class="highlight-box">
-                        <div class="label">${isPilot ? 'Mission Notes' : 'Estimated Charges'}</div>
-                        <div class="value" style="color: ${accentColor}; font-size: 20px;">
-                            ${isPilot ? (d.requirements || 'No special requirements.') : (d.estimatedAmount || 'Contact for Quote')}
-                        </div>
-                        <p style="font-size: 12px; color: #64748b; margin-top: 8px; margin-bottom: 0;">${d.chargesNote || ''}</p>
-                    </div>
+                            <!-- Green Checklist items -->
+                            <p style="font-size: 14.5px; font-weight: 700; color: #2d3748; margin-bottom: 15px;">
+                                With your premium account, you get:
+                            </p>
+                            ${checklistHtml}
 
-                    ${!isPilot ? `
-                    <div class="otp-display">
-                        <span>${d.otp}</span>
-                        <p>SECURITY VERIFICATION OTP</p>
-                    </div>
-                    ` : `
-                    <div class="label">Mission Access Pin (Requested on Arrival)</div>
-                    <div class="value" style="font-size: 14px; margin-bottom: 24px;">Ask the client for the 4-digit OTP to start the service.</div>
-                    `}
+                            <!-- Dynamic OTP Segmented Block -->
+                            ${otpSegmentedHtml}
 
-                    <div class="btn-container">
-                        <a href="${isPilot ? d.acceptJobLink : d.trackingLink}" class="btn">
-                            ${isPilot ? 'Accept &amp; Confirm Job' : 'Track Booking Status'}
-                        </a>
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td class="footer">
-                    Sent via <b>AeroHive Network</b> &bull; Secure Drone Services<br>
-                    Need help? Contact <a href="mailto:aerohive.help@gmail.com" style="color: ${accentColor};">AeroHive Support</a>
-                </td>
-            </tr>
-        </table>
-    </div>
+                            <p style="font-size: 14.5px; color: #2d3748; margin-bottom: 25px;">
+                                Click below to instantly log in to your active portal:
+                            </p>
+
+                            <!-- Deep Teal CTA Button -->
+                            <table border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 35px;">
+                                <tr>
+                                    <td align="center" style="border-radius: 8px;" bgcolor="${btnColor}">
+                                        <a href="${ctaLink || '#'}" target="_blank" style="font-size: 14.5px; font-family: Arial, sans-serif; color: #ffffff; text-decoration: none; border-radius: 8px; padding: 14px 28px; border: 1px solid ${btnColor}; display: inline-block; font-weight: 700; letter-spacing: 0.05em;">
+                                            ${ctaLabel}
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="font-size: 14px; color: #4a5568; line-height: 1.6; margin-bottom: 0;">
+                                If you have any questions, our flight support team is always here to assist. Happy flying!
+                            </p>
+
+                            <p style="font-size: 12px; font-style: italic; color: #9aa3a6; margin-top: 25px; margin-bottom: 30px; border-top: 1px solid #f0f3f4; pt-15px; padding-top: 15px;">
+                                Note: This is a system generated message. Do not reply.
+                            </p>
+
+                            <p style="font-size: 14px; color: #4a5568; margin-bottom: 5px; line-height: 1.4;">
+                                Best Regards,<br>
+                                <strong style="color: #2d3748;">Team Aerohive</strong>
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer divider and logo tag -->
+                    <tr>
+                        <td align="center" style="padding: 20px 35px 35px 35px; background-color: #fafbfc; border-top: 1px solid #f0f3f4;">
+                            <div style="font-size: 15px; font-weight: 700; color: #0f768a; margin-bottom: 8px;">
+                                AeroHive Network
+                            </div>
+                            <div style="font-size: 11.5px; color: #9aa3a6; line-height: 1.45;">
+                                &copy; 2026 aerohive.com.lk &bull; Secure Drone Operations<br>
+                                Need help? Contact our <a href="mailto:aerohive.help@gmail.com" style="color: #0f768a; text-decoration: none; font-weight: 600;">Support Desk</a>
+                            </div>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>`
 }
@@ -194,16 +343,34 @@ export function generateEmailHtml(type: 'client' | 'pilot', d: BookingEmailDetai
 
 export async function sendEmailDirect({ to, subject, type, bookingDetails }: EmailRequest) {
     try {
+        const user = process.env.GMAIL_USER
+        const pass = process.env.GMAIL_APP_PASSWORD
+        const resendApiKey = process.env.RESEND_API_KEY
+
         const htmlContent = generateEmailHtml(type, bookingDetails)
-        const fromAddress = `AeroHive Support <${GMAIL_USER}>`
-        const replyTo = GMAIL_USER
+        const fromAddress = `AeroHive Support <${user || 'aerohive.help@gmail.com'}>`
+        const replyTo = user || 'aerohive.help@gmail.com'
 
-        console.log(`📡 [Direct] Sending email to ${to} (${type})`)
+        console.log(`📡 [Direct] Dispatching email to: ${to} (${type})`)
+        console.log(`📡 SMTP Details: USER='${user}' | PASS_EXISTS=${!!pass} | RESEND_EXISTS=${!!resendApiKey}`)
 
-        // Provider 1 – Gmail / Nodemailer
-        if (GMAIL_USER && GMAIL_APP_PASSWORD) {
+        // Provider 1 – Gmail / Nodemailer (with secure dual-port fallback)
+        if (user && pass) {
             try {
-                const transporter = createGmailTransporter()
+                console.log("🔌 Attempting Gmail SMTP via Port 465 (Secure SSL)...")
+                const transporter = nodemailer.createTransport({
+                    host: 'smtp.gmail.com',
+                    port: 465,
+                    secure: true,
+                    auth: {
+                        user: user,
+                        pass: pass.replace(/\s+/g, '')
+                    },
+                    tls: {
+                        rejectUnauthorized: false
+                    },
+                    connectionTimeout: 8000 // 8 second timeout to fail fast on port block
+                })
                 const result = await transporter.sendMail({
                     from: fromAddress,
                     replyTo,
@@ -211,18 +378,49 @@ export async function sendEmailDirect({ to, subject, type, bookingDetails }: Ema
                     subject,
                     html: htmlContent
                 })
-                console.log(`✅ [Gmail] Email sent: ${result.messageId}`)
-                return { success: true, provider: 'gmail', messageId: result.messageId }
+                console.log(`✅ [Gmail Port 465] Email successfully sent: ${result.messageId}`)
+                return { success: true, provider: 'gmail_port_465', messageId: result.messageId }
             } catch (err: any) {
-                console.error('❌ Gmail failed:', err.message)
+                console.error('❌ Gmail SMTP Port 465 direct send failed:', err.message)
+                
+                // Fallback to Port 587 (STARTTLS)
+                try {
+                    console.log("🔌 Attempting Gmail SMTP Fallback via Port 587 (STARTTLS)...")
+                    const transporter = nodemailer.createTransport({
+                        host: 'smtp.gmail.com',
+                        port: 587,
+                        secure: false, // false for 587 STARTTLS
+                        auth: {
+                            user: user,
+                            pass: pass.replace(/\s+/g, '')
+                        },
+                        tls: {
+                            rejectUnauthorized: false
+                        },
+                        connectionTimeout: 8000
+                    })
+                    const result = await transporter.sendMail({
+                        from: fromAddress,
+                        replyTo,
+                        to,
+                        subject,
+                        html: htmlContent
+                    })
+                    console.log(`✅ [Gmail Port 587] Email successfully sent: ${result.messageId}`)
+                    return { success: true, provider: 'gmail_port_587', messageId: result.messageId }
+                } catch (fallbackErr: any) {
+                    console.error('❌ Gmail SMTP Port 587 fallback send failed:', fallbackErr.message)
+                }
             }
+        } else {
+            console.warn('⚠️ Gmail SMTP is not configured or missing environment variables.')
         }
 
         // Provider 2 – Resend (fallback)
-        if (RESEND_API_KEY) {
+        if (resendApiKey) {
             try {
                 const { Resend } = await import('resend')
-                const resend = new Resend(RESEND_API_KEY)
+                const resend = new Resend(resendApiKey)
                 const { data, error } = await resend.emails.send({
                     from: 'AeroHive Support <onboarding@resend.dev>',
                     replyTo,
@@ -231,16 +429,16 @@ export async function sendEmailDirect({ to, subject, type, bookingDetails }: Ema
                     html: htmlContent
                 })
                 if (error) throw error
-                console.log(`✅ [Resend] Email sent: ${data?.id}`)
+                console.log(`✅ [Resend] Email successfully sent: ${data?.id}`)
                 return { success: true, provider: 'resend', id: data?.id }
             } catch (err: any) {
-                console.error('❌ Resend failed:', err.message)
+                console.error('❌ Resend fallback failed:', err.message)
             }
         }
 
-        throw new Error('All email delivery providers failed. Configure GMAIL_USER + GMAIL_APP_PASSWORD in .env.local')
+        throw new Error('All configured email delivery providers failed. Please ensure GMAIL_USER + GMAIL_APP_PASSWORD are correctly declared in .env.local')
     } catch (error: any) {
-        console.error('sendEmailDirect Error:', error.message)
+        console.error('❌ sendEmailDirect critical exception:', error.message)
         return { success: false, error: error.message }
     }
 }

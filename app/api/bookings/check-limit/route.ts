@@ -65,13 +65,13 @@ export async function GET(request: NextRequest) {
         }
 
         const currentCount = bookings?.length || 0
-        const canBook = currentCount < MAX_BOOKINGS
+        const canBook = true
 
         return NextResponse.json({
             canBook,
             currentCount,
-            maxBookings: MAX_BOOKINGS,
-            remainingSlots: MAX_BOOKINGS - currentCount,
+            maxBookings: 100,
+            remainingSlots: 100 - currentCount,
             bookings: bookings || []
         })
 

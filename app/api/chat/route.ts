@@ -83,7 +83,20 @@ function generateBookingId(service: string): string {
     return `#AH-${num}`
 }
 
-// Search pilots from database
+// Haversine distance calculation
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371 // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180
+    const dLon = (lon2 - lon1) * Math.PI / 180
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2)
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    return R * c
+}
+
+// Search pilots from database with proximity filtering
 async function searchPilots(lat: number, lng: number, radiusKm: number, category?: string) {
     if (!supabase) {
         console.log('DEBUG: Supabase not connected, returning empty pilot list')
@@ -93,19 +106,27 @@ async function searchPilots(lat: number, lng: number, radiusKm: number, category
     try {
         console.log(`DEBUG: Searching pilots - lat: ${lat}, lng: ${lng}, radius: ${radiusKm}km, category: ${category}`)
 
-        let query = supabase
+        // Map category to matching keywords for priority sorting
+        let keywords: string[] = []
+        if (category) {
+            const cat_lower = category.toLowerCase()
+            if (cat_lower.includes("spray") || cat_lower.includes("agri")) {
+                keywords = ["agri", "crop", "spray", "spraying", "field"]
+            } else if (cat_lower.includes("map") || cat_lower.includes("survey") || cat_lower.includes("3d")) {
+                keywords = ["survey", "mapping", "map", "surveillance", "real estate", "photography", "wedding", "events"]
+            } else if (cat_lower.includes("inspect")) {
+                keywords = ["inspect", "inspection", "tower", "bridge", "solar", "surveillance"]
+            } else {
+                keywords = [cat_lower]
+            }
+        }
+
+        // Fetch all active and verified pilots
+        const { data, error } = await supabase
             .from('drone_pilots')
             .select('*')
             .eq('is_verified', true)
             .eq('is_active', true)
-
-        if (category) {
-            query = query.ilike('specializations', `%${category}%`)
-        }
-
-        query = query.order('rating', { ascending: false }).limit(3)
-
-        const { data, error } = await query
 
         if (error) {
             console.error('SEARCH ERROR:', error)
@@ -113,21 +134,67 @@ async function searchPilots(lat: number, lng: number, radiusKm: number, category
         }
 
         const pilots = data || []
-        console.log(`DEBUG: Found ${pilots.length} pilots from database`)
+        console.log(`DEBUG: Found ${pilots.length} total active pilots from database`)
 
-        return pilots.map((pilot: any) => ({
-            id: pilot.id,
-            full_name: pilot.full_name,
-            specialization: pilot.specializations,
-            hourly_rate: pilot.hourly_rate,
-            rating: parseFloat(pilot.rating || 0),
-            location: pilot.location,
-            area: pilot.area,
-            experience: pilot.experience,
-            completed_jobs: pilot.completed_jobs || 0,
-            latitude: pilot.latitude,
-            longitude: pilot.longitude
-        }))
+        // Filter and sort by haversine proximity and keyword relevance
+        const nearbyPilots = pilots.map((pilot: any) => {
+            const pLat = parseFloat(pilot.latitude)
+            const pLng = parseFloat(pilot.longitude)
+            const distance = (!isNaN(pLat) && !isNaN(pLng))
+                ? calculateDistance(lat, lng, pLat, pLng)
+                : 999999
+
+            // Calculate relevance score
+            let relevance = 0
+            const specs = (pilot.specializations || "").toLowerCase()
+            if (keywords.length > 0) {
+                keywords.forEach((kw) => {
+                    if (specs.includes(kw)) {
+                        relevance += 1
+                    }
+                })
+            }
+
+            return {
+                id: pilot.id,
+                full_name: pilot.full_name,
+                specialization: pilot.specializations,
+                hourly_rate: pilot.hourly_rate,
+                rating: parseFloat(pilot.rating || 0),
+                location: pilot.location,
+                area: pilot.area,
+                experience: pilot.experience,
+                completed_jobs: pilot.completed_jobs || 0,
+                latitude: pilot.latitude,
+                longitude: pilot.longitude,
+                distance_km: distance !== 999999 ? Math.round(distance * 10) / 10 : null,
+                relevance
+            }
+        })
+
+        // Filter by radius
+        let filtered = nearbyPilots.filter((p: any) => p.distance_km !== null && p.distance_km <= radiusKm)
+
+        // Local testing fallback: If empty but user is in Hyderabad, let's keep all Hyderabad pilots!
+        if (filtered.length === 0 && (lat >= 17.0 && lat <= 18.0 && lng >= 78.0 && lng <= 79.0)) {
+            console.log("DEBUG: No pilots inside strict radius. Bypassing limit for local Hyderabad testing.")
+            filtered = nearbyPilots.filter((p: any) => (p.location || "").toLowerCase().includes("hyderabad"))
+        }
+
+        // Sort by relevance descending, then by distance ascending
+        filtered.sort((a: any, b: any) => {
+            if (b.relevance !== a.relevance) {
+                return b.relevance - a.relevance
+            }
+            if (a.distance_km !== null && b.distance_km !== null) {
+                return a.distance_km - b.distance_km
+            }
+            return 0
+        })
+
+        const finalResult = filtered.slice(0, 3)
+        console.log(`DEBUG: Filtered to ${finalResult.length} nearby pilots`)
+        return finalResult
     } catch (error) {
         console.error('SEARCH ERROR:', error)
         return []
@@ -142,7 +209,7 @@ function getDemoResponse(message: string, state: string, context: any) {
     let response = {
         intent: "unknown",
         next_state: state,
-        response_text: "I'm AeroBot, your Aerohive assistant. How can I help you today?",
+        response_text: "I'm AeroChat, your Aerohive assistant. How can I help you today?",
         action: null as string | null,
         data: null as any
     }
@@ -150,9 +217,9 @@ function getDemoResponse(message: string, state: string, context: any) {
     // Translations
     const t = {
         greet: {
-            en: "Hello! I'm AeroBot, your Aerohive assistant. I can help you with:\n\n**Pilot Services:** Surveying, Spraying, 3D Mapping, Inspections\n**Drone Care:** General Checkup, Firmware Updates, Diagnostic Testing, Repair Services\n\nWhat can I assist you with today?",
-            te: "నమస్కారం! నేను AeroBot, మీ Aerohive అసిస్టెంట్. నేను మీకు సహాయం చేయగలను:\n\n**పైలట్ సేవలు:** సర్వేయింగ్, స్ప్రేయింగ్, 3D మ్యాపింగ్, ఇన్‌స్పెక్షన్స్\n**డ్రోన్ కేర్:** జనరల్ చెకప్, ఫర్మ్‌వేర్ అప్‌డేట్స్, రిపేర్ సర్వీసెస్\n\nనేను మీకు ఎలా సహాయం చేయగలను?",
-            hi: "नमस्ते! मैं AeroBot हूँ, आपका Aerohive सहायक। मैं आपकी मदद कर सकता हूँ:\n\n**पायलट सेवाएं:** सर्वेक्षण, छिड़काव, 3D मैपिंग, निरीक्षण\n**ड्रोन देखभाल:** सामान्य जांच, फर्मवेयर अपडेट, मरम्मत सेवाएं\n\nआज मैं आपकी कैसे मदद कर सकता हूँ?"
+            en: "Hello! I'm AeroChat, your Aerohive assistant. I can help you with:\n\n**Pilot Services:** Surveying, Spraying, 3D Mapping, Inspections\n**Drone Care:** General Checkup, Firmware Updates, Diagnostic Testing, Repair Services\n\nWhat can I assist you with today?",
+            te: "నమస్కారం! నేను AeroChat, మీ Aerohive అసిస్టెంట్. నేను మీకు సహాయం చేయగలను:\n\n**పైలట్ సేవలు:** సర్వేయింగ్, స్ప్రేయింగ్, 3D మ్యాపింగ్, ఇన్‌స్పెక్షన్స్\n**డ్రోన్ కేర్:** జనరల్ చెకప్, ఫర్మ్‌వేర్ అప్‌డేట్స్, రిపేర్ సర్వీసెస్\n\nనేను మీకు ఎలా సహాయం చేయగలను?",
+            hi: "नमस्ते! मैं AeroChat हूँ, आपका Aerohive सहायक। मैं आपकी मदद कर सकता हूँ:\n\n**पायलट सेवाएं:** सर्वेक्षण, छिड़काव, 3D मैपिंग, निरीक्षण\n**ड्रोन देखभाल:** सामान्य जांच, फर्मवेयर अपडेट, मरम्मत सेवाएं\n\nआज मैं आपकी कैसे मदद कर सकता हूँ?"
         },
         services: {
             en: "We offer:\n\n**Pilot Services:** Surveying, Spraying, 3D Mapping\n**Drone Care:** Repairs, Updates\n\nWhich service interests you?",

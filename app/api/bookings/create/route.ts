@@ -97,8 +97,29 @@ export async function POST(request: NextRequest) {
             dateStyle: 'medium',
             timeStyle: 'short'
         }) : 'ASAP'
-        const userName = user_name || 'Valued Customer'
-        const userPhone = user_phone || 'Not provided'
+        let userName = user_name || 'Valued Customer'
+        let userPhone = user_phone || 'Not provided'
+
+        if ((!user_name || user_name === 'Valued Customer' || !user_phone || user_phone === 'Not provided') && supabase && client_id) {
+            try {
+                const { data: user, error: userErr } = await supabase
+                    .from('users')
+                    .select('first_name, last_name, phone')
+                    .eq('id', client_id)
+                    .single()
+
+                if (user && !userErr) {
+                    if (!user_name || user_name === 'Valued Customer') {
+                        userName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || userName
+                    }
+                    if (!user_phone || user_phone === 'Not provided') {
+                        userPhone = user.phone || userPhone
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching client details:', err)
+            }
+        }
 
         // Charges Note (as per requirement)
         const chargesNote = "Final charges will be calculated based on actual working hours and collected after service completion."
@@ -173,7 +194,7 @@ export async function POST(request: NextRequest) {
                     scheduled_at,
                     duration_hours,
                     payment_method,
-                    requirements,
+                    requirements: { ...requirements, location_name: locationDisplay },
                     client_location_lat: lat,
                     client_location_lng: lng,
                     otp_code: otp,
@@ -200,7 +221,7 @@ export async function POST(request: NextRequest) {
         // Get base URL for links
         const baseUrl = request.nextUrl.origin
         const trackingLink = `${baseUrl}/track/${orderUUID}`
-        const acceptJobLink = `${baseUrl}/pilots/accept-job?id=${orderUUID}`
+        const acceptJobLink = `${baseUrl}/pilot-panel/dashboard`
         const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
 
         // Calculate estimated amount
@@ -252,7 +273,7 @@ export async function POST(request: NextRequest) {
             emailPromises.push(
                 sendNotificationEmail(
                     pilotEmail,
-                    `New Job Assigned | Action Required - AeroHive`,
+                    `New Booking Request | Action Required - AeroHive`,
                     'pilot',
                     emailBookingDetails
                 )
@@ -272,7 +293,7 @@ export async function POST(request: NextRequest) {
 
         // SMS to pilot
         if (pilotPhone) {
-            const pilotSmsMessage = `AeroHive: NEW JOB assigned! Job: ${bookingId}. Location: ${locationDisplay}. Client: ${userName}. Link: ${acceptJobLink}. Verify OTP ${otp} on site.`
+            const pilotSmsMessage = `AeroHive: NEW BOOKING REQUEST! Job: ${bookingId}. Location: ${locationDisplay}. Client: ${userName}. Accept/Reject in your Pilot Panel: ${acceptJobLink}`
             smsPromises.push(sendSMS(baseUrl, pilotPhone, pilotSmsMessage))
         }
 
@@ -288,7 +309,7 @@ export async function POST(request: NextRequest) {
         // Generate confirmation messages for chatbot display (Client view)
         const clientMessage = `Hello ${userName},
 
-Your booking for *${service_type}* is PENDING pilot acceptance.
+Your booking for *${service_type}* has been placed and is awaiting pilot confirmation.
 
 📍 Location: ${locationDisplay}  
 📅 Slot: ${dateTimeDisplay}
@@ -306,7 +327,7 @@ You can track the pilot live via the link in the email once the job starts.
 Thank you for choosing AeroHive.`
 
         // Pilot Message is usually not shown in chatbot response unless for debugging, but we keep it
-        const pilotMessage = `NEW JOB ASSIGNMENT
+        const pilotMessage = `NEW BOOKING REQUEST
 
 🆔 Job ID: ${bookingId}  
 🛠 Service: ${service_type}  
@@ -317,10 +338,10 @@ Client Details:
 👤 Name: ${userName}  
 📞 Contact: ${userPhone}
 
-⚠️ Job Status: PENDING  
-🔐 Verify client OTP: *${otp}* before starting the service.
+⚠️ Status: PENDING — Accept or Reject in your Pilot Panel.  
+🔐 After accepting, collect the 4-digit OTP from the client to start.
 
-${pilotEmail ? `📧 Job details sent to: ${pilotEmail}` : ''}`
+${pilotEmail ? `📧 Booking details sent to: ${pilotEmail}` : ''}`
 
         return NextResponse.json({
             status: "success",

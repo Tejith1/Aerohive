@@ -9,22 +9,25 @@ const supabase = supabaseUrl && supabaseServiceKey ? createClient(supabaseUrl, s
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json()
-        const { orderUUID, otp } = body
+        const { orderUUID, bookingId, otp } = body
 
-        if (!orderUUID || !otp) {
-            return NextResponse.json({ error: 'UUID and OTP required' }, { status: 400 })
+        if ((!orderUUID && !bookingId) || !otp) {
+            return NextResponse.json({ error: 'Booking identifier and OTP are required' }, { status: 400 })
         }
 
         if (!supabase) {
             return NextResponse.json({ error: 'Database configuration missing' }, { status: 500 })
         }
 
-        // Fetch booking to verify OTP
-        const { data: booking, error: fetchError } = await supabase
-            .from('bookings')
-            .select('id, status, otp_code')
-            .eq('order_uuid', orderUUID)
-            .single()
+        // Fetch booking by either identifier
+        let query = supabase.from('bookings').select('id, status, otp_code, order_uuid, requirements')
+        if (bookingId) {
+            query = query.eq('id', bookingId)
+        } else {
+            query = query.eq('order_uuid', orderUUID)
+        }
+
+        const { data: booking, error: fetchError } = await query.single()
 
         if (fetchError || !booking) {
             return NextResponse.json({ error: 'Job not found' }, { status: 404 })
@@ -34,29 +37,35 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Invalid OTP. Please ask client to provide the correct code.' }, { status: 401 })
         }
 
-        // Verify status transition
-        if (booking.status !== 'ACCEPTED') {
-            // Allow retry if already in progress (idempotent)
-            if (booking.status === 'IN_PROGRESS') {
-                return NextResponse.json({ success: true, status: 'IN_PROGRESS', message: 'Mission already started' })
+        // Verify status transition — must be ON_SITE to verify
+        const currentSubStatus = ((booking.requirements as any)?.telemetryStatus || booking.status || 'PENDING').toUpperCase()
+        if (currentSubStatus !== 'ON_SITE') {
+            // Allow idempotent call if already verified or beyond
+            if (['VERIFIED', 'IN_PROGRESS', 'COMPLETED', 'DONE'].includes(currentSubStatus)) {
+                return NextResponse.json({ success: true, status: 'VERIFIED', message: 'Already verified' })
             }
-            return NextResponse.json({ error: `Cannot start mission. Current status: ${booking.status}` }, { status: 400 })
+            return NextResponse.json({ error: `Cannot verify. Current status: ${currentSubStatus}. Must be ON_SITE first.` }, { status: 400 })
         }
 
-        // Update status to IN_PROGRESS
+        // Update status to IN_PROGRESS and store telemetryStatus: VERIFIED
         const { error: updateError } = await supabase
             .from('bookings')
             .update({
                 status: 'IN_PROGRESS',
+                requirements: {
+                    ...(typeof booking.requirements === 'object' ? booking.requirements : {}),
+                    telemetryStatus: 'VERIFIED'
+                },
                 updated_at: new Date().toISOString()
             })
-            .eq('order_uuid', orderUUID)
+            .eq('id', booking.id)
 
         if (updateError) {
+            console.error('OTP verify status update error:', updateError)
             return NextResponse.json({ error: 'Failed to update status' }, { status: 500 })
         }
 
-        return NextResponse.json({ success: true, status: 'IN_PROGRESS' })
+        return NextResponse.json({ success: true, status: 'VERIFIED', bookingId: booking.id })
 
     } catch (error: any) {
         console.error('OTP Verification API Error:', error)
