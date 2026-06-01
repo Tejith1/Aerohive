@@ -242,7 +242,7 @@ export default function Chatbot() {
                 const pilots = res.data.pilots
                 setFoundPilots(pilots)
                 addMessage('bot', (
-                    <div className="flex flex-col gap-2.5 mt-2 max-h-[240px] overflow-y-auto pr-2 space-y-1">
+                    <div className="flex flex-col gap-2.5 mt-2 max-h-[340px] overflow-y-auto pr-1.5 aero-scroll">
                         {pilots.map((pilot: any) => (
                             <Card key={pilot.id} className="border border-[#e5dfd3] bg-white hover:border-[#c26244] transition-all duration-300 cursor-pointer shadow-sm rounded-2xl group overflow-hidden" onClick={() => handleSelectPilot(pilot)}>
                                 <CardContent className="p-4 flex items-start gap-3.5 relative">
@@ -392,7 +392,7 @@ export default function Chatbot() {
                 const pilots = res.data.pilots
                 setFoundPilots(pilots)
                 addMessage('bot', (
-                    <div className="flex flex-col gap-2.5 mt-2 max-h-[240px] overflow-y-auto pr-2 space-y-1">
+                    <div className="flex flex-col gap-2.5 mt-2 max-h-[340px] overflow-y-auto pr-1.5 aero-scroll">
                         {pilots.map((pilot: any) => (
                             <Card key={pilot.id} className="border border-[#e5dfd3] bg-white hover:border-[#c26244] transition-all duration-300 cursor-pointer shadow-sm rounded-2xl group overflow-hidden" onClick={() => handleSelectPilot(pilot)}>
                                 <CardContent className="p-4 flex items-start gap-3.5 relative">
