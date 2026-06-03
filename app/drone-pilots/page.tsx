@@ -110,7 +110,16 @@ export default function DronePilotsPage() {
   }
 
   // Process booking after confirmation
-  const processBooking = async () => {
+  const processBooking = async (bookingDetails: {
+    location: string
+    scheduledAt: string
+    durationHours: number
+    totalAmount: number
+    lat?: number
+    lng?: number
+    userName: string
+    userEmail: string
+  }) => {
     if (!currentUser || !pendingPilot) return
 
     setShowConfirmDialog(false)
@@ -124,15 +133,16 @@ export default function DronePilotsPage() {
           client_id: currentUser.id,
           pilot_id: pendingPilot.id,
           service_type: pendingPilot.specializations || "General",
-          lat: 0,
-          lng: 0,
-          scheduled_at: new Date().toISOString(),
-          duration_hours: 2,
+          lat: bookingDetails.lat || 0,
+          lng: bookingDetails.lng || 0,
+          location_name: bookingDetails.location,
+          scheduled_at: bookingDetails.scheduledAt,
+          duration_hours: bookingDetails.durationHours,
           payment_method: 'UPI',
           requirements: {},
-          user_name: currentUser.full_name || currentUser.email?.split('@')[0],
-          user_phone: '',
-          user_email: currentUser.email
+          user_name: bookingDetails.userName,
+          user_phone: currentUser.phone || '',
+          user_email: bookingDetails.userEmail
         })
       })
 
@@ -562,9 +572,9 @@ export default function DronePilotsPage() {
           setShowConfirmDialog(false)
           setPendingPilot(null)
         }}
-        currentBookings={bookingLimitData?.currentCount || 0}
-        maxBookings={bookingLimitData?.maxBookings || 2}
         pilotName={pendingPilot?.full_name}
+        pilotHourlyRate={pendingPilot?.hourly_rate}
+        currentUser={currentUser}
       />
 
       {/* Booking Details Dialog */}

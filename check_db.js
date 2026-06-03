@@ -1,24 +1,14 @@
-
 require('dotenv').config({ path: '.env.local' });
 const { createClient } = require('@supabase/supabase-js');
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-async function checkTable() {
-  console.log('Checking drone_pilots table...');
-  const { data, error } = await supabase
-    .from('drone_pilots')
-    .select('*')
-    .limit(1);
-
-  if (error) {
-    console.error('Error:', error.message);
+async function check() {
+  const { data } = await supabase.from('drone_pilots').select('*').limit(1);
+  if (data && data.length > 0) {
+    console.log('RAW PILOT RECORD:', JSON.stringify(data[0], null, 2));
   } else {
-    console.log('Success! Table exists. Rows:', data.length);
+    console.log('No pilots found.');
   }
 }
-
-checkTable();
+check();

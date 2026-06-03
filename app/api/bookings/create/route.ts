@@ -97,8 +97,29 @@ export async function POST(request: NextRequest) {
             dateStyle: 'medium',
             timeStyle: 'short'
         }) : 'ASAP'
-        const userName = user_name || 'Valued Customer'
-        const userPhone = user_phone || 'Not provided'
+        let userName = user_name || 'Valued Customer'
+        let userPhone = user_phone || 'Not provided'
+
+        if ((!user_name || user_name === 'Valued Customer' || !user_phone || user_phone === 'Not provided') && supabase && client_id) {
+            try {
+                const { data: user, error: userErr } = await supabase
+                    .from('users')
+                    .select('first_name, last_name, phone')
+                    .eq('id', client_id)
+                    .single()
+
+                if (user && !userErr) {
+                    if (!user_name || user_name === 'Valued Customer') {
+                        userName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || userName
+                    }
+                    if (!user_phone || user_phone === 'Not provided') {
+                        userPhone = user.phone || userPhone
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching client details:', err)
+            }
+        }
 
         // Charges Note (as per requirement)
         const chargesNote = "Final charges will be calculated based on actual working hours and collected after service completion."
@@ -173,7 +194,7 @@ export async function POST(request: NextRequest) {
                     scheduled_at,
                     duration_hours,
                     payment_method,
-                    requirements,
+                    requirements: { ...requirements, location_name: locationDisplay },
                     client_location_lat: lat,
                     client_location_lng: lng,
                     otp_code: otp,
