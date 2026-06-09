@@ -2,7 +2,7 @@ import Link from "next/link"
 import { CheckCircle, Package, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Header } from "@/components/layout/header"
+import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
 
 export default function CheckoutSuccessPage() {
@@ -11,8 +11,8 @@ export default function CheckoutSuccessPage() {
   const estimatedDelivery = "December 12, 2024"
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
+    <div className="min-h-screen flex flex-col bg-[#fbf9f6] text-[#191919]">
+      <ModernHeader />
 
       <main className="flex-1 py-12">
         <div className="container mx-auto px-4 max-w-2xl">

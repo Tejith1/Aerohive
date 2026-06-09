@@ -47,9 +47,9 @@ import { Button } from "@/components/ui/button"
 const MissionMap = dynamic(() => import("@/components/MissionMap"), {
   ssr: false,
   loading: () => (
-    <div className="h-64 bg-slate-100 animate-pulse flex items-center justify-center text-slate-500 rounded-xl border border-slate-200">
+    <div className="h-64 bg-muted animate-pulse flex items-center justify-center text-muted-foreground rounded-xl border border-border">
       <div className="flex flex-col items-center gap-2">
-        <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-blue-600 dark:text-[#e65737]" />
         <span className="text-xs font-semibold">Aligning Satellite Mapping...</span>
       </div>
     </div>
@@ -139,39 +139,38 @@ export default function TrackingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex flex-col items-center justify-center text-slate-900 gap-6 select-none relative overflow-hidden">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center text-foreground gap-6 select-none relative overflow-hidden">
         {/* Glowing backgrounds */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none animate-pulse" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-blue-500/10 dark:bg-[#e65737]/10 rounded-full blur-[100px] pointer-events-none animate-pulse" />
         
         {/* High-tech Radar/Drone scanning pulse */}
         <div className="relative flex items-center justify-center w-24 h-24 mb-2">
           {/* Ripple rings */}
-          <div className="absolute inset-0 rounded-full border border-blue-500/10 animate-ping" style={{ animationDuration: '3s' }} />
+          <div className="absolute inset-0 rounded-full border border-blue-500/10 dark:border-[#e65737]/10 animate-ping" style={{ animationDuration: '3s' }} />
           <div className="absolute inset-2 rounded-full border border-indigo-500/20 animate-ping" style={{ animationDuration: '2s' }} />
-          <div className="absolute inset-4 rounded-full bg-blue-50 border border-blue-150 flex items-center justify-center shadow-lg shadow-blue-500/5 scale-110">
-            <Compass className="w-8 h-8 text-blue-600 animate-spin" style={{ animationDuration: '4s' }} />
+          <div className="absolute inset-4 rounded-full bg-blue-500/5 dark:bg-[#e65737]/5 border border-blue-500/15 dark:border-[#e65737]/15 flex items-center justify-center shadow-lg shadow-blue-500/5 dark:shadow-[#e65737]/5 scale-110">
+            <Compass className="w-8 h-8 text-blue-600 dark:text-[#e65737] animate-spin" style={{ animationDuration: '4s' }} />
           </div>
         </div>
 
         {/* Loading text with high tracking */}
         <div className="space-y-2 text-center relative z-10 max-w-sm px-4">
-          <p className="text-[10px] font-black tracking-[0.25em] text-blue-600 uppercase">
+          <p className="text-[10px] font-black tracking-[0.25em] text-blue-600 dark:text-[#e65737] uppercase">
             AeroHive Satellite Uplink
           </p>
-          <h2 className="text-sm font-bold text-slate-700 leading-snug">
+          <h2 className="text-sm font-bold text-muted-foreground leading-snug">
             Syncing secure mission tracking channels...
           </h2>
-          <p className="text-[10px] text-slate-400 font-semibold font-mono uppercase tracking-widest mt-1">
+          <p className="text-[10px] text-muted-foreground font-semibold font-mono uppercase tracking-widest mt-1">
             Establishing Live Telemetry
           </p>
         </div>
 
         {/* Cinematic micro horizontal loading bar */}
-        <div className="w-40 bg-slate-100 border border-slate-200/50 rounded-full h-1.5 overflow-hidden shadow-inner">
-          <div className="bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500 h-full rounded-full animate-[loading-bar_2.5s_infinite_ease-in-out]" style={{ width: '60%' }} />
+        <div className="w-40 bg-muted border border-border rounded-full h-1.5 overflow-hidden shadow-inner">
+          <div className="bg-gradient-to-r from-blue-600 dark:from-[#e65737] via-indigo-500 to-blue-400 dark:to-[#FF8243] h-full rounded-full animate-[loading-bar_2.5s_infinite_ease-in-out]" style={{ width: '60%' }} />
         </div>
 
-        {/* Custom loading animations added in JSX head style or direct classes */}
         <style dangerouslySetInnerHTML={{ __html: `
           @keyframes loading-bar {
             0% { transform: translateX(-100%); }
@@ -184,12 +183,12 @@ export default function TrackingPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center p-4">
-        <div className="text-center space-y-4 max-w-md bg-white shadow-xl p-8 rounded-3xl border border-rose-200">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="text-center space-y-4 max-w-md bg-card shadow-xl p-8 rounded-3xl border border-rose-200">
           <ShieldAlert className="w-16 h-16 text-rose-500 mx-auto" />
-          <h1 className="text-2xl font-extrabold text-slate-900">Tracking Unavailable</h1>
-          <p className="text-slate-500 text-sm leading-relaxed">{error}</p>
-          <Button onClick={() => window.location.reload()} className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl transition-all">
+          <h1 className="text-2xl font-extrabold text-foreground">Tracking Unavailable</h1>
+          <p className="text-muted-foreground text-sm leading-relaxed">{error}</p>
+          <Button onClick={() => window.location.reload()} className="bg-blue-600 dark:bg-[#e65737] hover:bg-blue-700 dark:hover:bg-[#d44d2d] text-white font-bold px-6 py-2.5 rounded-full transition-all border-0">
             Re-establish Link
           </Button>
         </div>
@@ -223,17 +222,18 @@ export default function TrackingPage() {
   const currentStep = job.statusSteps?.find((s: any) => s.current) || { label: "Unknown Status", description: "" }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 text-slate-900 pb-20 font-sans selection:bg-blue-600/20">
+    <div className="min-h-screen bg-background text-foreground pb-24 font-sans selection:bg-[#e65737]/10 transition-colors duration-300 relative">
       
-      {/* Glow Effects */}
-      <div className="absolute top-0 left-1/3 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px] opacity-40 pointer-events-none" />
-      <div className="absolute bottom-10 right-1/4 w-[600px] h-[600px] bg-indigo-600/5 rounded-full blur-[150px] opacity-40 pointer-events-none" />
+      {/* Ambient glowing decor */}
+              <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-blue-500/5 dark:bg-[#e65737]/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-10 left-1/4 w-[600px] h-[600px] bg-indigo-500/5 dark:bg-indigo-500/3 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute inset-0 bg-grid-pattern opacity-[0.01] pointer-events-none"></div>
 
       {/* Dynamic Header */}
-      <div className="bg-white/95 border-b border-slate-200 sticky top-0 z-50 backdrop-blur-md shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
+      <div className="bg-card/75 border-b border-border sticky top-0 z-50 backdrop-blur-xl transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-3">
               <Button 
                 variant="ghost" 
                 onClick={() => {
@@ -243,32 +243,35 @@ export default function TrackingPage() {
                     router.push('/orders')
                   }
                 }} 
-                className="px-3.5 py-2 rounded-xl text-slate-700 hover:bg-slate-100 hover:text-slate-900 border border-slate-200 bg-white hover:border-slate-300 shadow-sm transition-all flex items-center gap-1.5 font-bold"
+                className="px-3 py-1.5 rounded-full text-foreground hover:bg-muted border border-border bg-card shadow-[0_2px_8px_rgba(0,0,0,0.01)] transition-all flex items-center gap-1.5 font-bold"
               >
-                <ArrowLeft className="w-4 h-4 text-slate-600" />
-                <span className="text-xs">Back to Orders</span>
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span className="text-xs">Back</span>
               </Button>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-black text-slate-900 tracking-tight">AeroHive Tracking Hub</h1>
-              </div>
+              <h1 className="text-lg font-display font-semibold text-foreground tracking-tight">Telemetry Hub</h1>
             </div>
-            <div className="flex flex-wrap gap-2 items-center text-xs text-slate-500">
-              <span className="font-medium">Order ID: {job.id || "Unknown"}</span>
-              {lastSyncedAt && <span>Last synced at {new Date(lastSyncedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second:'2-digit' })}</span>}
+            <div className="flex flex-wrap gap-2 items-center text-[10px] font-mono text-muted-foreground font-bold uppercase tracking-wider">
+              <span>ORDER ID: {job.id || "Unknown"}</span>
+              {lastSyncedAt && (
+                <>
+                  <span>•</span>
+                  <span>SYNCED {new Date(lastSyncedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second:'2-digit' })}</span>
+                </>
+              )}
             </div>
           </div>
           
           <div className="flex items-center gap-3">
             {isTrackingActive && (
-              <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 text-emerald-600 rounded-full border border-emerald-200 animate-pulse text-[10px] font-black uppercase tracking-wider">
+              <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/8 text-emerald-600 dark:text-emerald-400 rounded-full border border-emerald-500/20 text-[9px] font-bold uppercase tracking-widest font-mono">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-ping"></span>
-                Live Telemetry
+                Satellite Uplink
               </div>
             )}
-            <Badge className={`px-3 py-1 text-xs font-extrabold uppercase rounded-lg border ${
+            <Badge className={`px-3 py-1 text-[10px] font-bold uppercase rounded-lg border ${
               ['CANCELLED', 'DECLINED'].includes(job.status?.toUpperCase())
-                ? 'bg-rose-50 text-rose-700 border-rose-200'
-                : 'bg-slate-100 text-slate-900 border-slate-200'
+                ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-450 border-rose-200 dark:border-rose-950/30'
+              : 'bg-blue-500/8 dark:bg-[#e65737]/8 text-blue-700 dark:text-[#e65737] border-blue-500/20 dark:border-[#e65737]/20'
             }`}>
               {job.status}
             </Badge>
@@ -276,222 +279,251 @@ export default function TrackingPage() {
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 py-8 space-y-8 relative z-10">
-
-        {/* Status Tracker Card exactly like Image 2 */}
-        <Card className="border-slate-200 bg-white shadow-xl rounded-3xl overflow-hidden">
-          <CardHeader className="pb-4 pt-5 px-6 border-b border-slate-100 bg-slate-50/70">
-            <div className="flex items-center gap-2.5">
-              <Compass className="w-5 h-5 text-blue-600 animate-spin-slow" />
-              <span className="text-xs font-black text-slate-800 uppercase tracking-[0.15em]">
-                Live Mission Tracking Telemetry
-              </span>
-            </div>
-          </CardHeader>
-          <CardContent className="p-6 md:p-10 overflow-x-auto">
-            {['CANCELLED', 'DECLINED'].includes(job.status?.toUpperCase()) ? (
-              <div className="bg-rose-50 border border-rose-200 p-5 rounded-2xl flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
-                <div className="h-12 w-12 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 flex-shrink-0 animate-pulse">
-                  <AlertTriangle className="h-6 w-6" />
+      <div className="max-w-7xl mx-auto px-4 py-8 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Left / Center - Map & Telemetry Timeline */}
+          <div className="lg:col-span-2 space-y-8">
+            
+            {/* Mission Map Container */}
+            <Card className="border-border bg-card/90 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.01)] rounded-3xl overflow-hidden">
+              <CardHeader className="pb-4 pt-5 px-6 border-b border-border bg-muted/40">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <Plane className="w-4 h-4 text-blue-600 dark:text-[#e65737] animate-pulse" />
+                    <span className="text-xs font-bold text-foreground uppercase tracking-widest font-mono">
+                      Live Geospatial Telemetry
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-muted-foreground font-bold uppercase">
+                    GPS Fix {job.lat ? "3D Lock" : "Scanning"}
+                  </span>
                 </div>
-                <div>
-                  <h5 className="font-extrabold text-sm text-rose-950 uppercase tracking-wider">Mission Inactive / Cancelled</h5>
-                  <p className="text-xs text-rose-700 font-medium mt-1 leading-relaxed">
-                    This mission slot has been successfully cancelled and closed. No active flight operations are currently scheduled. If you have any inquiries or need support, please reach out to the AeroHive Operations Console.
-                  </p>
+              </CardHeader>
+              <CardContent className="p-3">
+                <div className="rounded-2xl overflow-hidden border border-border shadow-inner bg-background">
+                  <MissionMap 
+                    clientLocation={clientLoc} 
+                    pilotLocation={pilotLoc} 
+                    bookingId={job.id || id} 
+                  />
                 </div>
-              </div>
-            ) : (
-              <div className="relative flex flex-col md:flex-row items-stretch justify-between gap-8 min-w-[600px] md:min-w-0">
-                {/* Connector line for desktop */}
-                <div className="hidden md:block absolute top-[18px] left-[40px] right-[40px] h-0.5 bg-slate-200 z-0" />
-                
-                {/* Connector line for mobile (vertical) */}
-                <div className="md:hidden absolute left-[18px] top-[20px] bottom-[20px] w-0.5 bg-slate-200 z-0" />
+              </CardContent>
+            </Card>
 
-                {job.statusSteps?.map((step: any, idx: number) => {
-                  const isCompleted = step.completed && !step.current
-                  const isCurrent = step.current
-                  
-                  // Color configuration per phase
-                  const getPhaseColors = (key: string) => {
-                    switch (key.toUpperCase()) {
-                      case 'PENDING':
-                        return { dot: 'bg-emerald-500', text: 'text-emerald-700', activeBg: 'bg-emerald-600', activeRing: 'ring-emerald-100', border: 'border-emerald-500' }
-                      case 'ACCEPTED':
-                        return { dot: 'bg-indigo-500', text: 'text-indigo-700', activeBg: 'bg-indigo-600', activeRing: 'ring-indigo-100', border: 'border-indigo-500' }
-                      case 'VERIFIED':
-                        return { dot: 'bg-amber-500', text: 'text-amber-700', activeBg: 'bg-amber-500', activeRing: 'ring-amber-100', border: 'border-amber-500' }
-                      case 'EN_ROUTE':
-                        return { dot: 'bg-blue-500', text: 'text-blue-700', activeBg: 'bg-blue-600', activeRing: 'ring-blue-100', border: 'border-blue-500' }
-                      case 'ON_SITE':
-                        return { dot: 'bg-violet-500', text: 'text-violet-750', activeBg: 'bg-violet-600', activeRing: 'ring-violet-100', border: 'border-violet-500' }
-                      case 'IN_PROGRESS':
-                        return { dot: 'bg-orange-500', text: 'text-orange-700', activeBg: 'bg-orange-650', activeRing: 'ring-orange-200', border: 'border-orange-500' }
-                      case 'COMPLETED':
-                      case 'DONE':
-                        return { dot: 'bg-emerald-600', text: 'text-emerald-800', activeBg: 'bg-emerald-600', activeRing: 'ring-emerald-250', border: 'border-emerald-600' }
-                      default:
-                        return { dot: 'bg-slate-500', text: 'text-slate-700', activeBg: 'bg-slate-650', activeRing: 'ring-slate-150', border: 'border-slate-500' }
-                    }
-                  }
-
-                  const colors = getPhaseColors(step.key)
-
-                  return (
-                    <div key={step.key} className="flex md:flex-col items-center gap-4 md:gap-3 flex-1 relative z-10">
-                      {/* Circle Node */}
-                      <div className="relative flex items-center justify-center w-9 h-9">
-                        {isCurrent ? (
-                          <div className={`w-9 h-9 rounded-full ${colors.activeBg} flex items-center justify-center ring-4 ${colors.activeRing} border-2 border-white animate-pulse shadow-md`}>
-                            <span className="w-2.5 h-2.5 rounded-full bg-white" />
-                          </div>
-                        ) : isCompleted ? (
-                          <div className="w-9 h-9 rounded-full bg-slate-400 text-white flex items-center justify-center border-2 border-white shadow-sm">
-                            <Check className="w-4 h-4 stroke-[3.5]" />
-                          </div>
-                        ) : (
-                          <div className="w-9 h-9 rounded-full bg-white border-2 border-slate-300 flex items-center justify-center shadow-inner">
-                            <span className="w-1.5 h-1.5 rounded-full bg-slate-200" />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Step Label with dot */}
-                      <div className="flex items-center gap-1.5 md:mt-1">
-                        <span className={`w-1.5 h-1.5 rounded-full ${isCurrent ? colors.dot : isCompleted ? 'bg-slate-400' : 'bg-slate-300'}`} />
-                        <span className={`text-[12px] tracking-tight ${
-                          isCurrent 
-                            ? `${colors.text} font-extrabold bg-slate-50 border ${colors.border}/10 px-2 py-0.5 rounded-lg shadow-sm` 
-                            : isCompleted 
-                            ? 'text-slate-600 font-semibold' 
-                            : 'text-slate-400 font-medium'
-                        }`}>
-                          {step.label}
-                        </span>
-                      </div>
+            {/* Stepper Timeline Card */}
+            <Card className="border-border bg-card/90 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.01)] rounded-3xl overflow-hidden">
+              <CardHeader className="pb-4 pt-5 px-6 border-b border-border bg-muted/40">
+                <div className="flex items-center gap-2.5">
+                  <Compass className="w-4 h-4 text-blue-600 dark:text-[#e65737] animate-spin-slow" />
+                  <span className="text-xs font-bold text-foreground uppercase tracking-widest font-mono">
+                    Operation Milestone Logs
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6 md:p-8 overflow-x-auto">
+                {['CANCELLED', 'DECLINED'].includes(job.status?.toUpperCase()) ? (
+                  <div className="bg-rose-50/50 dark:bg-rose-950/15 border border-rose-200 dark:border-rose-950/30 p-5 rounded-2xl flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+                    <div className="h-12 w-12 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-400 flex items-center justify-center flex-shrink-0 animate-pulse">
+                      <AlertTriangle className="h-6 w-6" />
                     </div>
-                  )
-                })}
-              </div>
+                    <div>
+                      <h5 className="font-extrabold text-sm text-rose-950 dark:text-rose-200 uppercase tracking-widest font-mono">Mission Aborted</h5>
+                      <p className="text-xs text-rose-700 dark:text-rose-450 font-medium mt-1 leading-relaxed">
+                        This operation has been cancelled. If you require assistance or wish to book a new mission, please connect with our dispatcher team.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative flex flex-col md:flex-row items-stretch justify-between gap-8 min-w-[600px] md:min-w-0">
+                    {/* Connecting line for Desktop */}
+                    <div className="hidden md:block absolute top-[18px] left-[40px] right-[40px] h-[2px] bg-border z-0" />
+                    
+                    {/* Connecting line for Mobile */}
+                    <div className="md:hidden absolute left-[18px] top-[20px] bottom-[20px] w-[2px] bg-border z-0" />
+
+                    {job.statusSteps?.map((step: any, idx: number) => {
+                      const isCompleted = step.completed && !step.current
+                      const isCurrent = step.current
+                      
+                      const getPhaseColors = (key: string) => {
+                        switch (key.toUpperCase()) {
+                          case 'PENDING':
+                            return { dot: 'bg-emerald-500', text: 'text-emerald-700 dark:text-emerald-400', activeBg: 'bg-emerald-600', activeRing: 'ring-emerald-100 dark:ring-emerald-950/40', border: 'border-emerald-500' }
+                          case 'ACCEPTED':
+                            return { dot: 'bg-indigo-500', text: 'text-indigo-700 dark:text-indigo-400', activeBg: 'bg-indigo-600', activeRing: 'ring-indigo-100 dark:ring-indigo-950/40', border: 'border-indigo-500' }
+                          case 'VERIFIED':
+                            return { dot: 'bg-amber-500', text: 'text-amber-700 dark:text-amber-400', activeBg: 'bg-amber-500', activeRing: 'ring-amber-100 dark:ring-amber-950/40', border: 'border-amber-500' }
+                          case 'EN_ROUTE':
+                            return { dot: 'bg-blue-500', text: 'text-blue-700 dark:text-blue-400', activeBg: 'bg-blue-600', activeRing: 'ring-blue-100 dark:ring-blue-950/40', border: 'border-blue-500' }
+                          case 'ON_SITE':
+                            return { dot: 'bg-violet-500', text: 'text-violet-750 dark:text-violet-400', activeBg: 'bg-violet-600', activeRing: 'ring-violet-100 dark:ring-violet-950/40', border: 'border-violet-500' }
+                          case 'IN_PROGRESS':
+                            return { dot: 'bg-orange-500', text: 'text-orange-700 dark:text-orange-400', activeBg: 'bg-orange-650', activeRing: 'ring-orange-200 dark:ring-orange-950/40', border: 'border-orange-500' }
+                          case 'COMPLETED':
+                          case 'DONE':
+                            return { dot: 'bg-blue-600 dark:bg-[#e65737]', text: 'text-blue-700 dark:text-[#e65737]', activeBg: 'bg-blue-600 dark:bg-[#e65737]', activeRing: 'ring-blue-200 dark:ring-[#e65737]/15', border: 'border-blue-600 dark:border-[#e65737]' }
+                          default:
+                            return { dot: 'bg-slate-500', text: 'text-slate-700 dark:text-slate-400', activeBg: 'bg-slate-650', activeRing: 'ring-slate-150', border: 'border-slate-500' }
+                        }
+                      }
+
+                      const colors = getPhaseColors(step.key)
+
+                      return (
+                        <div key={step.key} className="flex md:flex-col items-center gap-4 md:gap-3 flex-1 relative z-10">
+                          {/* Circle Node */}
+                          <div className="relative flex items-center justify-center w-9 h-9">
+                            {isCurrent ? (
+                              <div className={`w-9 h-9 rounded-xl ${colors.activeBg} flex items-center justify-center ring-4 ${colors.activeRing} border border-background animate-pulse shadow-sm`}>
+                                <span className="w-2 h-2 rounded-full bg-white" />
+                              </div>
+                            ) : isCompleted ? (
+                              <div className="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center border border-background shadow-sm">
+                                <Check className="w-4 h-4 stroke-[3]" />
+                              </div>
+                            ) : (
+                              <div className="w-9 h-9 rounded-xl bg-muted border border-border flex items-center justify-center shadow-inner">
+                                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30" />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Labels */}
+                          <div className="flex items-center gap-1.5 md:mt-1">
+                            <span className={`w-1.5 h-1.5 rounded-full ${isCurrent ? colors.dot : isCompleted ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`} />
+                            <span className={`text-[11px] tracking-tight font-bold ${
+                              isCurrent 
+                                ? `${colors.text} bg-muted border border-border px-2.5 py-1 rounded-lg shadow-sm font-mono` 
+                                : isCompleted 
+                                ? 'text-foreground' 
+                                : 'text-muted-foreground/60'
+                            }`}>
+                              {step.label}
+                            </span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+          </div>
+
+          {/* Right Column - Security & Flight Manifesto */}
+          <div className="space-y-8">
+            
+            {/* OTP display container */}
+            {job.otp && !['CANCELLED', 'DECLINED'].includes(job.status?.toUpperCase()) && (
+              <Card className="border-amber-200/70 dark:border-amber-950/30 bg-amber-50/50 dark:bg-amber-950/10 shadow-[0_4px_20px_rgba(0,0,0,0.01)] rounded-3xl overflow-hidden relative group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-200/10 dark:bg-amber-900/5 rounded-full blur-2xl pointer-events-none" />
+                <CardContent className="p-6 text-center space-y-4">
+                  <div className="w-11 h-11 bg-amber-100/80 dark:bg-amber-955/30 rounded-xl flex items-center justify-center mx-auto text-amber-700 dark:text-amber-500 border border-amber-200/50 dark:border-amber-900/30">
+                    <UserCheck className="w-5 h-5" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-xs font-bold text-amber-800 dark:text-amber-400 uppercase tracking-widest font-mono">Security Dispatch OTP</h3>
+                    <p className="text-[11px] text-amber-600 dark:text-amber-500 font-medium">Verify with pilot at the operation site</p>
+                  </div>
+                  <div className="bg-background border border-amber-200 dark:border-amber-950/40 rounded-2xl py-3.5 shadow-sm max-w-[200px] mx-auto">
+                    <span className="text-3xl font-mono font-black text-amber-750 dark:text-amber-400 tracking-[0.25em] pl-[0.25em]">{job.otp}</span>
+                  </div>
+                  <p className="text-[9px] text-amber-800/80 dark:text-amber-500/80 font-bold italic">Do not disclose this token electronically.</p>
+                </CardContent>
+              </Card>
             )}
-          </CardContent>
-        </Card>
 
-        {/* OTP display container ONLY if not verified yet and not cancelled */}
-        {job.otp && !['CANCELLED', 'DECLINED'].includes(job.status?.toUpperCase()) && (
-          <Card className="border-amber-200 bg-amber-50 shadow-md rounded-3xl overflow-hidden relative group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-200/20 rounded-full blur-2xl pointer-events-none" />
-            <CardContent className="p-6 text-center space-y-4">
-              <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto text-amber-700">
-                <UserCheck className="w-5 h-5" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-sm font-black text-amber-800 uppercase tracking-widest">Security Dispatch Code</h3>
-                <p className="text-xs text-amber-700 font-medium">Share this 4-digit code with your pilot upon arrival</p>
-              </div>
-              <div className="bg-white border border-amber-200 rounded-2xl py-4 shadow-sm max-w-xs mx-auto">
-                <span className="text-4xl font-mono font-black text-amber-750 tracking-[0.25em] pl-[0.25em]">{job.otp}</span>
-              </div>
-              <p className="text-[10px] text-amber-850 font-bold italic">Never share this code via messages or calls.</p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Booking & Flight Manifesto Details Card */}
-        <Card className="border-slate-200 bg-white shadow-xl rounded-3xl overflow-hidden">
-              <CardHeader className="border-b border-slate-200 p-5 flex flex-row items-center justify-between bg-slate-50">
-                <CardTitle className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-blue-500" />
-                  Flight Manifesto & Intel
+            {/* Flight Manifesto details */}
+            <Card className="border-border bg-card/90 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.01)] rounded-3xl overflow-hidden">
+              <CardHeader className="border-b border-border p-5 bg-muted/40">
+                <CardTitle className="text-xs font-bold text-foreground flex items-center gap-2 uppercase tracking-widest font-mono">
+                  <ShieldCheck className="w-4 h-4 text-blue-600 dark:text-[#e65737]" />
+                  Flight Manifesto
                 </CardTitle>
-                <Badge className="bg-blue-50 text-blue-700 border border-blue-200 text-[9px] font-black uppercase tracking-wider py-0.5 rounded px-2 animate-pulse">
-                  ● Telemetry Uplink
-                </Badge>
               </CardHeader>
               
               <CardContent className="p-5 space-y-5">
-
-
-                {/* Client / User Details */}
+                {/* Client Details */}
                 <div className="space-y-2">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 block">Ordered By</span>
-                  <div className="flex items-center gap-3.5 bg-slate-50 p-3 rounded-xl border border-slate-200/70">
-                    <div className="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-150 font-black text-xs uppercase">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground block">Ordered By</span>
+                  <div className="flex items-center gap-3 bg-muted p-3 rounded-xl border border-border/40">
+                    <div className="h-8 w-8 rounded-lg bg-blue-500/10 dark:bg-[#e65737]/10 border border-blue-500/20 dark:border-[#e65737]/20 flex items-center justify-center text-blue-600 dark:text-[#e65737] font-mono font-bold text-xs uppercase">
                       {job.clientName ? job.clientName[0] : 'C'}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="font-bold text-slate-900 text-xs truncate">{job.clientName || 'AeroHive Client'}</p>
-                      <p className="text-[10px] text-slate-500 font-semibold mt-0.5 font-mono truncate">{job.clientPhone || '+91 99999 99999'}</p>
+                      <p className="font-bold text-foreground text-xs truncate">{job.clientName || 'AeroHive Client'}</p>
+                      <p className="text-[10px] text-muted-foreground font-bold mt-0.5 font-mono truncate">{job.clientPhone || '+91 99999 99999'}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Assigned Pilot */}
                 <div className="space-y-2">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 block">Assigned Pilot</span>
-                  <div className="flex items-center gap-3.5 bg-slate-50 p-3 rounded-xl border border-slate-200/70">
-                    <div className="h-8 w-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-150 text-sm">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground block">Assigned Operator</span>
+                  <div className="flex items-center gap-3 bg-muted p-3 rounded-xl border border-border/40">
+                    <div className="h-8 w-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-450 text-xs">
                       👨‍✈️
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="font-bold text-slate-900 text-xs truncate">{job.pilotName || "Assigning Certified Pilot..."}</p>
-                      <p className="text-[9px] text-emerald-700 font-extrabold mt-0.5 uppercase tracking-wider">
-                        {job.pilotPhone ? "DGCA CERTIFIED" : "PENDING ASSIGNMENT"}
+                      <p className="font-bold text-foreground text-xs truncate">{job.pilotName || "Assigning Operator..."}</p>
+                      <p className="text-[8px] text-emerald-600 dark:text-emerald-500 font-bold mt-0.5 uppercase tracking-wider font-mono">
+                        {job.pilotPhone ? "DGCA CERTIFIED PILOT" : "PENDING ALLOCATION"}
                       </p>
                     </div>
                   </div>
                   {job.pilotPhone && (
-                    <div className="flex items-center gap-2 text-[11px] text-slate-650 bg-slate-100 p-2.5 rounded-xl border border-slate-200 font-mono">
-                      <Phone className="w-3.5 h-3.5 text-blue-500" />
+                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground bg-muted p-2.5 rounded-xl border border-border/40 font-mono font-bold">
+                      <Phone className="w-3.5 h-3.5 text-blue-600 dark:text-[#e65737]" />
                       <span>{job.pilotPhone}</span>
                     </div>
                   )}
                 </div>
 
-                {/* Core Flight Parameters Details */}
-                <div className="border-t border-slate-200/70 pt-4 space-y-3">
+                {/* Technical Flight Specs */}
+                <div className="border-t border-border pt-4 space-y-3">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-slate-500 flex items-center gap-1.5 font-bold uppercase tracking-wider text-[9px]">
-                      <Calendar className="w-3.5 h-3.5 text-slate-500" /> Date & Time
+                    <span className="text-muted-foreground flex items-center gap-1.5 font-bold uppercase tracking-widest text-[9px]">
+                      <Calendar className="w-3.5 h-3.5" /> Scheduled
                     </span>
-                    <span className="font-bold text-slate-900">
+                    <span className="font-bold text-foreground">
                       {job.scheduledAt ? new Date(job.scheduledAt).toLocaleDateString("en-IN", { dateStyle: "medium" }) : "—"}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-slate-500 flex items-center gap-1.5 font-bold uppercase tracking-wider text-[9px]">
-                      <Clock className="w-3.5 h-3.5 text-slate-500" /> Duration
+                    <span className="text-muted-foreground flex items-center gap-1.5 font-bold uppercase tracking-widest text-[9px]">
+                      <Clock className="w-3.5 h-3.5" /> Duration
                     </span>
-                    <span className="font-bold text-slate-900">
+                    <span className="font-bold text-foreground">
                       {job.durationHours || "—"} hr{job.durationHours !== 1 ? "s" : ""}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-slate-500 flex items-center gap-1.5 font-bold uppercase tracking-wider text-[9px]">
-                      <Compass className="w-3.5 h-3.5 text-slate-500" /> Task / Service
+                    <span className="text-muted-foreground flex items-center gap-1.5 font-bold uppercase tracking-widest text-[9px]">
+                      <Compass className="w-3.5 h-3.5" /> Target Sector
                     </span>
-                    <span className="font-bold text-slate-900 max-w-[150px] truncate text-right">
+                    <span className="font-bold text-foreground max-w-[150px] truncate text-right">
                       {job.serviceType || "General Shoot"}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-slate-500 flex items-center gap-1.5 font-bold uppercase tracking-wider text-[9px]">
-                      <MapPin className="w-3.5 h-3.5 text-slate-500" /> Area Coordinates
+                    <span className="text-muted-foreground flex items-center gap-1.5 font-bold uppercase tracking-widest text-[9px]">
+                      <MapPin className="w-3.5 h-3.5" /> Coordinates
                     </span>
-                    <span className="font-bold text-slate-300 font-mono text-[10px]">
-                      {job.lat ? `${job.lat.toFixed(4)}° N, ${job.lng.toFixed(4)}° E` : "Satellite Locks Pending"}
+                    <span className="font-bold text-muted-foreground font-mono text-[10px]">
+                      {job.lat ? `${job.lat.toFixed(4)}° N, ${job.lng.toFixed(4)}° E` : "Locking satellites..."}
                     </span>
                   </div>
 
-                  <div className="flex justify-between items-center text-xs pt-1 border-t border-slate-200/70 mt-1">
-                    <span className="text-slate-500 flex items-center gap-1.5 font-black uppercase tracking-wider text-[10px]">
-                      <IndianRupee className="w-3.5 h-3.5 text-emerald-500" /> Booking Cost
+                  <div className="flex justify-between items-center text-xs pt-1.5 border-t border-border mt-1.5">
+                    <span className="text-muted-foreground flex items-center gap-1.5 font-bold uppercase tracking-widest text-[9px]">
+                      <IndianRupee className="w-3.5 h-3.5 text-emerald-500" /> Dispatch Cost
                     </span>
-                    <span className="font-black text-emerald-400 text-sm">
+                    <span className="font-extrabold text-emerald-600 dark:text-emerald-450">
                       ₹{((job.estimatedAmount > 0 ? job.estimatedAmount : (job.totalAmount || 3000))).toLocaleString("en-IN")}
                     </span>
                   </div>
@@ -500,17 +532,20 @@ export default function TrackingPage() {
             </Card>
 
             {/* Operational Instructions */}
-            <Card className="border-slate-200 bg-slate-50 backdrop-blur-sm rounded-3xl p-5 border-dashed">
+            <Card className="border-border bg-card/40 backdrop-blur-md rounded-3xl p-5 border-dashed">
               <div className="space-y-3.5 text-xs">
-                <p className="font-bold text-slate-300 uppercase tracking-widest text-[10px]">Operational Safety Guidelines</p>
-                <ul className="space-y-2.5 text-slate-400 list-disc list-inside">
-                  <li>Keep flight areas clear of tall obstacles</li>
-                  <li>Ensure pilot has open lines of communication</li>
-                  <li>In case of weather limits, timeline may delay</li>
+                <p className="font-bold text-muted-foreground uppercase tracking-widest text-[9px] font-mono">Flight Directive Instructions</p>
+                <ul className="space-y-2.5 text-muted-foreground list-disc list-inside leading-relaxed">
+                  <li>Clear launch vectors of overhanging cables or trees.</li>
+                  <li>Maintain terminal telephone availability during dispatch windows.</li>
+                  <li>Flight operations subject to real-time meteorological conditions.</li>
                 </ul>
               </div>
             </Card>
 
+          </div>
+
+        </div>
       </div>
 
     </div>

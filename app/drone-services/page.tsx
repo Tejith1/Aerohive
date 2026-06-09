@@ -76,75 +76,75 @@ const serviceProviders: ServiceProvider[] = [
     id: "1",
     companyName: "SkyMapper Pro",
     description: "Professional aerial mapping and surveying services with certified pilots and advanced LiDAR equipment.",
-    location: "Denver, CO",
+    location: "Bangalore, Karnataka",
     rating: 4.9,
     reviewCount: 127,
     isVerified: true,
-    licenseNumber: "FAA-107-SM-2024",
+    licenseNumber: "DGCA-RPL-SM-2024",
     insurance: true,
     yearsExperience: 8,
     commissionRate: 12,
     responseTime: "< 4 hours",
     equipment: ["DJI Matrice 300", "LiDAR L1", "RTK Module", "Survey-grade GPS"],
-    certifications: ["FAA Part 107", "Survey Mapping", "Photogrammetry Certified"],
+    certifications: ["DGCA Remote Pilot License", "Survey Mapping", "Photogrammetry Certified"],
     profileImage: "/placeholder.svg?height=100&width=100&text=SkyMapper",
     portfolio: ["/placeholder.svg?height=200&width=300&text=Mapping+Sample"],
     contactInfo: {
-      phone: "(555) 123-4567",
+      phone: "+91 98765 43210",
       email: "projects@skymapperpro.com",
       website: "www.skymapperpro.com"
     },
-    lat: 39.7392,
-    lng: -104.9903
+    lat: 12.9716,
+    lng: 77.5946
   },
   {
     id: "2",
     companyName: "AgriSpray Solutions",
     description: "Precision agriculture specialists providing crop spraying, monitoring, and analysis services.",
-    location: "Fresno, CA",
+    location: "Nashik, Maharashtra",
     rating: 4.8,
     reviewCount: 89,
     isVerified: true,
-    licenseNumber: "FAA-107-AS-2024",
+    licenseNumber: "DGCA-RPL-AS-2024",
     insurance: true,
     yearsExperience: 6,
     commissionRate: 10,
     responseTime: "< 6 hours",
     equipment: ["DJI Agras T40", "Precision Sprayer", "Multispectral Camera", "Weather Station"],
-    certifications: ["FAA Part 107", "Agricultural Spray License", "Precision Agriculture"],
+    certifications: ["DGCA Remote Pilot License", "Agricultural Spray License", "Precision Agriculture"],
     profileImage: "/placeholder.svg?height=100&width=100&text=AgriSpray",
     portfolio: ["/placeholder.svg?height=200&width=300&text=Farm+Spraying"],
     contactInfo: {
-      phone: "(555) 234-5678",
+      phone: "+91 87654 32109",
       email: "services@agrispraysolutions.com"
     },
-    lat: 36.7378,
-    lng: -119.7871
+    lat: 19.9975,
+    lng: 73.7898
   },
   {
     id: "3",
     companyName: "AerialVision Studios",
     description: "Cinematic aerial photography and videography for real estate, events, and commercial productions.",
-    location: "Los Angeles, CA",
+    location: "Mumbai, Maharashtra",
     rating: 4.9,
     reviewCount: 203,
     isVerified: true,
-    licenseNumber: "FAA-107-AV-2024",
+    licenseNumber: "DGCA-RPL-AV-2024",
     insurance: true,
     yearsExperience: 10,
     commissionRate: 15,
     responseTime: "< 2 hours",
     equipment: ["DJI Inspire 3", "Hasselblad X9", "FPV Cinewhoop", "RED Digital Cinema"],
-    certifications: ["FAA Part 107", "Film Production", "Real Estate Certified"],
+    certifications: ["DGCA Remote Pilot License", "Film Production", "Real Estate Certified"],
     profileImage: "/placeholder.svg?height=100&width=100&text=AerialVision",
     portfolio: ["/placeholder.svg?height=200&width=300&text=Aerial+Photo"],
     contactInfo: {
-      phone: "(555) 345-6789",
+      phone: "+91 76543 21098",
       email: "bookings@aerialvisionstudios.com",
       website: "www.aerialvisionstudios.com"
     },
-    lat: 34.0522,
-    lng: -118.2437
+    lat: 19.0760,
+    lng: 72.8777
   }
 ]
 
@@ -404,41 +404,123 @@ export default function DroneServicesPage() {
     }
   }
 
+  function ServiceCategoryLogo({ type, className }: { type: string; className?: string }) {
+  const baseSvgClass = "w-8 h-8 mx-auto mb-2 transition-all duration-300 group-hover:scale-110";
+  switch (type) {
+    case "mapping":
+      return (
+        <svg className={className || baseSvgClass} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M12 2L2 7l10 5 10-5-10-5z" />
+          <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
+          <circle cx="12" cy="12" r="1.5" className="fill-primary" />
+        </svg>
+      );
+    case "photography":
+      return (
+        <svg className={className || baseSvgClass} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <circle cx="12" cy="12" r="10" />
+          <circle cx="12" cy="12" r="3" />
+          <path d="M6 6l3.5 3.5M18 18l-3.5-3.5M18 6l-3.5 3.5M6 18l3.5-3.5" />
+        </svg>
+      );
+    case "spraying":
+      return (
+        <svg className={className || baseSvgClass} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M12 2v20M2 12h20" strokeDasharray="2 2" />
+          <path d="M7 16a5 5 0 0 1 10 0" className="stroke-primary" />
+          <circle cx="12" cy="12" r="4" />
+          <circle cx="7" cy="16" r="1" className="fill-primary" />
+          <circle cx="17" cy="16" r="1" className="fill-primary" />
+        </svg>
+      );
+    case "surveillance":
+      return (
+        <svg className={className || baseSvgClass} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          <circle cx="12" cy="11" r="3" className="stroke-primary" />
+          <circle cx="12" cy="11" r="1" className="fill-primary" />
+        </svg>
+      );
+    case "inspection":
+      return (
+        <svg className={className || baseSvgClass} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 6v12M6 12h12" />
+          <path d="M12 12m-3 0a3 3 0 1 0 6 0 3 3 0 1 0 -6 0" className="stroke-primary" />
+        </svg>
+      );
+    case "delivery":
+      return (
+        <svg className={className || baseSvgClass} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M4 10h16v8H4z" />
+          <path d="M12 2v8M8 6h8" />
+          <path d="M8 18v2a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2" className="stroke-primary" />
+        </svg>
+      );
+    default:
+      return (
+        <svg className={className || baseSvgClass} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M12 2L2 7l10 5 10-5-10-5z" />
+        </svg>
+      );
+  }
+}
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
       <ModernHeader />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-900 via-indigo-800 to-purple-900 text-white py-20">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-200 to-white bg-clip-text text-transparent">
-            Drone-as-a-Service Marketplace
-          </h1>
-          <p className="text-xl mb-8 text-blue-100 max-w-3xl mx-auto">
-            Connect with certified drone service providers for mapping, surveillance, spraying, photography, and more.
-            Professional services delivered by licensed pilots with commercial-grade equipment.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Button size="lg" className="bg-white text-blue-900 hover:bg-blue-50">
-              <Plane className="w-5 h-5 mr-2" />
-              Find Services
-            </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-900">
-              Become a Provider
-            </Button>
+      <section className="relative pt-28 lg:pt-36 pb-20 overflow-hidden text-center bg-background border-b border-border">
+        <div className="absolute inset-0 bg-grid-pattern opacity-[0.01] pointer-events-none"></div>
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="max-w-4xl mx-auto space-y-6">
+            {/* Custom Gear Propeller Logo */}
+            <div className="flex justify-center mb-2 animate-pulse">
+              <svg className="w-20 h-20 text-primary" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <circle cx="50" cy="50" r="16" className="stroke-primary" />
+                <circle cx="50" cy="50" r="6" className="fill-primary" />
+                <path d="M50 10v24M50 66v24M10 50h24M66 50h24" strokeWidth="2" />
+                <circle cx="50" cy="22" r="8" strokeDasharray="2 1" />
+                <circle cx="50" cy="78" r="8" strokeDasharray="2 1" />
+                <circle cx="22" cy="50" r="8" strokeDasharray="2 1" />
+                <circle cx="78" cy="50" r="8" strokeDasharray="2 1" />
+              </svg>
+            </div>
+            <div className="inline-flex items-center justify-center space-x-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary"></span>
+              <span className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase font-mono">
+                // MARKETPLACE
+              </span>
+            </div>
+            <h1 className="text-4xl md:text-6xl font-light tracking-tight font-display text-foreground leading-tight">
+              Drone-as-a-Service <span className="font-semibold text-primary block sm:inline">Marketplace</span>
+            </h1>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-sans font-light">
+              Connect with certified drone service providers for mapping, surveillance, spraying, photography, and inspections.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4 pt-2">
+              <Button size="lg" className="bg-primary hover:bg-primary/95 text-white rounded-full px-6 py-3.5 text-sm font-medium transition-all duration-300 border-0">
+                <Plane className="w-5 h-5 mr-2" />
+                Find Services
+              </Button>
+              <Button size="lg" variant="outline" className="border border-border text-foreground hover:bg-muted rounded-full px-6 py-3.5 text-sm font-medium transition-all duration-300 bg-card/50 backdrop-blur-sm">
+                Become a Provider
+              </Button>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Navigation and Search */}
-      <section className="py-8 bg-white border-b">
+      <section className="py-8 bg-card border-b border-border">
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-            <div className="flex items-center bg-gray-100 rounded-lg p-1">
+            <div className="flex items-center bg-muted rounded-full p-1 border border-border">
               <Button
                 variant={activeTab === "services" ? "default" : "ghost"}
                 onClick={() => setActiveTab("services")}
-                className="rounded-md"
+                className="rounded-full px-6 py-2"
               >
                 <Plane className="w-4 h-4 mr-2" />
                 Services
@@ -446,7 +528,7 @@ export default function DroneServicesPage() {
               <Button
                 variant={activeTab === "providers" ? "default" : "ghost"}
                 onClick={() => setActiveTab("providers")}
-                className="rounded-md"
+                className="rounded-full px-6 py-2"
               >
                 <Award className="w-4 h-4 mr-2" />
                 Providers
@@ -455,29 +537,29 @@ export default function DroneServicesPage() {
 
             <div className="flex flex-col sm:flex-row gap-4 items-center">
               <div className="flex items-center gap-2 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
                   type="text"
                   placeholder={`Search ${activeTab}...`}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-64"
+                  className="pl-10 w-64 rounded-full border-border bg-background"
                 />
               </div>
 
               <div className="flex items-center gap-2 relative">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
                   type="text"
                   placeholder="Location"
                   value={locationFilter}
                   onChange={(e) => setLocationFilter(e.target.value)}
-                  className="pl-10 w-48 pr-8"
+                  className="pl-10 w-48 pr-8 rounded-full border-border bg-background"
                 />
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 text-gray-400 hover:text-blue-600"
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-primary"
                   onClick={handleUseMyLocation}
                   disabled={isLocating}
                   title="Use my location"
@@ -490,7 +572,7 @@ export default function DroneServicesPage() {
                 <select
                   value={serviceTypeFilter}
                   onChange={(e) => setServiceTypeFilter(e.target.value)}
-                  className="border rounded-md px-3 py-2 text-sm"
+                  className="border border-border rounded-full px-4 py-2 text-sm bg-background text-foreground focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                 >
                   <option value="all">All Services</option>
                   <option value="mapping">Mapping & Surveying</option>
@@ -507,29 +589,27 @@ export default function DroneServicesPage() {
       </section>
 
       {/* Service Types Overview */}
-      <section className="py-8 bg-gray-50">
+      <section className="py-8 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {[
-              { type: "mapping", label: "Mapping", icon: Map, count: 45 },
-              { type: "photography", label: "Photography", icon: Camera, count: 78 },
-              { type: "spraying", label: "Agriculture", icon: Droplets, count: 32 },
-              { type: "surveillance", label: "Surveillance", icon: Shield, count: 23 },
-              { type: "inspection", label: "Inspection", icon: Search, count: 56 },
-              { type: "delivery", label: "Delivery", icon: Plane, count: 12 }
+              { type: "mapping", label: "Mapping", count: 45 },
+              { type: "photography", label: "Photography", count: 78 },
+              { type: "spraying", label: "Agriculture", count: 32 },
+              { type: "surveillance", label: "Surveillance", count: 23 },
+              { type: "inspection", label: "Inspection", count: 56 },
+              { type: "delivery", label: "Delivery", count: 12 }
             ].map(category => {
-              const Icon = category.icon
               return (
                 <div
                   key={category.type}
-                  className={`p-4 rounded-lg text-center cursor-pointer transition-all ${serviceTypeFilter === category.type
-                    ? "bg-blue-600 text-white"
-                    : "bg-white hover:bg-blue-50 text-gray-900"
+                  className={`p-4 rounded-3xl text-center cursor-pointer transition-all border border-border/40 ${serviceTypeFilter === category.type
+                    ? "bg-primary text-white"
+                    : "bg-card hover:bg-primary/5 text-foreground"
                     }`}
                   onClick={() => setServiceTypeFilter(category.type)}
                 >
-                  <Icon className={`w-8 h-8 mx-auto mb-2 ${serviceTypeFilter === category.type ? "text-white" : "text-blue-600"
-                    }`} />
+                  <ServiceCategoryLogo type={category.type} className={`w-8 h-8 mx-auto mb-2 ${serviceTypeFilter === category.type ? "text-white" : "text-primary"}`} />
                   <p className="font-medium text-sm">{category.label}</p>
                   <p className="text-xs opacity-75">{category.count} services</p>
                 </div>
@@ -540,21 +620,20 @@ export default function DroneServicesPage() {
       </section>
 
       {/* Content Section */}
-      <section className="py-12 relative">
+      <section className="py-12 relative bg-background">
         <div className="container mx-auto px-4">
           {activeTab === "services" ? (
-            <div className={`grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 ${!isAdmin && !authLoading ? 'blur-md pointer-events-none select-none opacity-40' : ''}`}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
               {filteredServices.map((service) => {
                 const provider = getProviderById(service.providerId)
-                const ServiceIcon = getServiceIcon(service.serviceType)
 
                 return (
-                  <Card key={service.id} className="overflow-hidden hover:shadow-xl transition-all duration-300">
+                  <Card key={service.id} className="overflow-hidden hover:shadow-xl transition-all duration-350 border border-border bg-card rounded-3xl">
                     <CardHeader className="pb-4">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <div className="p-2 bg-blue-100 rounded-lg">
-                            <ServiceIcon className="w-6 h-6 text-blue-600" />
+                          <div className="p-2 bg-primary/10 rounded-2xl">
+                            <ServiceCategoryLogo type={service.serviceType} className="w-6 h-6 text-primary" />
                           </div>
                           <div>
                             <Badge variant="secondary" className="capitalize">
@@ -563,43 +642,43 @@ export default function DroneServicesPage() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-2xl font-bold text-blue-600">
+                          <div className="text-2xl font-bold text-primary">
                             {formatPrice(service)}
                           </div>
                           {service.minDuration && (
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-muted-foreground">
                               Min {service.minDuration}h
                             </div>
                           )}
                         </div>
                       </div>
 
-                      <CardTitle className="text-xl mb-2">{service.title}</CardTitle>
-                      <p className="text-gray-600 text-sm">{service.description}</p>
+                      <CardTitle className="text-xl mb-2 font-display">{service.title}</CardTitle>
+                      <p className="text-muted-foreground text-sm leading-relaxed">{service.description}</p>
                     </CardHeader>
 
                     <CardContent className="space-y-4">
                       {/* Provider Info */}
                       {provider && (
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3 p-3 bg-muted/40 rounded-2xl">
                           <img
                             src={provider.profileImage}
                             alt={provider.companyName}
                             className="w-10 h-10 rounded-full object-cover"
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm text-gray-900">{provider.companyName}</p>
+                            <p className="font-medium text-sm text-foreground">{provider.companyName}</p>
                             <div className="flex items-center gap-2">
                               <div className="flex items-center gap-1">
                                 <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                                <span className="text-xs text-gray-600">{provider.rating} ({provider.reviewCount})</span>
+                                <span className="text-xs text-muted-foreground">{provider.rating} ({provider.reviewCount})</span>
                               </div>
-                              <span className="text-xs text-gray-500">•</span>
-                              <span className="text-xs text-gray-600">{provider.location}</span>
+                              <span className="text-xs text-muted-foreground">•</span>
+                              <span className="text-xs text-muted-foreground">{provider.location}</span>
                             </div>
                           </div>
                           {provider.isVerified && (
-                            <Badge variant="secondary" className="bg-green-100 text-green-800">
+                            <Badge variant="secondary" className="bg-green-150 text-green-800 border-0">
                               <Shield className="w-3 h-3 mr-1" />
                               Verified
                             </Badge>
@@ -610,28 +689,28 @@ export default function DroneServicesPage() {
                       {/* Service Details */}
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-gray-400" />
-                          <span>{service.turnaroundTime}</span>
+                          <Clock className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">{service.turnaroundTime}</span>
                         </div>
                         {service.maxCoverage && (
                           <div className="flex items-center gap-2">
-                            <Map className="w-4 h-4 text-gray-400" />
-                            <span>Up to {service.maxCoverage} acres</span>
+                            <MapPin className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">Up to {service.maxCoverage} acres</span>
                           </div>
                         )}
                       </div>
 
                       {/* Equipment */}
                       <div>
-                        <p className="text-sm font-medium text-gray-900 mb-2">Equipment Used:</p>
+                        <p className="text-sm font-medium text-foreground mb-2">Equipment Used:</p>
                         <div className="flex flex-wrap gap-1">
                           {service.equipment.slice(0, 3).map((item, index) => (
-                            <Badge key={index} variant="outline" className="text-xs">
+                            <Badge key={index} variant="outline" className="text-xs border-border">
                               {item}
                             </Badge>
                           ))}
                           {service.equipment.length > 3 && (
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-xs border-border">
                               +{service.equipment.length - 3} more
                             </Badge>
                           )}
@@ -640,16 +719,16 @@ export default function DroneServicesPage() {
 
                       {/* Deliverables */}
                       <div>
-                        <p className="text-sm font-medium text-gray-900 mb-2">You'll Receive:</p>
+                        <p className="text-sm font-medium text-foreground mb-2">You'll Receive:</p>
                         <div className="space-y-1">
                           {service.deliverables.slice(0, 3).map((item, index) => (
-                            <div key={index} className="text-xs text-gray-600 flex items-center gap-1">
-                              <div className="w-1 h-1 bg-blue-600 rounded-full" />
+                            <div key={index} className="text-xs text-muted-foreground flex items-center gap-1">
+                              <div className="w-1.5 h-1.5 bg-primary rounded-full" />
                               {item}
                             </div>
                           ))}
                           {service.deliverables.length > 3 && (
-                            <div className="text-xs text-blue-600">
+                            <div className="text-xs text-primary">
                               +{service.deliverables.length - 3} more deliverables
                             </div>
                           )}
@@ -657,15 +736,15 @@ export default function DroneServicesPage() {
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="pt-4 border-t space-y-2">
-                        <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                      <div className="pt-4 border-t border-border space-y-2">
+                        <Button className="w-full bg-primary hover:bg-primary/90 text-white rounded-full py-2.5 transition-all duration-300 border-0">
                           Request Quote
                         </Button>
                         <div className="grid grid-cols-2 gap-2">
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" className="rounded-full">
                             View Portfolio
                           </Button>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" className="rounded-full">
                             Contact Provider
                           </Button>
                         </div>
@@ -676,9 +755,9 @@ export default function DroneServicesPage() {
               })}
             </div>
           ) : (
-            <div className={`grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 ${!isAdmin && !authLoading ? 'blur-md pointer-events-none select-none opacity-40' : ''}`}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
               {filteredProviders.map((provider) => (
-                <Card key={provider.id} className="overflow-hidden hover:shadow-xl transition-all duration-300">
+                <Card key={provider.id} className="overflow-hidden hover:shadow-xl transition-all duration-350 border border-border bg-card rounded-3xl">
                   <CardHeader className="text-center pb-4">
                     <div className="relative inline-block mb-4">
                       <img
@@ -693,16 +772,16 @@ export default function DroneServicesPage() {
                       )}
                     </div>
 
-                    <CardTitle className="text-xl mb-2">{provider.companyName}</CardTitle>
-                    <p className="text-gray-600 text-sm mb-3">{provider.description}</p>
+                    <CardTitle className="text-xl mb-2 font-display">{provider.companyName}</CardTitle>
+                    <p className="text-muted-foreground text-sm mb-3">{provider.description}</p>
 
                     <div className="flex items-center justify-center gap-1 mb-2">
                       <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                      <span className="font-medium">{provider.rating}</span>
-                      <span className="text-sm text-gray-500">({provider.reviewCount} reviews)</span>
+                      <span className="font-medium text-foreground">{provider.rating}</span>
+                      <span className="text-sm text-muted-foreground">({provider.reviewCount} reviews)</span>
                     </div>
 
-                    <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+                    <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                       <MapPin className="w-4 h-4" />
                       {provider.location}
                     </div>
@@ -711,27 +790,27 @@ export default function DroneServicesPage() {
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <span className="text-gray-500">Experience:</span>
-                        <p className="font-medium">{provider.yearsExperience} years</p>
+                        <span className="text-muted-foreground">Experience:</span>
+                        <p className="font-medium text-foreground">{provider.yearsExperience} years</p>
                       </div>
                       <div>
-                        <span className="text-gray-500">Response:</span>
-                        <p className="font-medium">{provider.responseTime}</p>
+                        <span className="text-muted-foreground">Response:</span>
+                        <p className="font-medium text-foreground">{provider.responseTime}</p>
                       </div>
                       <div>
-                        <span className="text-gray-500">Commission:</span>
-                        <p className="font-medium">{provider.commissionRate}%</p>
+                        <span className="text-muted-foreground">Commission:</span>
+                        <p className="font-medium text-foreground">{provider.commissionRate}%</p>
                       </div>
                       <div>
-                        <span className="text-gray-500">Insurance:</span>
-                        <p className={`font-medium ${provider.insurance ? "text-green-600" : "text-red-600"}`}>
+                        <span className="text-muted-foreground">Insurance:</span>
+                        <p className={`font-medium ${provider.insurance ? "text-green-600" : "text-red-650"}`}>
                           {provider.insurance ? "Covered" : "Not Covered"}
                         </p>
                       </div>
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium text-gray-900 mb-2">Equipment:</p>
+                      <p className="text-sm font-medium text-foreground mb-2">Equipment:</p>
                       <div className="flex flex-wrap gap-1">
                         {provider.equipment.slice(0, 3).map((item, index) => (
                           <Badge key={index} variant="secondary" className="text-xs">
@@ -739,7 +818,7 @@ export default function DroneServicesPage() {
                           </Badge>
                         ))}
                         {provider.equipment.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-xs border-border">
                             +{provider.equipment.length - 3} more
                           </Badge>
                         )}
@@ -747,25 +826,25 @@ export default function DroneServicesPage() {
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium text-gray-900 mb-2">Certifications:</p>
+                      <p className="text-sm font-medium text-foreground mb-2">Certifications:</p>
                       <div className="flex flex-wrap gap-1">
                         {provider.certifications.map((cert, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
+                          <Badge key={index} variant="outline" className="text-xs border-border">
                             {cert}
                           </Badge>
                         ))}
                       </div>
                     </div>
 
-                    <div className="pt-4 border-t space-y-2">
-                      <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                    <div className="pt-4 border-t border-border space-y-2">
+                      <Button className="w-full bg-primary hover:bg-primary/90 text-white rounded-full py-2.5 transition-all duration-300 border-0">
                         View Services
                       </Button>
                       <div className="grid grid-cols-2 gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" className="rounded-full">
                           View Portfolio
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" className="rounded-full">
                           Contact
                         </Button>
                       </div>
@@ -779,9 +858,9 @@ export default function DroneServicesPage() {
           {((activeTab === "services" && filteredServices.length === 0) ||
             (activeTab === "providers" && filteredProviders.length === 0)) && (
               <div className="text-center py-12">
-                <Plane className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No {activeTab} found</h3>
-                <p className="text-gray-500 mb-4">Try adjusting your search criteria or expanding your location range.</p>
+                <Plane className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-foreground mb-2">No {activeTab} found</h3>
+                <p className="text-muted-foreground mb-4">Try adjusting your search criteria or expanding your location range.</p>
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -789,30 +868,31 @@ export default function DroneServicesPage() {
                     setLocationFilter("")
                     setServiceTypeFilter("all")
                   }}
+                  className="rounded-full"
                 >
                   Clear Filters
                 </Button>
               </div>
             )}
             <ComingSoonOverlay
-            show={!isAdmin && !isLoading}
+            show={false}
             description="Our primary drone-as-a-service marketplace is in final stages of development. Certified providers will be available soon."
           />
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+      <section className="py-16 bg-[#181816] text-[#f3f1eb]">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to Become a Service Provider?</h2>
-          <p className="text-xl mb-8 text-blue-100 max-w-2xl mx-auto">
+          <h2 className="text-3xl font-display mb-4">Ready to Become a Service Provider?</h2>
+          <p className="text-lg mb-8 text-muted-foreground max-w-2xl mx-auto">
             Join our marketplace and start earning with your drone skills. List your services and connect with clients nationwide.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50">
+            <Button size="lg" className="bg-primary text-white hover:bg-primary/90 rounded-full px-6 py-3.5 border-0">
               Apply as Provider
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
+            <Button size="lg" variant="outline" className="border-border text-foreground hover:bg-muted rounded-full px-6 py-3.5">
               Learn More
             </Button>
           </div>

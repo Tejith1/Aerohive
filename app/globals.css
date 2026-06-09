@@ -1,87 +1,138 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 @import "leaflet/dist/leaflet.css";
 
+@theme {
+  --font-sans: var(--font-inter), 'Inter', sans-serif;
+  --font-display: var(--font-inter), 'Inter', sans-serif;
+  --font-mono-tech: var(--font-jetbrains-mono), monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
 :root {
-  /* Updated color tokens for drone/aviation theme */
-  --background: #ffffff;
-  --foreground: #1e293b;
-  --card: #f8fafc;
-  --card-foreground: #1e293b;
-  --popover: #ffffff;
-  --popover-foreground: #1e293b;
-  --primary: #2563eb;
-  /* Aviation blue */
+  /* Cool Blue Design Tokens */
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #f1f5f9;
+  --card-foreground: #0f172a;
+  --popover: #f8fafc;
+  --popover-foreground: #0f172a;
+  
+  --primary: #2563eb; /* Vibrant Blue */
   --primary-foreground: #ffffff;
-  --secondary: #06b6d4;
-  /* Sky blue */
-  --secondary-foreground: #ffffff;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #0ea5e9;
-  /* Bright sky */
+  --secondary: #e2e8f0; /* Soft Cool Gray */
+  --secondary-foreground: #0f172a;
+  --muted: #e2e8f0;
+  --muted-foreground: #64748b; /* Cool Slate */
+  --accent: #2563eb;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #e2e8f0;
+  --border: #cbd5e1; /* Light blue-gray border */
   --input: #f8fafc;
-  --ring: rgba(37, 99, 235, 0.5);
+  --ring: rgba(37, 99, 235, 0.25);
   --chart-1: #2563eb;
-  --chart-2: #06b6d4;
-  --chart-3: #0ea5e9;
-  --chart-4: #64748b;
-  --chart-5: #f1f5f9;
-  --radius: 0.75rem;
-  --sidebar: #ffffff;
-  --sidebar-foreground: #1e293b;
-  --sidebar-primary: #f8fafc;
-  --sidebar-primary-foreground: #1e293b;
-  --sidebar-accent: #06b6d4;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #e2e8f0;
-  --sidebar-ring: rgba(37, 99, 235, 0.5);
+  --chart-2: #0f172a;
+  --chart-3: #64748b;
+  --chart-4: #94a3b8;
+  --chart-5: #e2e8f0;
+  --radius: 1.5rem; /* Softer pill-style radius */
+  --sidebar: #f1f5f9;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #2563eb;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e2e8f0;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #cbd5e1;
+  --sidebar-ring: rgba(37, 99, 235, 0.25);
+
+  /* Hex Codes for inline Tailwind overrides */
+  --tropical-teal: #2563eb;
+  --tropical-orange: #2563eb;
+  --tropical-pink: #64748b;
+  --tropical-yellow: #94a3b8;
 }
 
 .dark {
-  --background: #0f172a;
-  --foreground: #f1f5f9;
-  --card: #1e293b;
-  --card-foreground: #f1f5f9;
-  --popover: #1e293b;
-  --popover-foreground: #f1f5f9;
-  --primary: #3b82f6;
-  --primary-foreground: #0f172a;
-  --secondary: #22d3ee;
-  --secondary-foreground: #0f172a;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-  --accent: #0ea5e9;
-  --accent-foreground: #0f172a;
+  --background: #11110f; /* Matte Ink Black */
+  --foreground: #f3f1eb; /* Warm Cream Text */
+  --card: #181816; /* Warm Low-Contrast Charcoal Card */
+  --card-foreground: #f3f1eb;
+  --popover: #11110f;
+  --popover-foreground: #f3f1eb;
+  --primary: #f97316; /* Vibrant Orange for dark mode */
+  --primary-foreground: #11110f;
+  --secondary: #21211e;
+  --secondary-foreground: #f3f1eb;
+  --muted: #1e1e1c;
+  --muted-foreground: #a6a39a;
+  --accent: #f97316;
+  --accent-foreground: #11110f;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #334155;
-  --input: #1e293b;
-  --ring: rgba(59, 130, 246, 0.5);
-  --chart-1: #3b82f6;
-  --chart-2: #22d3ee;
-  --chart-3: #0ea5e9;
-  --chart-4: #94a3b8;
-  --chart-5: #1e293b;
-  --sidebar: #0f172a;
-  --sidebar-foreground: #f1f5f9;
-  --sidebar-primary: #1e293b;
-  --sidebar-primary-foreground: #f1f5f9;
-  --sidebar-accent: #22d3ee;
-  --sidebar-accent-foreground: #0f172a;
-  --sidebar-border: #334155;
-  --sidebar-ring: rgba(59, 130, 246, 0.5);
+  --border: #242422; /* Warm Dark Border */
+  --input: #181816;
+  --ring: rgba(249, 115, 22, 0.3);
+  --sidebar: #181816;
+  --sidebar-foreground: #f3f1eb;
+  --sidebar-primary: #f97316;
+  --sidebar-primary-foreground: #11110f;
+  --sidebar-accent: #21211e;
+  --sidebar-accent-foreground: #f3f1eb;
+  --sidebar-border: #242422;
+  --sidebar-ring: rgba(249, 115, 22, 0.3);
 }
 
-/* Custom drone-themed styles */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-  background: linear-gradient(to bottom right, #f8fafc, #e2e8f0);
+  --font-sans: var(--font-inter), 'Inter', sans-serif;
+  --font-display: var(--font-inter), 'Inter', sans-serif;
+  --font-mono-tech: var(--font-jetbrains-mono), monospace;
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  font-weight: 400; /* Body Text → Inter Regular (400) */
+  background-color: var(--background);
+  color: var(--foreground);
   min-height: 100vh;
+  line-height: 1.65;
 }
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  font-weight: 600; /* Section Titles / Hero Headings → Inter SemiBold (600) */
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+
+/* Logo / Hero headings use SemiBold 600 */
+.logo-heading, .hero-heading {
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  font-weight: 600;
+}
+
+/* Button typography */
+button, .btn, [role="button"], input[type="button"], input[type="submit"] {
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  font-weight: 500; /* Buttons → Inter Medium (500) */
+}
+
 
 /* Aviation-inspired gradient backgrounds */
 .aviation-gradient {
@@ -672,11 +723,76 @@ body {
 
 @layer base {
   * {
-    border-color: hsl(var(--border));
+    border-color: var(--border);
   }
 
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    background-color: var(--background);
+    color: var(--foreground);
   }
+}
+
+/* Premium Marquee Ticker Animation */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee-slow {
+  animation: marquee 40s linear infinite;
+}
+
+/* Bento card styling */
+.bento-glow-card {
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.bento-glow-card:hover {
+  border-color: rgba(37, 99, 235, 0.35);
+  box-shadow: 0 0 40px rgba(37, 99, 235, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.dark .bento-glow-card:hover {
+  border-color: rgba(249, 115, 22, 0.35);
+  box-shadow: 0 0 40px rgba(249, 115, 22, 0.08);
+}
+
+/* Matrix scanning keyframe */
+@keyframes scanning {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+.matrix-scanner {
+  position: relative;
+  overflow: hidden;
+}
+
+.matrix-scanner::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  opacity: 0.6;
+  animation: scanning 3s linear infinite;
+  pointer-events: none;
 }

@@ -1,17 +1,31 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { GeistSans } from "geist/font/sans"
-import { GeistMono } from "geist/font/mono"
+import { Inter, JetBrains_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import dynamic from 'next/dynamic'
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/contexts/auth-context"
 import { NotificationProvider } from "@/contexts/notification-context"
+import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css"
 
 const Chatbot = dynamic(() => import('@/components/Chatbot'), {
   ssr: false,
+})
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-inter",
+  display: "swap",
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-jetbrains-mono",
+  display: "swap",
 })
 
 export const metadata: Metadata = {
@@ -33,15 +47,17 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <AuthProvider>
-          <NotificationProvider>
-            <Suspense fallback={null}>{children}</Suspense>
-            <Chatbot />
-            <Toaster />
-          </NotificationProvider>
-        </AuthProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`font-sans ${inter.variable} ${jetbrainsMono.variable}`}>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+          <AuthProvider>
+            <NotificationProvider>
+              <Suspense fallback={null}>{children}</Suspense>
+              <Chatbot />
+              <Toaster />
+            </NotificationProvider>
+          </AuthProvider>
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>

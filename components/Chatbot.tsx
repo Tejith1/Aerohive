@@ -484,6 +484,7 @@ export default function Chatbot() {
         lng?: number
         userName: string
         userEmail: string
+        userPhone: string
     }) => {
         setShowConfirmDialog(false)
 
@@ -510,7 +511,7 @@ export default function Chatbot() {
                     payment_method: 'UPI',
                     requirements: { note: requirements },
                     user_name: bookingDetails.userName,
-                    user_phone: currentUser.phone || '',
+                    user_phone: bookingDetails.userPhone || currentUser.phone || '',
                     user_email: bookingDetails.userEmail
                 })
             })

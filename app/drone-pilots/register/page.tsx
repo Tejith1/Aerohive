@@ -18,13 +18,17 @@ import {
   Phone,
   MapPin,
   Award,
-  Briefcase,
   Upload,
   CheckCircle2,
   Plane,
   FileText,
   IndianRupee,
-  Loader2
+  Loader2,
+  Calendar,
+  Home,
+  UserCheck,
+  Activity,
+  ShieldAlert
 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
@@ -61,21 +65,18 @@ export default function DronePilotRegisterPage() {
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
-  // Pre-fill form from localStorage if it exists (handling case where user was redirected to login)
+  // Pre-fill form from localStorage if it exists
   React.useEffect(() => {
     const savedData = localStorage.getItem('pending_pilot_registration')
     if (savedData) {
       try {
         const parsedData = JSON.parse(savedData)
-        // Only restore if user is now logged in or if it's just a refresh
         setFormData(prev => ({
           ...prev,
           ...parsedData,
-          // Don't restore file objects as they can't be JSON serialized
           profileImage: null,
           certificateImage: null
         }))
-        // Clear after restoring to prevent populating on every visit
         localStorage.removeItem('pending_pilot_registration')
         
         toast({
@@ -129,8 +130,6 @@ export default function DronePilotRegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     console.log('🔘 Register Now button clicked!')
-    console.log('👥 Current User:', user ? user.id : 'Not Logged In')
-    console.log('✅ Form is valid:', isFormValid)
     if (!user) {
       toast({
         title: "Login Required",
@@ -138,33 +137,24 @@ export default function DronePilotRegisterPage() {
         variant: "default"
       })
       
-      // Save form data to localStorage (excluding File objects as they can't be serialized)
       const { profileImage, certificateImage, ...serializableData } = formData
       localStorage.setItem('pending_pilot_registration', JSON.stringify(serializableData))
-      
-      // Redirect to login with a fallback to this page
       router.push('/login?redirect=/drone-pilots/register')
       return
     }
     
-    // Additional strict validation check just in case
-    // Additional strict validation check
     if (!isFormValid) {
       const missing = getMissingFields()
-      console.log('⚠️ Validation failed. Missing fields:', missing)
       toast({
         title: "Missing Required Fields",
         description: `Please fill in the following: ${missing.join(", ")}`,
         variant: "destructive"
       })
-      
-      // Scroll to the first missing field if possible (optional enhancement)
       return
     }
     
     setSubmitting(true)
     
-    // Set a timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {
       setSubmitting(false)
       toast({
@@ -172,23 +162,9 @@ export default function DronePilotRegisterPage() {
         description: "The registration is taking too long. Please check your internet connection and try again.",
         variant: "destructive"
       })
-    }, 30000) // 30 second timeout
+    }, 30000)
     
     try {
-      console.log('🚀 Starting registration process via server-side API...')
-      console.log('📝 Form data:', {
-        fullName: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        location: formData.location,
-        area: formData.area,
-        experience: formData.experience,
-        hourlyRate: formData.hourlyRate,
-        dgcaNumber: formData.dgcaNumber,
-        hasDrone: formData.hasDrone
-      })
-      
-      // Build FormData to send everything (including files) to the server-side API
       const apiFormData = new FormData()
       apiFormData.append('full_name', formData.fullName)
       apiFormData.append('email', formData.email)
@@ -200,6 +176,7 @@ export default function DronePilotRegisterPage() {
       apiFormData.append('specializations', formData.specializations)
       apiFormData.append('hourly_rate', formData.hourlyRate)
       apiFormData.append('about', formData.hasDrone ? `[Owns a Drone: ${formData.hasDrone}]\n${formData.about}`.trim() : formData.about)
+      
       const formattedAcademy = `AADHAR: ${formData.aadharNumber.trim() || 'N/A'} | DOB: ${formData.dob || 'N/A'} | HOME: ${formData.homeAddress.trim() || 'N/A'} | GENDER: ${formData.gender || 'N/A'} | BLOOD: ${formData.bloodGroup || 'N/A'} | EMERGENCY: ${formData.emergencyContact.trim() || 'N/A'} | PAN: ${formData.panNumber.trim() || 'N/A'} | ACADEMY: ${formData.droneAcademy.trim() || 'None'}`
       apiFormData.append('drone_academy', formattedAcademy)
       apiFormData.append('dgca_number', formData.dgcaNumber)
@@ -212,8 +189,6 @@ export default function DronePilotRegisterPage() {
       if (formData.certificateImage) {
         apiFormData.append('certificate_image', formData.certificateImage)
       }
-
-      console.log('📤 Submitting to server-side API (bypasses RLS)...')
       
       const response = await fetch('/api/drone-pilots/register', {
         method: 'POST',
@@ -226,12 +201,8 @@ export default function DronePilotRegisterPage() {
         throw new Error(result.error || 'Registration failed')
       }
 
-      console.log('✅ Success! Server response:', result)
-
-      // Sync with Google Sheets via backend API
       try {
         const { profileImage, certificateImage, ...cleanFormData } = formData;
-        
         await fetch('/api/drone-pilot-registration', {
           method: 'POST',
           headers: {
@@ -243,22 +214,19 @@ export default function DronePilotRegisterPage() {
             status: 'Pending Review'
           })
         })
-        console.log('✅ Google Sheets sync complete')
       } catch (gsError) {
         console.error('⚠️ Google Sheets sync failed but database is OK:', gsError)
       }
       
       clearTimeout(timeoutId)
-      
       setSubmitted(true)
       setSubmitting(false)
       
       toast({
-        title: "✅ Registration Successful!",
+        title: "Registration Successful!",
         description: "Your application has been submitted. We'll review it within 24-48 hours.",
       })
       
-      // Reset form after 3 seconds
       setTimeout(() => {
         setSubmitted(false)
         setFormData({
@@ -288,8 +256,6 @@ export default function DronePilotRegisterPage() {
       }, 3000)
     } catch (error: any) {
       clearTimeout(timeoutId)
-      console.error('❌ Registration error:', error)
-      
       setSubmitting(false)
       
       let errorMessage = "Failed to register. Please try again."
@@ -320,452 +286,462 @@ export default function DronePilotRegisterPage() {
 
   if (submitted) {
     return (
-      <>
+      <div className="min-h-screen bg-[#faf8f5] dark:bg-[#0b0f19] flex flex-col justify-between transition-colors duration-300">
         <ModernHeader />
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
-          <Card className="max-w-md w-full text-center border-0 shadow-2xl">
-          <CardContent className="pt-12 pb-12">
-            <div className="h-20 w-20 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 mx-auto mb-6 flex items-center justify-center">
-              <CheckCircle2 className="h-10 w-10 text-white" />
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Registration Successful!</h2>
-            <p className="text-gray-600 mb-8">
-              Thank you for registering! We'll review your application and get back to you within 24-48 hours.
-            </p>
-            <Button 
-              asChild
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl"
-            >
-              <Link href="/drone-pilots">
-                Back to Drone Pilots
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="flex-1 flex items-center justify-center p-6 relative">
+          <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#1f2937_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none"></div>
+          <Card className="max-w-md w-full text-center border border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-900/80 backdrop-blur-md shadow-xl rounded-3xl p-8 relative z-10">
+            <CardContent className="pt-8 pb-8">
+              <div className="h-16 w-16 rounded-2xl bg-green-500/10 border border-green-500/20 mx-auto mb-6 flex items-center justify-center text-green-600 dark:text-green-400">
+                <CheckCircle2 className="h-8 w-8" />
+              </div>
+              <h2 className="text-2xl font-serif font-normal text-slate-900 dark:text-white mb-3">Registration Successful!</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 leading-relaxed">
+                Thank you for applying. Our flight operations board will review your credentials and get back to you within 24-48 hours.
+              </p>
+              <Button 
+                asChild
+                className="w-full bg-[#e65737] hover:bg-[#e65737]/90 text-white font-bold rounded-xl shadow-md h-11"
+              >
+                <Link href="/drone-pilots">
+                  Return to Pilots Roster
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
         </div>
         <ModernFooter />
-      </>
+      </div>
     )
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-[#faf8f5] dark:bg-[#0b0f19] text-slate-800 dark:text-slate-200 transition-colors duration-300 relative flex flex-col justify-between">
+      {/* Ambient background grids */}
+      <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#1f2937_1px,transparent_1px)] [background-size:24px_24px] opacity-30 pointer-events-none"></div>
+      
       <ModernHeader />
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        {/* Header */}
-        <section className="pt-32 pb-12">
-        <div className="container mx-auto px-4">
-          <Button 
-            asChild
-            variant="ghost" 
-            className="mb-6 hover:bg-white"
-          >
-            <Link href="/drone-pilots">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Drone Pilots
-            </Link>
-          </Button>
+      
+      {/* Main Content Area */}
+      <main className="flex-1 pt-32 pb-20 relative z-10">
+        <div className="container mx-auto px-6">
           
-          <div className="text-center max-w-3xl mx-auto">
-            <Badge className="mb-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 px-6 py-2">
-              <Plane className="h-4 w-4 mr-2 inline" />
-              Pilot Registration
+          {/* Navigation link */}
+          <div className="max-w-4xl mx-auto mb-8">
+            <Button 
+              asChild
+              variant="ghost" 
+              className="hover:bg-slate-100 dark:hover:bg-slate-900 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+            >
+              <Link href="/drone-pilots" className="flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Roster</span>
+              </Link>
+            </Button>
+          </div>
+          
+          {/* Form Header */}
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <Badge className="mb-4 bg-[#e65737]/8 dark:bg-[#e65737]/12 text-[#e65737] border border-[#e65737]/15 px-4 py-1.5 rounded-full font-mono uppercase tracking-wider text-xs">
+              <Plane className="h-3.5 w-3.5 mr-2 inline animate-pulse" />
+              Pilot Verification Panel
             </Badge>
-            <h1 className="text-4xl md:text-5xl font-black mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Register as a Drone Pilot
+            <h1 className="text-3xl md:text-4xl font-serif font-normal text-slate-900 dark:text-white tracking-tight mb-3">
+              Apply as a Professional Operator
             </h1>
-            <p className="text-lg text-gray-600">
-              Join our network of certified professionals and start connecting with clients
+            <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+              Register your DGCA credentials to receive commercial mission dispatches and list on our verified operator roster.
             </p>
           </div>
-        </div>
-      </section>
 
-      {/* Registration Form */}
-      <section className="container mx-auto px-4 pb-20">
-        <Card className="max-w-4xl mx-auto border-0 shadow-2xl">
-          <CardHeader>
-            <CardTitle className="text-2xl">Pilot Information</CardTitle>
-            <CardDescription>
-              Please fill in all the details accurately. Fields marked with * are required.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-8">
-              {/* Personal Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <User className="h-5 w-5 text-blue-600" />
-                  Personal Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name * <span className="text-sm font-normal text-gray-500">(As per DGCA certificate)</span></Label>
-                    <Input
-                      id="fullName"
-                      name="fullName"
-                      placeholder="Enter your full name"
-                      value={formData.fullName}
-                      onChange={handleInputChange}
-                      required
-                      className="rounded-xl"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address *</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="your.email@example.com"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      required
-                      className="rounded-xl"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number *</Label>
-                    <Input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      placeholder="+91 98765 43210"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      required
-                      className="rounded-xl"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="location">City/Location *</Label>
-                    <Input
-                      id="location"
-                      name="location"
-                      placeholder="e.g., Bangalore"
-                      value={formData.location}
-                      onChange={handleInputChange}
-                      required
-                      className="rounded-xl"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="area">Area/Locality *</Label>
-                    <Input
-                      id="area"
-                      name="area"
-                      placeholder="e.g., Koramangala"
-                      value={formData.area}
-                      onChange={handleInputChange}
-                      required
-                      className="rounded-xl"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="experience">Years of Experience *</Label>
-                    <select
-                      id="experience"
-                      name="experience"
-                      value={formData.experience}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full h-10 px-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 bg-white"
-                    >
-                      <option value="">Select experience</option>
-                      <option value="0-1">0-1 years</option>
-                      <option value="1-2">1-2 years</option>
-                      <option value="2-3">2-3 years</option>
-                      <option value="3-5">3-5 years</option>
-                      <option value="5+">5+ years</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Extended Verification Details - Skippable for now */}
-                <div className="mt-8 pt-6 border-t border-gray-100 space-y-4">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                    <div>
-                      <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Extended Verification</h4>
-                      <p className="text-xs text-gray-500 mt-0.5">These details are optional and can be skipped during initial registration.</p>
-                    </div>
-                    <span className="inline-flex items-center text-xs font-bold text-amber-700 bg-amber-50 border border-amber-100 rounded-full px-2.5 py-0.5">
-                      💡 Optional - Can be skipped
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Form Container */}
+          <Card className="max-w-4xl mx-auto border border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-900/60 backdrop-blur-md shadow-xl rounded-3xl overflow-hidden">
+            <CardHeader className="border-b border-slate-100 dark:border-slate-800/80 p-6 md:p-8 bg-slate-50/50 dark:bg-slate-950/20">
+              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">Operator Profile Credentials</CardTitle>
+              <CardDescription className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Please complete all fields accurately. Mandatory fields are highlighted with an asterisk (*).
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 md:p-8">
+              <form onSubmit={handleSubmit} className="space-y-8">
+                
+                {/* Section: Personal Information */}
+                <div className="space-y-5">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-[#e65737] flex items-center gap-2">
+                    <User className="h-4.5 w-4.5" />
+                    Personal Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="space-y-2">
-                      <Label htmlFor="aadharNumber">Aadhar Card Number</Label>
+                      <Label htmlFor="fullName" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        Full Name * <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500">(matches DGCA certificate)</span>
+                      </Label>
                       <Input
-                        id="aadharNumber"
-                        name="aadharNumber"
-                        placeholder="12-digit Aadhar number"
-                        value={formData.aadharNumber}
-                        onChange={handleInputChange}
-                        className="rounded-xl"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="dob">Date of Birth</Label>
-                      <Input
-                        id="dob"
-                        name="dob"
-                        type="date"
-                        value={formData.dob}
-                        onChange={handleInputChange}
-                        className="rounded-xl"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="homeAddress">Home Address</Label>
-                      <Input
-                        id="homeAddress"
-                        name="homeAddress"
-                        placeholder="Complete billing or home address"
-                        value={formData.homeAddress}
-                        onChange={handleInputChange}
-                        className="rounded-xl"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="gender">Gender</Label>
-                      <select
-                        id="gender"
-                        name="gender"
-                        value={formData.gender}
-                        onChange={handleInputChange}
-                        className="w-full h-10 px-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 bg-white"
-                      >
-                        <option value="">Select gender</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                        <option value="Skip">Skip / Prefer not to say</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="bloodGroup">Blood Group</Label>
-                      <select
-                        id="bloodGroup"
-                        name="bloodGroup"
-                        value={formData.bloodGroup}
-                        onChange={handleInputChange}
-                        className="w-full h-10 px-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 bg-white"
-                      >
-                        <option value="">Select blood group</option>
-                        <option value="A+">A+</option>
-                        <option value="A-">A-</option>
-                        <option value="B+">B+</option>
-                        <option value="B-">B-</option>
-                        <option value="O+">O+</option>
-                        <option value="O-">O-</option>
-                        <option value="AB+">AB+</option>
-                        <option value="AB-">AB-</option>
-                        <option value="Skip">Skip / Don't know</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="emergencyContact">Emergency Contact Number</Label>
-                      <Input
-                        id="emergencyContact"
-                        name="emergencyContact"
-                        placeholder="Emergency mobile number"
-                        value={formData.emergencyContact}
-                        onChange={handleInputChange}
-                        className="rounded-xl"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="panNumber">PAN Card Number</Label>
-                      <Input
-                        id="panNumber"
-                        name="panNumber"
-                        placeholder="10-digit PAN number"
-                        value={formData.panNumber}
-                        onChange={handleInputChange}
-                        className="rounded-xl uppercase"
-                      />
-                    </div>
-                  </div>
-                  <p className="text-[10px] text-gray-400">
-                    * If skipped, your application will be reviewed but flagged as incomplete on the administration board until details are filled.
-                  </p>
-                </div>
-              </div>
-
-              {/* Professional Details */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <Award className="h-5 w-5 text-blue-600" />
-                  Professional Details
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="dgcaNumber">DGCA Certificate Number *</Label>
-                    <Input
-                      id="dgcaNumber"
-                      name="dgcaNumber"
-                      placeholder="Enter DGCA certificate number"
-                      value={formData.dgcaNumber}
-                      onChange={handleInputChange}
-                      required
-                      className="rounded-xl"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="hourlyRate">Hourly Rate (₹) * <span className="text-sm font-normal text-gray-500">(rate excluding transport charges)</span></Label>
-                    <div className="relative">
-                      <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="hourlyRate"
-                        name="hourlyRate"
-                        type="number"
-                        placeholder="2000"
-                        value={formData.hourlyRate}
+                        id="fullName"
+                        name="fullName"
+                        placeholder="Enter your full name"
+                        value={formData.fullName}
                         onChange={handleInputChange}
                         required
-                        className="rounded-xl pl-10"
+                        className="rounded-xl border-slate-200 dark:border-slate-800 focus:border-[#e65737] focus:ring-[#e65737]/20 bg-white dark:bg-slate-950 h-10 text-xs"
                       />
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-xs font-semibold text-slate-700 dark:text-slate-300">Email Address *</Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        placeholder="name@example.com"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
+                        className="rounded-xl border-slate-200 dark:border-slate-800 focus:border-[#e65737] focus:ring-[#e65737]/20 bg-white dark:bg-slate-950 h-10 text-xs"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="text-xs font-semibold text-slate-700 dark:text-slate-300">Phone Number *</Label>
+                      <Input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        placeholder="+91 98765 43210"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        required
+                        className="rounded-xl border-slate-200 dark:border-slate-800 focus:border-[#e65737] focus:ring-[#e65737]/20 bg-white dark:bg-slate-950 h-10 text-xs"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="location" className="text-xs font-semibold text-slate-700 dark:text-slate-300">City/Location *</Label>
+                      <Input
+                        id="location"
+                        name="location"
+                        placeholder="e.g., Bangalore"
+                        value={formData.location}
+                        onChange={handleInputChange}
+                        required
+                        className="rounded-xl border-slate-200 dark:border-slate-800 focus:border-[#e65737] focus:ring-[#e65737]/20 bg-white dark:bg-slate-950 h-10 text-xs"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="area" className="text-xs font-semibold text-slate-700 dark:text-slate-300">Area/Locality *</Label>
+                      <Input
+                        id="area"
+                        name="area"
+                        placeholder="e.g., Indiranagar"
+                        value={formData.area}
+                        onChange={handleInputChange}
+                        required
+                        className="rounded-xl border-slate-200 dark:border-slate-800 focus:border-[#e65737] focus:ring-[#e65737]/20 bg-white dark:bg-slate-950 h-10 text-xs"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="experience" className="text-xs font-semibold text-slate-700 dark:text-slate-300">Years of Experience *</Label>
+                      <select
+                        id="experience"
+                        name="experience"
+                        value={formData.experience}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 focus:border-[#e65737] focus:ring-2 focus:ring-[#e65737]/20 bg-white dark:bg-slate-950 text-xs transition-colors"
+                      >
+                        <option value="">Select experience</option>
+                        <option value="0-1">0-1 years</option>
+                        <option value="1-2">1-2 years</option>
+                        <option value="2-3">2-3 years</option>
+                        <option value="3-5">3-5 years</option>
+                        <option value="5+">5+ years</option>
+                      </select>
+                    </div>
                   </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="certifications">Certifications (comma-separated) *</Label>
-                    <Input
-                      id="certifications"
-                      name="certifications"
-                      placeholder="e.g., DGCA Certified, Aerial Photography, 3D Mapping"
-                      value={formData.certifications}
-                      onChange={handleInputChange}
-                      required
-                      className="rounded-xl"
-                    />
-                  </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="specializations">Specializations (comma-separated) *</Label>
-                    <Input
-                      id="specializations"
-                      name="specializations"
-                      placeholder="e.g., Real Estate, Wedding Photography, Survey Mapping"
-                      value={formData.specializations}
-                      onChange={handleInputChange}
-                      required
-                      className="rounded-xl"
-                    />
-                  </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="hasDrone">Do you have a drone? *</Label>
-                    <select
-                      id="hasDrone"
-                      name="hasDrone"
-                      value={formData.hasDrone}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full h-10 px-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 bg-white"
-                    >
-                      <option value="">Select option</option>
-                      <option value="YES">YES</option>
-                      <option value="NO">NO</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="droneAcademy">Drone Academy <span className="text-sm font-normal text-gray-500">(Optional)</span></Label>
-                    <Input
-                      id="droneAcademy"
-                      name="droneAcademy"
-                      placeholder="e.g., Indian Institute of Drones, RPTO Academy"
-                      value={formData.droneAcademy}
-                      onChange={handleInputChange}
-                      className="rounded-xl"
-                    />
-                  </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="about">About You *</Label>
-                    <Textarea
-                      id="about"
-                      name="about"
-                      placeholder="Tell us about your experience, equipment, and services you offer..."
-                      value={formData.about}
-                      onChange={handleInputChange}
-                      required
-                      rows={4}
-                      className="rounded-xl"
-                    />
+
+                  {/* Subsection: Extended Verification Details (Optional) */}
+                  <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800/85 space-y-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono">Extended Verification Details</h4>
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">These optional fields assist the ops board in prioritizing clearance approvals.</p>
+                      </div>
+                      <span className="inline-flex items-center text-[10px] font-bold text-[#e65737] bg-[#e65737]/8 border border-[#e65737]/15 rounded-full px-2.5 py-0.5 font-mono">
+                        OPTIONAL FIELDS
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="aadharNumber" className="text-[11px] font-semibold text-slate-600 dark:text-slate-450 flex items-center gap-1.5"><UserCheck className="w-3.5 h-3.5 text-slate-400" /> Aadhar Card No</Label>
+                        <Input
+                          id="aadharNumber"
+                          name="aadharNumber"
+                          placeholder="12-digit number"
+                          value={formData.aadharNumber}
+                          onChange={handleInputChange}
+                          className="rounded-xl border-slate-200 dark:border-slate-800 focus:border-[#e65737] focus:ring-[#e65737]/20 bg-white dark:bg-slate-950 h-10 text-xs"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="dob" className="text-[11px] font-semibold text-slate-600 dark:text-slate-455 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-slate-400" /> Date of Birth</Label>
+                        <Input
+                          id="dob"
+                          name="dob"
+                          type="date"
+                          value={formData.dob}
+                          onChange={handleInputChange}
+                          className="rounded-xl border-slate-200 dark:border-slate-800 focus:border-[#e65737] focus:ring-[#e65737]/20 bg-white dark:bg-slate-950 h-10 text-xs text-slate-500"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="homeAddress" className="text-[11px] font-semibold text-slate-600 dark:text-slate-455 flex items-center gap-1.5"><Home className="w-3.5 h-3.5 text-slate-400" /> Home Address</Label>
+                        <Input
+                          id="homeAddress"
+                          name="homeAddress"
+                          placeholder="Full residential address"
+                          value={formData.homeAddress}
+                          onChange={handleInputChange}
+                          className="rounded-xl border-slate-200 dark:border-slate-800 focus:border-[#e65737] focus:ring-[#e65737]/20 bg-white dark:bg-slate-950 h-10 text-xs"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="gender" className="text-[11px] font-semibold text-slate-600 dark:text-slate-455 flex items-center gap-1.5"><User className="w-3.5 h-3.5 text-slate-400" /> Gender</Label>
+                        <select
+                          id="gender"
+                          name="gender"
+                          value={formData.gender}
+                          onChange={handleInputChange}
+                          className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 focus:border-[#e65737] focus:ring-2 focus:ring-[#e65737]/20 bg-white dark:bg-slate-950 text-xs transition-colors"
+                        >
+                          <option value="">Select gender</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                          <option value="Skip">Prefer not to say</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="bloodGroup" className="text-[11px] font-semibold text-slate-600 dark:text-slate-455 flex items-center gap-1.5"><Activity className="w-3.5 h-3.5 text-slate-400" /> Blood Group</Label>
+                        <select
+                          id="bloodGroup"
+                          name="bloodGroup"
+                          value={formData.bloodGroup}
+                          onChange={handleInputChange}
+                          className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 focus:border-[#e65737] focus:ring-2 focus:ring-[#e65737]/20 bg-white dark:bg-slate-950 text-xs transition-colors"
+                        >
+                          <option value="">Select blood group</option>
+                          <option value="A+">A+</option>
+                          <option value="A-">A-</option>
+                          <option value="B+">B+</option>
+                          <option value="B-">B-</option>
+                          <option value="O+">O+</option>
+                          <option value="O-">O-</option>
+                          <option value="AB+">AB+</option>
+                          <option value="AB-">AB-</option>
+                          <option value="Skip">Don't know</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="emergencyContact" className="text-[11px] font-semibold text-slate-600 dark:text-slate-455 flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-slate-400" /> Emergency Mobile</Label>
+                        <Input
+                          id="emergencyContact"
+                          name="emergencyContact"
+                          placeholder="Emergency contact"
+                          value={formData.emergencyContact}
+                          onChange={handleInputChange}
+                          className="rounded-xl border-slate-200 dark:border-slate-800 focus:border-[#e65737] focus:ring-[#e65737]/20 bg-white dark:bg-slate-950 h-10 text-xs"
+                        />
+                      </div>
+                      <div className="space-y-2 lg:col-span-3">
+                        <Label htmlFor="panNumber" className="text-[11px] font-semibold text-slate-600 dark:text-slate-455 flex items-center gap-1.5"><FileText className="w-3.5 h-3.5 text-slate-400" /> PAN Card Number</Label>
+                        <Input
+                          id="panNumber"
+                          name="panNumber"
+                          placeholder="10-digit alphanumeric PAN card number"
+                          value={formData.panNumber}
+                          onChange={handleInputChange}
+                          className="rounded-xl border-slate-200 dark:border-slate-800 focus:border-[#e65737] focus:ring-[#e65737]/20 bg-white dark:bg-slate-950 h-10 text-xs uppercase"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] text-amber-700 dark:text-amber-500 bg-amber-500/5 p-3 border border-amber-500/10 rounded-xl">
+                      <ShieldAlert className="w-4 h-4 shrink-0" />
+                      <span>Note: If skipped, your application will be verified but flagged as <strong>Incomplete Profile</strong> in the operational database.</span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Document Uploads */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-blue-600" />
-                  Documents & Photos
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="profileImage">Profile Photo *</Label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-500 transition-colors cursor-pointer">
-                      <input
-                        id="profileImage"
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleFileChange(e, 'profileImage')}
-                        className="hidden"
+                {/* Section: Professional Credentials */}
+                <div className="space-y-5 pt-4 border-t border-slate-100 dark:border-slate-800/80">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-[#e65737] flex items-center gap-2">
+                    <Award className="h-4.5 w-4.5" />
+                    Professional Credentials
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="space-y-2">
+                      <Label htmlFor="dgcaNumber" className="text-xs font-semibold text-slate-700 dark:text-slate-300">DGCA Certificate Number *</Label>
+                      <Input
+                        id="dgcaNumber"
+                        name="dgcaNumber"
+                        placeholder="e.g., UAOP/NPNT/..."
+                        value={formData.dgcaNumber}
+                        onChange={handleInputChange}
+                        required
+                        className="rounded-xl border-slate-200 dark:border-slate-800 focus:border-[#e65737] focus:ring-[#e65737]/20 bg-white dark:bg-slate-950 h-10 text-xs font-mono"
                       />
-                      <label htmlFor="profileImage" className="cursor-pointer">
-                        <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-                        <p className="text-sm text-gray-600 truncate">
-                          {formData.profileImage ? formData.profileImage.name : "Click to upload profile photo"}
-                        </p>
-                      </label>
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="certificateImage">DGCA Certificate *</Label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-500 transition-colors cursor-pointer">
-                      <input
-                        id="certificateImage"
-                        type="file"
-                        accept="image/*,application/pdf"
-                        onChange={(e) => handleFileChange(e, 'certificateImage')}
-                        className="hidden"
+                    <div className="space-y-2">
+                      <Label htmlFor="hourlyRate" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        Hourly Rate (₹) * <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500">(excluding travel charges)</span>
+                      </Label>
+                      <div className="relative">
+                        <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                        <Input
+                          id="hourlyRate"
+                          name="hourlyRate"
+                          type="number"
+                          placeholder="2500"
+                          value={formData.hourlyRate}
+                          onChange={handleInputChange}
+                          required
+                          className="rounded-xl border-slate-200 dark:border-slate-800 focus:border-[#e65737] focus:ring-[#e65737]/20 bg-white dark:bg-slate-950 h-10 pl-9 text-xs"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="certifications" className="text-xs font-semibold text-slate-700 dark:text-slate-300">Certifications * <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500">(comma-separated)</span></Label>
+                      <Input
+                        id="certifications"
+                        name="certifications"
+                        placeholder="FAA Part 107, DGCA Certified RPAS Operator, thermal mapping, cinematography"
+                        value={formData.certifications}
+                        onChange={handleInputChange}
+                        required
+                        className="rounded-xl border-slate-200 dark:border-slate-800 focus:border-[#e65737] focus:ring-[#e65737]/20 bg-white dark:bg-slate-950 h-10 text-xs"
                       />
-                      <label htmlFor="certificateImage" className="cursor-pointer">
-                        <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-                        <p className="text-sm text-gray-600 truncate">
-                          {formData.certificateImage ? formData.certificateImage.name : "Click to upload certificate"}
-                        </p>
-                      </label>
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="specializations" className="text-xs font-semibold text-slate-700 dark:text-slate-300">Specializations * <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500">(comma-separated)</span></Label>
+                      <Input
+                        id="specializations"
+                        name="specializations"
+                        placeholder="FPV Cinematic, Real Estate, Surveying, Precision Agriculture, Inspection"
+                        value={formData.specializations}
+                        onChange={handleInputChange}
+                        required
+                        className="rounded-xl border-slate-200 dark:border-slate-800 focus:border-[#e65737] focus:ring-[#e65737]/20 bg-white dark:bg-slate-950 h-10 text-xs"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="hasDrone" className="text-xs font-semibold text-slate-700 dark:text-slate-300">Do you own flight equipment? *</Label>
+                      <select
+                        id="hasDrone"
+                        name="hasDrone"
+                        value={formData.hasDrone}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 focus:border-[#e65737] focus:ring-2 focus:ring-[#e65737]/20 bg-white dark:bg-slate-950 text-xs transition-colors"
+                      >
+                        <option value="">Select option</option>
+                        <option value="YES">Yes, I own commercial flight rigs</option>
+                        <option value="NO">No, I require equipment dispatch</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="droneAcademy" className="text-xs font-semibold text-slate-700 dark:text-slate-300">RPTO / Drone Academy <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500">(Optional)</span></Label>
+                      <Input
+                        id="droneAcademy"
+                        name="droneAcademy"
+                        placeholder="Academy where you completed remote pilot training"
+                        value={formData.droneAcademy}
+                        onChange={handleInputChange}
+                        className="rounded-xl border-slate-200 dark:border-slate-800 focus:border-[#e65737] focus:ring-[#e65737]/20 bg-white dark:bg-slate-950 h-10 text-xs"
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="about" className="text-xs font-semibold text-slate-700 dark:text-slate-300">Operator Statement & Equipment Details *</Label>
+                      <Textarea
+                        id="about"
+                        name="about"
+                        placeholder="Detail your professional experience, safety records, and specific drone specs (sensors, camera, range)..."
+                        value={formData.about}
+                        onChange={handleInputChange}
+                        required
+                        rows={4}
+                        className="rounded-xl border-slate-200 dark:border-slate-800 focus:border-[#e65737] focus:ring-[#e65737]/20 bg-white dark:bg-slate-950 text-xs resize-none"
+                      />
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Submit Button */}
-              <div className="flex items-center justify-between pt-6 border-t border-gray-200">
-                <p className="text-sm text-gray-600">
-                  By registering, you agree to our terms and conditions
-                </p>
-                 <Button
-                  type="submit"
-                  size="lg"
-                  disabled={submitting}
-                  className={`bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl px-8 shadow-lg hover:shadow-xl transition-all duration-300 ${!isFormValid ? 'opacity-80' : ''}`}
-                >
-                  {submitting ? (
-                    <>
-                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                      Registering...
-                    </>
-                  ) : (
-                    'Register Now'
-                  )}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </section>
-      </div>
+                {/* Section: Document Uploads */}
+                <div className="space-y-5 pt-4 border-t border-slate-100 dark:border-slate-800/80">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-[#e65737] flex items-center gap-2">
+                    <FileText className="h-4.5 w-4.5" />
+                    Mandatory Documentation
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Profile Photo *</Label>
+                      <div className="border border-dashed border-slate-300 dark:border-slate-800 hover:border-[#e65737]/60 dark:hover:border-[#e65737]/50 rounded-xl p-6 text-center transition-all bg-slate-50/50 dark:bg-slate-950/20 relative group">
+                        <input
+                          id="profileImage"
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileChange(e, 'profileImage')}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                        <Upload className="h-6 w-6 mx-auto text-slate-400 group-hover:text-[#e65737] mb-2 transition-colors" />
+                        <p className="text-xs font-medium text-slate-600 dark:text-slate-400 truncate">
+                          {formData.profileImage ? formData.profileImage.name : "Choose profile image"}
+                        </p>
+                        <p className="text-[10px] text-slate-400 mt-1">JPEG, PNG up to 5MB</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">DGCA Certificate (Scan/Photo) *</Label>
+                      <div className="border border-dashed border-slate-300 dark:border-slate-800 hover:border-[#e65737]/60 dark:hover:border-[#e65737]/50 rounded-xl p-6 text-center transition-all bg-slate-50/50 dark:bg-slate-950/20 relative group">
+                        <input
+                          id="certificateImage"
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileChange(e, 'certificateImage')}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                        <Upload className="h-6 w-6 mx-auto text-slate-400 group-hover:text-[#e65737] mb-2 transition-colors" />
+                        <p className="text-xs font-medium text-slate-600 dark:text-slate-400 truncate">
+                          {formData.certificateImage ? formData.certificateImage.name : "Choose certificate scan"}
+                        </p>
+                        <p className="text-[10px] text-slate-400 mt-1">JPEG, PNG up to 5MB</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Submit Row */}
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-slate-100 dark:border-slate-800/80">
+                  <p className="text-[11px] text-slate-450 dark:text-slate-500 leading-relaxed text-center sm:text-left">
+                    By submitting this application, you authorize AeroHive to audit and verify your DGCA credentials.
+                  </p>
+                  <Button
+                    type="submit"
+                    disabled={submitting}
+                    className="w-full sm:w-auto bg-[#e65737] hover:bg-[#e65737]/90 text-white font-bold rounded-xl px-8 shadow-md h-11 text-xs shrink-0 flex items-center justify-center gap-2 border-0"
+                  >
+                    {submitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Submitting Application...</span>
+                      </>
+                    ) : (
+                      <span>Submit Verification Application</span>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+      
       <ModernFooter />
-    </>
+    </div>
   )
 }

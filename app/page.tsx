@@ -4,14 +4,16 @@ import React, { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useSearchParams } from "next/navigation"
-import { ArrowRight, Plane, Camera, Zap, MapPin, Shield, Truck, Star, Clock, Wind, Users, Award, Globe, Battery, Wifi, ShoppingCart, Settings, Play, Eye, Headphones, Gauge, Navigation, Wifi as WifiIcon, Mail, CheckCircle } from "lucide-react"
+import { motion } from "framer-motion"
+import { ArrowRight, Camera, Zap, Shield, Star, Users, Battery, Settings, Navigation, Mail, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { HeroSection } from "@/components/ui/hero-section"
 import { ModernProductCard } from "@/components/ui/modern-product-card"
 import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
 import { FAQSection } from "@/components/layout/faq-section"
+import { FeaturesGrid } from "@/components/sections/features-grid"
+import { TelemetryConsole } from "@/components/sections/telemetry-console"
 import { useCartStore } from "@/lib/cart-store"
 import { toast } from "@/hooks/use-toast"
 import { getProducts, Product } from "@/lib/supabase"
@@ -51,9 +53,6 @@ export default function HomePage() {
         return
       }
 
-      // Check for OAuth success — DO NOT remove the ?code= from the URL here!
-      // Supabase's async PKCE exchange needs it. The URL cleanup happens
-      // in auth-context's onAuthStateChange after the session is established.
       if (code || localStorage.getItem('oauth_success') === 'true') {
         console.log('🎉 OAuth callback detected — waiting for Supabase to exchange code...')
         localStorage.removeItem('oauth_success')
@@ -70,14 +69,14 @@ export default function HomePage() {
       toast({
         title: "📧 Check Your Email!",
         description: "We've sent you a confirmation link. Click it to activate your account and start shopping for drones!",
-        className: "border-blue-200 bg-blue-50 text-blue-900",
+        className: "border-teal-200 bg-teal-50 text-teal-900",
         duration: 15000,
       })
     } else if (message === 'email-confirmed') {
       toast({
         title: "✅ Email Confirmed!",
         description: "Your account is now active. Welcome to AeroHive! You can now log in and start shopping.",
-        className: "border-green-200 bg-green-50 text-green-900",
+        className: "border-[#069494]/20 bg-[#069494]/5 text-slate-900 dark:text-slate-100",
         duration: 10000,
       })
       window.history.replaceState({}, '', '/')
@@ -106,7 +105,6 @@ export default function HomePage() {
       } catch (err: any) {
         console.error('❌ Error fetching featured products:', err)
 
-        // Retry once on network/connection errors
         if (retryCount < 1 && (err.message?.includes('Failed to fetch') || err.message?.includes('network'))) {
           console.log('🔄 Retrying product fetch...')
           await new Promise(resolve => setTimeout(resolve, 1500))
@@ -123,7 +121,9 @@ export default function HomePage() {
   }, [searchParams, mounted])
 
   const handleAddToCart = (e: React.MouseEvent, product: Product) => {
-    e.preventDefault()
+    if (e && e.preventDefault) {
+      e.preventDefault()
+    }
 
     if (product.stock_quantity === 0) {
       toast({
@@ -146,144 +146,420 @@ export default function HomePage() {
     toast({
       title: "🎉 Added to Cart!",
       description: `${product.name} has been added to your cart.`,
-      className: "border-green-200 bg-green-50 text-green-900",
+      className: "border-[#069494]/20 bg-white text-slate-800 dark:bg-slate-900 dark:text-slate-100",
     })
   }
 
   if (!mounted) {
-    return null // Prevent hydration mismatch
+    return null
+  }
+
+  // Animation configurations
+  const sectionVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.8,
+        ease: "easeOut" as const,
+        staggerChildren: 0.1,
+        delayChildren: 0.1
+      }
+    }
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const }
+    }
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
       <ModernHeader key={user?.id || 'guest'} />
 
-      <main className="flex-1 pt-20">
-        {/* Hero Section */}
+      <main className="flex-1">
+        
+        {/* Editorial Hero Banner */}
         <HeroSection
-          title="Soar Above"
-          subtitle="Professional Drones"
-          description="From advanced racing drones to professional aerial photography systems, discover our complete range of cutting-edge drones designed for enthusiasts and professionals alike."
-          primaryButtonText="Explore Drones"
+          title="Soar Above Limitations."
+          subtitle="Enterprise Aviation."
+          description="AeroHive is the award-winning unified telemetry, operations, and commerce suite designed for modern aviation operators. Plan missions, hire certified pilots, and source premium flight rigs."
+          primaryButtonText="Explore the Fleet"
           primaryButtonHref="/products"
-          secondaryButtonText="Watch Demo"
+          secondaryButtonText="Learn Our Strategy"
           secondaryButtonHref="/products"
           backgroundImage="/hero-drone.jpg"
           stats={[
-            { label: "Drone Models", value: "200+" },
-            { label: "Pilots Served", value: "25K+" },
-            { label: "Average Rating", value: "4.9★" }
+            { label: "Fleet Models", value: "150+" },
+            { label: "Active Pilots", value: "12K+" },
+            { label: "Telemetry SLA", value: "99.9%" }
           ]}
           features={[
-            "Professional Grade",
-            "Expert Support",
-            "Fast Shipping",
-            "Full Warranty"
+            "Real-time Telemetry Control",
+            "FAA-Part 107 Compliance",
+            "Tropical Punch Architecture",
+            "Full Liability Coverage"
           ]}
         />
 
-        {/* Features Section */}
-        <section className="py-24 bg-white">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-20">
-              <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-                Why Choose <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">AeroHive</span>?
-              </h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Experience unmatched quality and innovation with our professional drone solutions
-              </p>
-            </div>
+        {/* Infinite Brand Ticker / Telemetry Marquee */}
+        <div className="w-full bg-secondary border-t border-b border-border py-6 overflow-hidden relative z-10 select-none">
+          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-background to-transparent z-15 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-background to-transparent z-15 pointer-events-none" />
+          
+          <div className="flex animate-marquee whitespace-nowrap gap-12 text-[10px] font-semibold tracking-[0.2em] text-muted-foreground font-mono">
+            <span className="flex items-center gap-2.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              AERO_SYS • COMPLIANCE OK
+            </span>
+            <span className="flex items-center gap-2.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 dark:bg-emerald-500" />
+              DGCA_GRID_ACTIVE_UPLINK
+            </span>
+            <span className="flex items-center gap-2.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              HEAVY_CARRIER_RIG_V4
+            </span>
+            <span className="flex items-center gap-2.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 dark:bg-emerald-500" />
+              99.9% TELEMETRY SLA
+            </span>
+            <span className="flex items-center gap-2.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              FAA-PART 107 ASSURED
+            </span>
+            <span className="flex items-center gap-2.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 dark:bg-emerald-500" />
+              AUTOPILOT AVOIDANCE ACTIVE
+            </span>
+            <span className="flex items-center gap-2.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              MISSION COCKPIT V2
+            </span>
+            
+            {/* Duplicated for smooth loop */}
+            <span className="flex items-center gap-2.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              AERO_SYS • COMPLIANCE OK
+            </span>
+            <span className="flex items-center gap-2.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 dark:bg-emerald-500" />
+              DGCA_GRID_ACTIVE_UPLINK
+            </span>
+            <span className="flex items-center gap-2.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              HEAVY_CARRIER_RIG_V4
+            </span>
+            <span className="flex items-center gap-2.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 dark:bg-emerald-500" />
+              99.9% TELEMETRY SLA
+            </span>
+            <span className="flex items-center gap-2.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              FAA-PART 107 ASSURED
+            </span>
+            <span className="flex items-center gap-2.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 dark:bg-emerald-500" />
+              AUTOPILOT AVOIDANCE ACTIVE
+            </span>
+            <span className="flex items-center gap-2.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              MISSION COCKPIT V2
+            </span>
+          </div>
+        </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              <Card className="group bg-gradient-to-br from-blue-50 to-indigo-50 border-0 rounded-2xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
-                <CardContent className="p-8 text-center relative">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                    <Camera className="h-8 w-8 text-white" />
+        {/* Cinematic Scroll-Choreographed Project Overview Section */}
+        <motion.section 
+          className="py-24 bg-background relative overflow-hidden border-b border-border"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+        >
+          {/* Subtle grid lines background overlay */}
+          <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1.2px,transparent_1.2px)] dark:bg-[radial-gradient(#1f2937_1.2px,transparent_1.2px)] [background-size:32px_32px] opacity-25 pointer-events-none" />
+          
+          <div className="container mx-auto px-6 lg:px-12 max-w-7xl relative z-10">
+            <div className="grid lg:grid-cols-12 gap-12 items-center">
+              
+              {/* Left Column: Floating Animated HUD Graphic */}
+              <motion.div 
+                className="lg:col-span-5 flex justify-center"
+                variants={itemVariants}
+              >
+                <div className="relative w-full max-w-[340px] aspect-square rounded-3xl border border-primary/20 bg-card/40 backdrop-blur-lg flex items-center justify-center p-8 overflow-hidden group shadow-lg">
+                  {/* Rotating outer compass ring */}
+                  <div className="absolute inset-4 rounded-full border border-dashed border-primary/30 animate-[spin_40s_linear_infinite]" />
+                  {/* Rotating inner tech grid */}
+                  <div className="absolute inset-10 rounded-full border border-primary/10 border-t-primary/45 animate-[spin_15s_linear_infinite]" />
+                  {/* Inner pulse */}
+                  <div className="absolute inset-16 rounded-full bg-primary/5 flex items-center justify-center">
+                    <Navigation className="h-10 w-10 text-primary animate-pulse" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">4K Cameras</h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    Professional-grade cameras with stabilized gimbals for stunning aerial photography and videography.
-                  </p>
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-200/30 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
-                </CardContent>
-              </Card>
-
-              <Card className="group bg-gradient-to-br from-purple-50 to-pink-50 border-0 rounded-2xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
-                <CardContent className="p-8 text-center relative">
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                    <Navigation className="h-8 w-8 text-white" />
+                  
+                  {/* Ambient grid lines */}
+                  <div className="absolute left-0 right-0 top-1/2 h-px bg-primary/15" />
+                  <div className="absolute top-0 bottom-0 left-1/2 w-px bg-primary/15" />
+                  
+                  {/* Glowing light reflection */}
+                  <div className="absolute -inset-x-20 top-0 h-[80px] bg-gradient-to-b from-primary/10 to-transparent blur-md pointer-events-none" />
+                </div>
+              </motion.div>
+              
+              {/* Right Column: High-Impact Typography & Text */}
+              <motion.div 
+                className="lg:col-span-7 space-y-6"
+                variants={itemVariants}
+              >
+                <span className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold tracking-[0.2em] rounded-full uppercase font-mono">
+                  [ Real-Time Flight Analytics ]
+                </span>
+                
+                <h2 className="text-3xl md:text-5xl font-normal leading-[1.15] tracking-tight font-display text-foreground">
+                  Live telemetry monitoring <br />
+                  <span className="text-primary font-normal">built for absolute pilot coordination.</span>
+                </h2>
+                
+                <p className="text-muted-foreground font-light text-base md:text-lg leading-relaxed max-w-xl">
+                  A high-performance dashboard that synchronizes flight logs, GPS coordinate overlays, and pilot stats instantly. Enable ground teams to supervise live missions and review telemetry history dynamically.
+                </p>
+                
+                <div className="pt-2 flex items-center gap-6">
+                  <div className="space-y-1">
+                    <p className="text-2xl font-bold text-foreground font-mono">0.1s</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-mono">Interaction Latency</p>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">Smart Navigation</h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    Advanced GPS and obstacle avoidance systems for precise autonomous flight and safe operation.
-                  </p>
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-200/30 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
-                </CardContent>
-              </Card>
-
-              <Card className="group bg-gradient-to-br from-green-50 to-emerald-50 border-0 rounded-2xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
-                <CardContent className="p-8 text-center relative">
-                  <div className="w-16 h-16 bg-gradient-to-br from-green-600 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                    <Shield className="h-8 w-8 text-white" />
+                  <div className="w-px h-8 bg-border" />
+                  <div className="space-y-1">
+                    <p className="text-2xl font-bold text-foreground font-mono">100%</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-mono">Fluid Framerate</p>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">Safety First</h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    Multiple safety features including return-to-home, low battery protection, and collision avoidance.
-                  </p>
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-200/30 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
-                </CardContent>
-              </Card>
-
-              <Card className="group bg-gradient-to-br from-orange-50 to-red-50 border-0 rounded-2xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
-                <CardContent className="p-8 text-center relative">
-                  <div className="w-16 h-16 bg-gradient-to-br from-orange-600 to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                    <Battery className="h-8 w-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">Long Flight Time</h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    Extended battery life with intelligent power management for longer flights and more productivity.
-                  </p>
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-200/30 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
-                </CardContent>
-              </Card>
+                </div>
+              </motion.div>
+              
             </div>
           </div>
-        </section>
+        </motion.section>
 
-        {/* Featured Products */}
-        <section className="py-24 bg-white relative">
-          <div className="container mx-auto px-4 relative">
-            <div className="text-center mb-20">
-              <h2 className="text-5xl md:text-6xl font-bold text-slate-900 mb-6">
-                Explore Drone Categories
-              </h2>
-              <p className="text-2xl text-slate-700 max-w-4xl mx-auto leading-relaxed">
-                Handpicked selection of our most popular and cutting-edge drone models across all specialized categories
-              </p>
+        {/* Blueprint Specifications Bento Grid */}
+        <motion.section 
+          className="py-20 bg-background border-b border-border relative overflow-hidden"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+        >
+          <div className="container mx-auto px-6 lg:px-12 max-w-7xl relative z-10">
+            
+            {/* Elegant Asymmetrical Title Header */}
+            <div className="grid lg:grid-cols-12 gap-8 items-start mb-16">
+              <motion.div className="lg:col-span-6" variants={itemVariants}>
+                <span className="text-[10px] font-semibold tracking-[0.2em] text-primary uppercase mb-4 block font-mono">
+                  TECHNICAL SPECIFICATION
+                </span>
+                <h2 className="text-3xl md:text-5xl lg:text-6xl font-normal text-foreground leading-[1.1] tracking-tight font-display">
+                  Designed for quiet control, <br />
+                  <span className="text-primary font-normal">engineered for absolute power.</span>
+                </h2>
+              </motion.div>
+              <motion.div className="lg:col-span-6 lg:pt-8" variants={itemVariants}>
+                <p className="text-base md:text-lg text-muted-foreground leading-relaxed font-sans max-w-xl font-light">
+                  AeroHive integrates aerospace precision with a modern developer-grade telemetry interface. Tap into specialized hardware sensors and autonomous autopilot protocols out of the box.
+                </p>
+              </motion.div>
             </div>
 
+            {/* Bento Grid Layout */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              
+              {/* Card 1: 4K Spatial Imaging (Spans 2 columns on medium+) */}
+              <motion.div 
+                variants={itemVariants} 
+                className="md:col-span-2 min-h-[300px] bg-card border border-border rounded-2xl p-8 flex flex-col justify-between relative overflow-hidden group/bento"
+              >
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_120%,rgba(204,101,67,0.05),transparent_50%)] pointer-events-none" />
+                <div className="flex justify-between items-start">
+                  <div className="space-y-2">
+                    <span className="text-[9px] font-mono font-bold tracking-[0.25em] text-primary uppercase bg-primary/10 px-3 py-1 rounded-full">
+                      01 / CAPTURE
+                    </span>
+                    <h3 className="text-3xl font-semibold text-foreground pt-2">4K Spatial Optics</h3>
+                  </div>
+                  <Camera className="h-6 w-6 text-primary opacity-80 group-hover/bento:scale-110 transition-transform duration-500" />
+                </div>
+                
+                {/* Tech target SVG overlay animation */}
+                <div className="absolute right-8 bottom-8 w-32 h-32 opacity-20 pointer-events-none group-hover/bento:opacity-40 transition-opacity duration-700">
+                  <svg viewBox="0 0 100 100" fill="none" className="w-full h-full text-primary/70 animate-spin-slow">
+                    <circle cx="50" cy="50" r="45" stroke="currentColor" strokeWidth="1" strokeDasharray="4,4" />
+                    <circle cx="50" cy="50" r="30" stroke="currentColor" strokeWidth="1" />
+                    <line x1="50" y1="0" x2="50" y2="100" stroke="currentColor" strokeWidth="0.5" />
+                    <line x1="0" y1="50" x2="100" y2="50" stroke="currentColor" strokeWidth="0.5" />
+                  </svg>
+                </div>
+
+                <p className="text-muted-foreground font-light text-sm md:text-base max-w-md leading-relaxed z-10">
+                  Cinema-grade triple-axis stabilized sensors capturing raw spatial feeds. Complete telemetry synchronization embeds coordinate vectors into every video frame.
+                </p>
+              </motion.div>
+
+              {/* Card 2: Autopilot Control (Spans 1 column) */}
+              <motion.div 
+                variants={itemVariants} 
+                className="min-h-[300px] bg-card border border-border rounded-2xl p-8 flex flex-col justify-between relative overflow-hidden group/bento"
+              >
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(204,101,67,0.05),transparent_50%)] pointer-events-none" />
+                <div className="flex justify-between items-start">
+                  <div className="space-y-2">
+                    <span className="text-[9px] font-mono font-bold tracking-[0.25em] text-primary uppercase bg-primary/10 px-3 py-1 rounded-full">
+                      02 / PILOT
+                    </span>
+                    <h3 className="text-2xl font-semibold text-foreground pt-2">Autopilot Mode</h3>
+                  </div>
+                  <Navigation className="h-6 w-6 text-primary opacity-80 group-hover/bento:-rotate-12 transition-transform" />
+                </div>
+                
+                {/* Dotted path SVG animation */}
+                <div className="w-full h-16 my-4 relative">
+                  <svg viewBox="0 0 200 60" className="w-full h-full text-primary/30">
+                    <path d="M 10 50 Q 80 -10, 120 40 T 190 20" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="5,5" />
+                    <circle cx="10" cy="50" r="4" fill="currentColor" />
+                    <circle cx="120" cy="40" r="4" fill="currentColor" className="animate-ping" style={{ animationDuration: '3s' }} />
+                    <circle cx="190" cy="20" r="4" fill="currentColor" />
+                  </svg>
+                </div>
+
+                <p className="text-muted-foreground font-light text-sm leading-relaxed">
+                  Autonomous waypoint guidance, collision boundaries mapping, and hardware-level return-to-base routing.
+                </p>
+              </motion.div>
+
+              {/* Card 3: Safety Guard (Spans 1 column) */}
+              <motion.div 
+                variants={itemVariants} 
+                className="min-h-[300px] bg-card border border-border rounded-2xl p-8 flex flex-col justify-between relative overflow-hidden group/bento"
+              >
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(16,185,129,0.05),transparent_50%)] pointer-events-none" />
+                <div className="flex justify-between items-start">
+                  <div className="space-y-2">
+                    <span className="text-[9px] font-mono font-bold tracking-[0.25em] text-emerald-600 dark:text-emerald-500 uppercase bg-emerald-500/10 px-3 py-1 rounded-full">
+                      03 / SAFETY
+                    </span>
+                    <h3 className="text-2xl font-semibold text-foreground pt-2">Failsafe Systems</h3>
+                  </div>
+                  <Shield className="h-6 w-6 text-emerald-600 dark:text-emerald-500 opacity-80 group-hover/bento:scale-95 transition-transform" />
+                </div>
+                
+                {/* Tech diagnostic checklist */}
+                <div className="font-mono text-[10px] text-muted-foreground space-y-1.5 my-2">
+                  <div className="flex items-center justify-between border-b border-border pb-1">
+                    <span>GPS LOCK</span>
+                    <span className="text-emerald-600 dark:text-emerald-500 font-bold">100% OK</span>
+                  </div>
+                  <div className="flex items-center justify-between border-b border-border pb-1">
+                    <span>IMU CALIBRATE</span>
+                    <span className="text-emerald-600 dark:text-emerald-500 font-bold">NOMINAL</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>FAILSAFE POWER</span>
+                    <span className="text-emerald-600 dark:text-emerald-500 font-bold">READY</span>
+                  </div>
+                </div>
+
+                <p className="text-muted-foreground font-light text-sm leading-relaxed">
+                  Redundant hardware failsafes, backup receiver uplinks, and immediate low-voltage descent protocols.
+                </p>
+              </motion.div>
+
+              {/* Card 4: Battery Reserve (Spans 2 columns on medium+) */}
+              <motion.div 
+                variants={itemVariants} 
+                className="md:col-span-2 min-h-[300px] bg-card border border-border rounded-2xl p-8 flex flex-col justify-between relative overflow-hidden group/bento"
+              >
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_120%,rgba(217,119,6,0.05),transparent_50%)] pointer-events-none" />
+                <div className="flex justify-between items-start">
+                  <div className="space-y-2">
+                    <span className="text-[9px] font-mono font-bold tracking-[0.25em] text-amber-600 dark:text-amber-500 uppercase bg-amber-500/10 px-3 py-1 rounded-full">
+                      04 / POWER
+                    </span>
+                    <h3 className="text-3xl font-semibold text-foreground pt-2">Solid State Cells</h3>
+                  </div>
+                  <Battery className="h-6 w-6 text-amber-600 dark:text-amber-500 opacity-80 group-hover/bento:translate-x-0.5 transition-transform" />
+                </div>
+                
+                {/* Glowing battery power meter widget */}
+                <div className="w-full max-w-md my-4 p-4 border border-border rounded-2xl bg-background relative">
+                  <div className="flex justify-between text-[10px] font-mono text-muted-foreground mb-2">
+                    <span>CELL VOLTAGE: 16.8V</span>
+                    <span className="text-emerald-600 dark:text-emerald-500 font-bold">CHARGE: 98%</span>
+                  </div>
+                  <div className="w-full bg-muted h-2.5 rounded-full overflow-hidden">
+                    <div className="bg-gradient-to-r from-primary via-amber-500 to-emerald-500 h-full w-[98%] rounded-full" />
+                  </div>
+                </div>
+
+                <p className="text-muted-foreground font-light text-sm md:text-base max-w-md leading-relaxed">
+                  High-density lithium-solid power packs keeping you airborne for twice the commercial flight duration. Hot-swap architecture minimizes takeoff intervals.
+                </p>
+              </motion.div>
+
+            </div>
+
+          </div>
+        </motion.section>
+
+        {/* Dynamic Telemetry Rig Showcase */}
+        <motion.section 
+          className="py-16 bg-background text-foreground"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+        >
+          <div className="container mx-auto px-6 lg:px-12 max-w-7xl">
+            
+            {/* Header */}
+            <div className="grid lg:grid-cols-12 gap-8 items-start mb-12">
+              <motion.div className="lg:col-span-5" variants={itemVariants}>
+                <span className="text-[10px] font-semibold tracking-[0.2em] text-primary uppercase mb-4 block">
+                  HARDWARE HUB
+                </span>
+                <h2 className="text-3xl md:text-5xl font-normal text-foreground leading-[1.1] tracking-tight font-display">
+                  The Flight Fleet. <br />
+                  <span className="text-primary font-normal">Bespoke flight rigs.</span>
+                </h2>
+              </motion.div>
+              <motion.div className="lg:col-span-7 lg:pt-8" variants={itemVariants}>
+                <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-xl font-sans font-light">
+                  Source professional hardware carefully designed, tuned, and pre-authorized for high-stakes mission profiles.
+                </p>
+              </motion.div>
+            </div>
+
+            {/* Catalog Grid */}
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
                 {[1, 2, 3, 4].map((i) => (
-                  <Card key={i} className="overflow-hidden animate-pulse rounded-2xl border-0">
-                    <div className="aspect-square bg-gray-200"></div>
-                    <CardContent className="p-6">
-                      <div className="h-4 bg-gray-200 rounded mb-3"></div>
-                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-3"></div>
-                      <div className="h-6 bg-gray-200 rounded w-1/2"></div>
-                    </CardContent>
-                  </Card>
+                  <div key={i} className="animate-pulse flex flex-col space-y-4">
+                    <div className="aspect-square bg-muted rounded-none border border-border"></div>
+                    <div className="h-4 bg-muted w-2/3"></div>
+                    <div className="h-4 bg-muted w-1/3"></div>
+                  </div>
                 ))}
               </div>
             ) : error ? (
-              <div className="text-center py-12">
-                <p className="text-red-600 text-lg mb-4">{error}</p>
+              <div className="text-center py-20 border border-border mb-12">
+                <p className="text-primary text-sm font-semibold tracking-wider uppercase mb-6">{error}</p>
                 <Button
                   onClick={() => window.location.reload()}
-                  variant="outline"
-                  className="border-red-200 text-red-600 hover:bg-red-50 rounded-xl"
+                  className="bg-foreground hover:bg-primary text-background rounded-full tracking-wider text-xs px-8 py-4 cursor-pointer border-0"
                 >
-                  Try Again
+                  Reload Rig Catalog
                 </Button>
               </div>
             ) : (
@@ -298,9 +574,9 @@ export default function HomePage() {
                     imageUrl={product.image_url || "/placeholder.svg"}
                     slug={product.slug}
                     rating={product.average_rating || 0}
-                    reviewCount={0}
-                    isNew={false}
-                    isFeatured={product.is_featured}
+                    reviewCount={12}
+                    isNew={product.is_featured}
+                    isFeatured={!product.compare_price && product.is_featured}
                     isOnSale={!!product.compare_price}
                     stockQuantity={product.stock_quantity}
                     onAddToCart={() => handleAddToCart({} as React.MouseEvent, product)}
@@ -309,134 +585,114 @@ export default function HomePage() {
               </div>
             )}
 
-            <div className="text-center">
-              <Button size="lg" variant="outline" className="text-xl px-10 py-6 border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white transition-all duration-300" asChild>
-                <Link href="/products">
-                  View All Drones
-                  <ArrowRight className="ml-3 h-6 w-6" />
-                </Link>
-              </Button>
-            </div>
+            <motion.div className="text-center" variants={itemVariants}>
+              <Link 
+                href="/products"
+                className="group inline-flex items-center space-x-2.5 text-xs font-semibold tracking-[0.2em] text-primary uppercase hover:opacity-85"
+              >
+                <span>View Full Flight Fleet</span>
+                <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </motion.div>
+
           </div>
-        </section>
+        </motion.section>
 
-        {/* Services Section */}
-        <section className="py-24 bg-gradient-to-br from-gray-50 via-white to-blue-50">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-20">
-              <h2 className="text-5xl md:text-6xl font-bold mb-6 text-gray-900">
-                Complete <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Aerial Solutions</span>
-              </h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Beyond premium products, we offer comprehensive services for all your drone and aviation needs
-              </p>
+        {/* Complete Aerial Solutions - Editorial Table Grid */}
+        <motion.section 
+          className="py-16 bg-background border-t border-border"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+        >
+          <div className="container mx-auto px-6 lg:px-12 max-w-7xl relative z-10">
+            
+            {/* Header */}
+            <div className="grid lg:grid-cols-12 gap-8 items-start mb-12">
+              <motion.div className="lg:col-span-5" variants={itemVariants}>
+                <span className="text-[10px] font-semibold tracking-[0.2em] text-primary uppercase mb-4 block">
+                  CAPABILITY MATRIX
+                </span>
+                <h2 className="text-3xl md:text-5xl font-normal text-foreground leading-[1.1] tracking-tight font-display">
+                  Aerial Operations. <br />
+                  <span className="text-primary font-normal">Unified services.</span>
+                </h2>
+              </motion.div>
+              <motion.div className="lg:col-span-7 lg:pt-8" variants={itemVariants}>
+                <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-xl font-sans font-light">
+                  We supply everything from certified drone pilots to customized maintenance engineering, flight compliance, and syllabus training.
+                </p>
+              </motion.div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <Card className="group bg-white border-0 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
-                <CardContent className="p-8 text-center relative">
-                  <div className="w-16 h-16 bg-white rounded-2xl overflow-hidden flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border-2 border-blue-100">
-                    <Image
-                      src="/aerohive-logo-v2.png"
-                      alt="AeroHive Drone Services"
-                      width={64}
-                      height={64}
-                      className="h-full w-full object-contain p-2"
-                    />
-                  </div>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Drone-as-a-Service</h3>
-                  <p className="text-gray-600 leading-relaxed text-lg mb-6">
-                    Professional drone services including aerial photography, mapping, surveying, and custom operations.
-                  </p>
-                  <Button variant="outline" className="border-2 border-blue-200 text-blue-600 hover:bg-blue-50 rounded-xl" asChild>
-                    <Link href="/drone-services" aria-label="Learn more about Drone Services">Learn More</Link>
-                  </Button>
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-indigo-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
-                </CardContent>
-              </Card>
-
-              <Card className="group bg-white border-0 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
-                <CardContent className="p-8 text-center relative">
-                  <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                    <Settings className="h-10 w-10 text-white" />
-                  </div>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Drone Repair Services</h3>
-                  <p className="text-gray-600 leading-relaxed text-lg mb-6">
-                    Expert repair services and maintenance programs to keep your drones flying at peak performance.
-                  </p>
-                  <Button variant="outline" className="border-2 border-purple-200 text-purple-600 hover:bg-purple-50 rounded-xl" asChild>
-                    <Link href="/repair-services" aria-label="Learn more about Repair Services">Learn More</Link>
-                  </Button>
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 to-pink-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
-                </CardContent>
-              </Card>
-
-              <Card className="group bg-white border-0 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
-                <CardContent className="p-8 text-center relative">
-                  <div className="w-20 h-20 bg-gradient-to-br from-green-600 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                    <Users className="h-10 w-10 text-white" />
-                  </div>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Drone Training & Certification</h3>
-                  <p className="text-gray-600 leading-relaxed text-lg mb-6">
-                    Comprehensive training programs and certifications from licensed pilots and aviation experts.
-                  </p>
-                  <Button variant="outline" className="border-2 border-green-200 text-green-600 hover:bg-green-50 rounded-xl" asChild>
-                    <Link href="/training" aria-label="Learn more about Training & Certification">Learn More</Link>
-                  </Button>
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-600 to-emerald-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </section>
-
-        {/* Newsletter Section */}
-        <section className="py-24 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white relative overflow-hidden">
-          <div className="absolute inset-0 opacity-10">
-            <div className="w-full h-full bg-repeat" style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-            }}></div>
-          </div>
-          <div className="container mx-auto px-4 relative z-10">
-            <div className="max-w-4xl mx-auto text-center">
-              <div className="w-16 h-16 bg-white/90 rounded-2xl overflow-hidden flex items-center justify-center mx-auto mb-8 backdrop-blur-sm shadow-lg">
-                <Image
-                  src="/aerohive-logo-v2.png"
-                  alt="AeroHive Logo"
-                  width={64}
-                  height={64}
-                  className="h-full w-full object-contain p-2"
-                />
-              </div>
-              <h2 className="text-5xl font-bold mb-6 text-white">
-                Stay <span className="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">Airborne</span>
-              </h2>
-              <p className="text-xl text-blue-100 mb-12 leading-relaxed">
-                Get exclusive access to new drone releases, flight tips, and special offers for pilots
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto mb-8">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="flex-1 px-6 py-4 rounded-xl border-2 border-white/20 bg-white/10 text-white placeholder:text-blue-200 focus:outline-none focus:ring-2 focus:ring-white/50 backdrop-blur-sm text-lg"
-                />
-                <Button className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                  Subscribe
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
+            {/* Asymmetrical Typography Table Grid */}
+            <div className="border-t border-border divide-y divide-border">
+              
+              {/* Row A */}
+              <div className="py-8 grid md:grid-cols-12 gap-8 items-center">
+                <div className="md:col-span-1 text-muted-foreground/60 text-xs font-bold font-mono">[A]</div>
+                <div className="md:col-span-4">
+                  <h3 className="text-2xl font-medium text-foreground">Drone-as-a-Service</h3>
+                </div>
+                <div className="md:col-span-5 text-sm md:text-base text-muted-foreground font-light leading-relaxed">
+                  Deploy precision surveying, thermal industrial grid inspections, and expert multi-spectral aerial mapping on-demand.
+                </div>
+                <div className="md:col-span-2 text-left md:text-right">
+                  <Link href="/drone-services" className="inline-flex items-center space-x-2 text-[10px] font-semibold tracking-wider text-primary uppercase hover:opacity-85">
+                    <span>Deploy</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
               </div>
 
-              <p className="text-blue-200">
-                Join 50,000+ drone enthusiasts worldwide. Unsubscribe anytime.
-              </p>
+              {/* Row B */}
+              <div className="py-8 grid md:grid-cols-12 gap-8 items-center">
+                <div className="md:col-span-1 text-muted-foreground/60 text-xs font-bold font-mono">[B]</div>
+                <div className="md:col-span-4">
+                  <h3 className="text-2xl font-medium text-foreground">Maintenance & Repair</h3>
+                </div>
+                <div className="md:col-span-5 text-sm md:text-base text-muted-foreground font-light leading-relaxed">
+                  Keep your high-tech fleet operating at absolute peak reliability with custom-certified bench repairs and diagnostic audits.
+                </div>
+                <div className="md:col-span-2 text-left md:text-right">
+                  <Link href="/repair-services" className="inline-flex items-center space-x-2 text-[10px] font-semibold tracking-wider text-primary uppercase hover:opacity-85">
+                    <span>Schedule</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Row C */}
+              <div className="py-8 grid md:grid-cols-12 gap-8 items-center">
+                <div className="md:col-span-1 text-muted-foreground/60 text-xs font-bold font-mono">[C]</div>
+                <div className="md:col-span-4">
+                  <h3 className="text-2xl font-medium text-foreground">Pilot Certification</h3>
+                </div>
+                <div className="md:col-span-5 text-sm md:text-base text-muted-foreground font-light leading-relaxed">
+                  Become FAA Part 107 ready. Accelerate your internal aviation programs with comprehensive syllabus guidance.
+                </div>
+                <div className="md:col-span-2 text-left md:text-right">
+                  <Link href="/training" className="inline-flex items-center space-x-2 text-[10px] font-semibold tracking-wider text-primary uppercase hover:opacity-85">
+                    <span>Enroll</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              </div>
+
             </div>
+
           </div>
-        </section>
+        </motion.section>
+
+        {/* Interactive Autonomous Planner & Features Grid */}
+        <TelemetryConsole />
+        <FeaturesGrid />
       </main>
 
       <FAQSection pageName="the Homepage" />
-      <ModernFooter />
+      <ModernFooter showNewsletter={true} />
     </div>
   )
 }
+

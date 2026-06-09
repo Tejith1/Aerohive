@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useRef, ChangeEvent, FormEvent } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -611,7 +611,7 @@ export default function NewProductPage() {
 
                 {/* Additional Features */}
                 <div className="space-y-4">
-                  <h4 className="text-base font-medium text-orange-700">Additional Features</h4>
+                  <h4 className="text-base font-medium text-blue-700">Additional Features</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="intelligent_flight_modes">Intelligent Flight Modes</Label>

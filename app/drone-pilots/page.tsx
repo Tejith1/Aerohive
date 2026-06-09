@@ -27,7 +27,8 @@ import {
   Plane,
   CheckCircle2,
   TrendingUp,
-  Loader2
+  Loader2,
+  SlidersHorizontal
 } from "lucide-react"
 import { FAQSection } from "@/components/layout/faq-section"
 
@@ -119,6 +120,7 @@ export default function DronePilotsPage() {
     lng?: number
     userName: string
     userEmail: string
+    userPhone: string
   }) => {
     if (!currentUser || !pendingPilot) return
 
@@ -141,7 +143,7 @@ export default function DronePilotsPage() {
           payment_method: 'UPI',
           requirements: {},
           user_name: bookingDetails.userName,
-          user_phone: currentUser.phone || '',
+          user_phone: bookingDetails.userPhone || currentUser.phone || '',
           user_email: bookingDetails.userEmail
         })
       })
@@ -270,40 +272,88 @@ export default function DronePilotsPage() {
 
   const filteredPilots = pilots
 
-  // Helper function to parse comma-separated strings to arrays
-  const parseArray = (str: string): string[] => {
-    return str.split(',').map(item => item.trim()).filter(item => item.length > 0)
+  // Helper function to parse comma-separated strings to arrays with fallback sanitization
+  const parseArray = (str: string | null | undefined, fallbackType?: 'specializations' | 'certifications'): string[] => {
+    if (!str) {
+      return fallbackType === 'specializations'
+        ? ["Aerial Cinematography", "Surveillance Mapping"]
+        : ["FAA Part 107", "DGCA Certified"];
+    }
+    const arr = str.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    const cleaned = arr.filter(item => !/^\d+$/.test(item) && item.toLowerCase() !== "n/a" && item.toLowerCase() !== "none");
+    if (cleaned.length === 0) {
+      return fallbackType === 'specializations'
+        ? ["Aerial Cinematography", "Surveillance Mapping"]
+        : ["FAA Part 107", "DGCA Certified"];
+    }
+    return cleaned;
+  }
+
+  // Generate dynamic premium SVG avatars for pilots with initials
+  const getAvatarFallback = (name: string) => {
+    const initials = name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
+    return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%230f172a"/><circle cx="50" cy="50" r="38" fill="%23cc6543" opacity="0.12"/><text x="50" y="55" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="28" font-weight="600" fill="%23cc6543" text-anchor="middle" dominant-baseline="middle">${initials}</text></svg>`;
   }
 
   return (
     <>
       <ModernHeader />
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        {/* Hero Section */}
-        <section className="relative pt-32 pb-20 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-pink-600/10"></div>
-          <div className="container mx-auto px-4 relative z-10">
-            <div className="text-center max-w-4xl mx-auto">
-              <Badge className="mb-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 px-6 py-2 text-sm">
-                <Plane className="h-4 w-4 mr-2 inline" />
-                Find Certified Drone Pilots
-              </Badge>
-              <h1 className="text-5xl md:text-6xl font-black mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Connect With Professional Drone Operators
+      <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+        {/* Elegant Editorial Hero Section */}
+        <section className="relative pt-28 lg:pt-36 pb-20 overflow-hidden text-center">
+          <div className="absolute inset-0 bg-grid-pattern opacity-[0.01] pointer-events-none"></div>
+          <div className="container mx-auto px-6 relative z-10">
+            <div className="max-w-4xl mx-auto space-y-6">
+              {/* Custom Pilot HUD Logo */}
+              <div className="flex justify-center mb-2">
+                <svg className="w-20 h-20 text-primary animate-pulse" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  {/* Wings left */}
+                  <path d="M10 50 C20 40, 35 45, 45 50 C35 55, 20 52, 10 50 Z" />
+                  <path d="M15 45 C23 38, 33 42, 40 47" />
+                  {/* Wings right */}
+                  <path d="M90 50 C80 40, 65 45, 55 50 C65 55, 80 52, 90 50 Z" />
+                  <path d="M85 45 C77 38, 67 42, 60 47" />
+                  {/* Center pilot helmet & HUD visor */}
+                  <circle cx="50" cy="50" r="12" className="stroke-primary fill-background" />
+                  <path d="M41 50 Q50 38 59 50 Q50 54 41 50 Z" fill="currentColor" fillOpacity="0.2" className="stroke-primary" />
+                  {/* Center HUD crosshair */}
+                  <circle cx="50" cy="48" r="2" className="fill-primary" />
+                  <path d="M50 38 V42" />
+                  <path d="M50 58 V62" />
+                </svg>
+              </div>
+
+              {/* Subtle top indicator */}
+              <div className="inline-flex items-center justify-center space-x-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse"></span>
+                <span className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase font-mono">
+                  // OPERATOR NETWORK
+                </span>
+              </div>
+              
+              {/* Beautiful editorial headline */}
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-normal tracking-tight font-display text-foreground leading-tight">
+                Connect with professional operators
               </h1>
-              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                Find certified and experienced drone pilots in your area for aerial photography, surveying, inspections, and more
+              
+              {/* Large book-like summary */}
+              <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed font-sans font-light">
+                Find verified, licensed, and highly-experienced drone pilots in your area for custom aerial cinematography, structural surveying, thermal inspection, and precision mapping.
               </p>
 
               {/* Pilot Registration & Login Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
                 <Button
                   asChild
                   size="lg"
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl rounded-xl px-8 py-6 text-lg font-semibold transition-all duration-300 hover:scale-105"
+                  className="bg-foreground hover:bg-primary text-background rounded-full px-6 py-3.5 text-sm font-medium transition-all duration-300 border-0"
                 >
                   <Link href="/drone-pilots/register">
-                    <UserPlus className="h-5 w-5 mr-2" />
                     Register as a Drone Pilot
                   </Link>
                 </Button>
@@ -311,16 +361,15 @@ export default function DronePilotsPage() {
                   asChild
                   size="lg"
                   variant="outline"
-                  className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 hover:border-blue-700 hover:text-blue-700 rounded-xl px-8 py-6 text-lg font-semibold transition-all duration-300 hover:scale-105 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl"
+                  className="border border-border text-foreground hover:bg-muted rounded-full px-6 py-3.5 text-sm font-medium transition-all duration-300 bg-card/50 backdrop-blur-sm"
                 >
                   <Link href="/pilot-panel/login">
-                    <Plane className="h-5 w-5 mr-2" />
                     Pilot Login
                   </Link>
                 </Button>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  <span className="font-medium">{pilots.length}+ Certified Pilots Available</span>
+                <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground font-sans tracking-wide uppercase sm:ml-4">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-500" />
+                  <span>{pilots.length}+ Certified Pilots Available</span>
                 </div>
               </div>
             </div>
@@ -328,46 +377,46 @@ export default function DronePilotsPage() {
         </section>
 
         {/* Search and Filter Section */}
-        <section className="container mx-auto px-4 -mt-8 mb-12 relative z-20">
-          <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur-lg">
-            <CardContent className="p-6">
+        <section className="container mx-auto px-6 -mt-8 mb-12 relative z-20">
+          <Card className="border border-border bg-card/75 backdrop-blur-md rounded-2xl shadow-sm p-2">
+            <CardContent className="p-4">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {/* Search Input */}
                 <div className="relative md:col-span-2">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="text"
                     placeholder="Search by name or specialization..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                    className="pl-11 h-12 rounded-full border-border bg-background text-foreground focus:ring-1 focus:ring-primary focus:border-primary transition-all font-sans text-sm"
                   />
                 </div>
 
                 {/* Location Filter */}
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none z-10" />
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
                   <select
                     value={selectedLocation}
                     onChange={(e) => setSelectedLocation(e.target.value)}
-                    className="w-full h-12 pl-10 pr-4 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 bg-white appearance-none cursor-pointer"
+                    className="w-full h-12 pl-11 pr-4 rounded-full border border-border focus:ring-1 focus:ring-primary focus:border-primary bg-background text-foreground appearance-none cursor-pointer font-sans text-sm transition-all"
                   >
                     {locations.map(loc => (
-                      <option key={loc} value={loc}>{loc}</option>
+                      <option key={loc} value={loc} className="bg-background">{loc}</option>
                     ))}
                   </select>
                 </div>
 
                 {/* Area Filter */}
                 <div className="relative">
-                  <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none z-10" />
+                  <Filter className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
                   <select
                     value={selectedArea}
                     onChange={(e) => setSelectedArea(e.target.value)}
-                    className="w-full h-12 pl-10 pr-4 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 bg-white appearance-none cursor-pointer"
+                    className="w-full h-12 pl-11 pr-4 rounded-full border border-border focus:ring-1 focus:ring-primary focus:border-primary bg-background text-foreground appearance-none cursor-pointer font-sans text-sm transition-all"
                   >
                     {areas.map(area => (
-                      <option key={area} value={area}>{area}</option>
+                      <option key={area} value={area} className="bg-background">{area}</option>
                     ))}
                   </select>
                 </div>
@@ -375,24 +424,24 @@ export default function DronePilotsPage() {
 
               {/* Active Filters Display */}
               {(selectedLocation !== "All Locations" || selectedArea !== "All Areas" || searchQuery) && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <span className="text-sm text-gray-600">Active filters:</span>
+                <div className="mt-4 flex flex-wrap gap-2 items-center">
+                  <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider font-sans">Active Filters:</span>
                   {selectedLocation !== "All Locations" && (
-                    <Badge variant="secondary" className="rounded-full">
+                    <Badge variant="secondary" className="rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-350 font-sans text-xs px-3 py-1 border-0">
                       {selectedLocation}
-                      <button onClick={() => setSelectedLocation("All Locations")} className="ml-2 hover:text-red-600">×</button>
+                      <button onClick={() => setSelectedLocation("All Locations")} className="ml-2 font-bold hover:text-red-600">×</button>
                     </Badge>
                   )}
                   {selectedArea !== "All Areas" && (
-                    <Badge variant="secondary" className="rounded-full">
+                    <Badge variant="secondary" className="rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-350 font-sans text-xs px-3 py-1 border-0">
                       {selectedArea}
-                      <button onClick={() => setSelectedArea("All Areas")} className="ml-2 hover:text-red-600">×</button>
+                      <button onClick={() => setSelectedArea("All Areas")} className="ml-2 font-bold hover:text-red-600">×</button>
                     </Badge>
                   )}
                   {searchQuery && (
-                    <Badge variant="secondary" className="rounded-full">
+                    <Badge variant="secondary" className="rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-350 font-sans text-xs px-3 py-1 border-0">
                       Search: {searchQuery}
-                      <button onClick={() => setSearchQuery("")} className="ml-2 hover:text-red-600">×</button>
+                      <button onClick={() => setSearchQuery("")} className="ml-2 font-bold hover:text-red-600">×</button>
                     </Badge>
                   )}
                 </div>
@@ -402,33 +451,93 @@ export default function DronePilotsPage() {
         </section>
 
         {/* Results Section */}
-        <section className="container mx-auto px-4 pb-20">
+        <section className="container mx-auto px-6 pb-20">
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">
-              {loading ? 'Loading...' : `${filteredPilots.length} Pilot${filteredPilots.length !== 1 ? 's' : ''} Found`}
+            <h2 className="text-xl font-serif font-normal text-slate-800 dark:text-slate-200">
+              {loading ? 'Searching network...' : `${filteredPilots.length} pilot${filteredPilots.length !== 1 ? 's' : ''} found`}
             </h2>
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-              <span className="ml-3 text-lg text-gray-600">Loading pilots...</span>
+            <div className="flex flex-col items-center justify-center py-20 space-y-6 bg-white/40 dark:bg-[#121215]/60 backdrop-blur-sm rounded-[2rem] border border-slate-200/50 dark:border-slate-800/50 shadow-sm max-w-lg mx-auto animate-pulse matrix-scanner">
+              <div className="relative w-24 h-24 flex items-center justify-center">
+                {/* Glowing Radar Sweep Ring */}
+                <div className="absolute inset-0 rounded-full border border-[#069494]/10 dark:border-[#069494]/20 animate-ping opacity-60"></div>
+                <div className="absolute inset-2 rounded-full border border-[#FF8243]/20 dark:border-[#FF8243]/30 animate-pulse"></div>
+                
+                {/* Custom Miniature Perspective Animated Drone Loader */}
+                <svg className="w-16 h-16 text-[#069494] animate-bounce" style={{ animationDuration: '2s' }} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  {/* Guards */}
+                  <ellipse cx="30" cy="35" rx="14" ry="5.5" stroke="currentColor" strokeWidth="2" opacity="0.6" />
+                  <ellipse cx="70" cy="35" rx="14" ry="5.5" stroke="currentColor" strokeWidth="2" opacity="0.6" />
+                  <ellipse cx="20" cy="65" rx="18" ry="7" stroke="currentColor" strokeWidth="2.5" />
+                  <ellipse cx="80" cy="65" rx="18" ry="7" stroke="currentColor" strokeWidth="2.5" />
+                  
+                  {/* Arms */}
+                  <path d="M50 48 L30 35 M50 48 L70 35 M50 48 L20 65 M50 48 L80 65" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
+                  
+                  {/* Center Body */}
+                  <path d="M44 43 C44 40, 56 40, 56 43 L54 57 C54 60, 46 60, 46 57 Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" />
+                  <circle cx="50" cy="47" r="2.5" fill="#FF8243" />
+                  
+                  {/* High Speed Rotor Animations */}
+                  <style>{`
+                    @keyframes loader-spin {
+                      0% { transform: rotate(0deg); }
+                      100% { transform: rotate(360deg); }
+                    }
+                    .l-rotor { animation: loader-spin 0.05s linear infinite; }
+                    .l-rotor-rev { animation: loader-spin 0.04s linear infinite reverse; }
+                  `}</style>
+                  
+                  {/* TL Propeller */}
+                  <g transform="translate(30, 35) scale(1, 0.38)">
+                    <g className="l-rotor" style={{ transformOrigin: '0px 0px' }}>
+                      <path d="M-13 0 H13" stroke="#FF8243" strokeWidth="2.5" />
+                    </g>
+                  </g>
+                  {/* TR Propeller */}
+                  <g transform="translate(70, 35) scale(1, 0.38)">
+                    <g className="l-rotor-rev" style={{ transformOrigin: '0px 0px' }}>
+                      <path d="M-13 0 H13" stroke="currentColor" strokeWidth="2.5" />
+                    </g>
+                  </g>
+                  {/* BL Propeller */}
+                  <g transform="translate(20, 65) scale(1, 0.4)">
+                    <g className="l-rotor-rev" style={{ transformOrigin: '0px 0px' }}>
+                      <path d="M-17 0 H17" stroke="currentColor" strokeWidth="3" />
+                    </g>
+                  </g>
+                  {/* BR Propeller */}
+                  <g transform="translate(80, 65) scale(1, 0.4)">
+                    <g className="l-rotor" style={{ transformOrigin: '0px 0px' }}>
+                      <path d="M-17 0 H17" stroke="#FF8243" strokeWidth="3" />
+                    </g>
+                  </g>
+                </svg>
+              </div>
+              <div className="text-center space-y-1">
+                <p className="text-base font-serif italic text-slate-800 dark:text-slate-200 tracking-wide">DGCA Telemetry Uplink Active...</p>
+                <p className="text-[10px] font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest">Synchronizing operator logbooks</p>
+              </div>
             </div>
           ) : error ? (
-            <Card className="text-center py-16 border-red-200 bg-red-50">
+            <Card className="text-center py-16 border border-red-100 dark:border-red-950 bg-red-50/50 dark:bg-red-950/20 rounded-3xl">
               <CardContent>
-                <p className="text-red-600 mb-4">{error}</p>
-                <Button onClick={fetchPilots} variant="outline">
+                <p className="text-red-600 dark:text-red-400 font-serif mb-4">{error}</p>
+                <Button onClick={fetchPilots} variant="outline" className="rounded-full border-red-200 dark:border-red-900">
                   Try Again
                 </Button>
               </CardContent>
             </Card>
           ) : filteredPilots.length === 0 ? (
-            <Card className="text-center py-16">
+            <Card className="text-center py-16 border border-slate-100/50 dark:border-slate-800/80 shadow-[0_4px_20px_rgba(0,0,0,0.015)] bg-white dark:bg-slate-900 rounded-[28px]">
               <CardContent>
-                <Plane className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No Pilots Found</h3>
-                <p className="text-gray-600 mb-6">Try adjusting your filters or search criteria</p>
+                <div className="w-16 h-16 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                  <SlidersHorizontal className="h-6 w-6 text-slate-400 dark:text-slate-500 stroke-[1.5]" />
+                </div>
+                <h3 className="text-2xl font-serif font-normal text-slate-900 dark:text-slate-100 mb-2">No Pilots Found</h3>
+                <p className="text-slate-650 dark:text-slate-450 font-serif mb-6">Try adjusting your filters or search criteria to view active crew.</p>
                 <Button
                   onClick={() => {
                     setSelectedLocation("All Locations")
@@ -436,129 +545,227 @@ export default function DronePilotsPage() {
                     setSearchQuery("")
                   }}
                   variant="outline"
+                  className="rounded-full font-sans text-xs font-semibold uppercase tracking-wider dark:border-slate-800"
                 >
                   Clear All Filters
                 </Button>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredPilots.map((pilot) => (
-                <Card key={pilot.id} className="group hover:shadow-2xl transition-all duration-300 border-0 bg-white overflow-hidden">
-                  <CardHeader className="pb-4">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-4">
-                        <div className="relative">
-                          <img
-                            src={pilot.profile_image_url || "/placeholder-user.jpg"}
-                            alt={pilot.full_name}
-                            className="h-16 w-16 rounded-xl object-cover"
-                          />
-                          <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-green-500 border-2 border-white flex items-center justify-center">
-                            <CheckCircle2 className="h-4 w-4 text-white" />
-                          </div>
+                <div 
+                  key={pilot.id} 
+                  className="group relative bg-[#ffffff]/70 dark:bg-[#0f172a]/55 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 hover:border-primary/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:hover:shadow-[0_8px_30px_rgba(0,0,0,0.2)] rounded-3xl transition-all duration-500 overflow-hidden flex flex-col justify-between p-6"
+                >
+                  {/* Top-Right Experience Badge */}
+                  <div className="absolute top-6 right-6 z-10">
+                    <span className="inline-block px-3 py-1 bg-white/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800/60 text-[10px] font-bold text-muted-foreground rounded-full font-mono uppercase tracking-wider shadow-sm">
+                      {pilot.experience}
+                    </span>
+                  </div>
+ 
+                  <div>
+                    {/* Header Info Block */}
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="relative">
+                        <img
+                          src={pilot.profile_image_url || getAvatarFallback(pilot.full_name)}
+                          alt={pilot.full_name}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = getAvatarFallback(pilot.full_name);
+                          }}
+                          className="h-16 w-16 rounded-2xl object-cover border border-slate-250/60 dark:border-slate-850/60 shadow-sm transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute -bottom-1 -right-1 h-5.5 w-5.5 rounded-full bg-primary border-2 border-background flex items-center justify-center shadow-md">
+                          <CheckCircle2 className="h-3 w-3 text-primary-foreground" />
                         </div>
-                        <div>
-                          <CardTitle className="text-xl mb-1">{pilot.full_name}</CardTitle>
-                          <div className="flex items-center gap-1 text-sm text-gray-600">
-                            <MapPin className="h-4 w-4" />
-                            <span>{pilot.area}, {pilot.location}</span>
-                          </div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5">
+                          <h3 className="text-lg font-bold text-slate-900 dark:text-white leading-snug group-hover:text-primary transition-colors duration-300 font-display">
+                            {pilot.full_name}
+                          </h3>
+                        </div>
+                        <div className="flex items-center gap-1 text-[10px] text-primary font-mono uppercase tracking-wider">
+                          <MapPin className="h-3 w-3" />
+                          <span>{pilot.area}, {pilot.location}</span>
                         </div>
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-4 text-sm">
-                      <div className="flex items-center gap-1 text-gray-600">
-                        <Award className="h-4 w-4" />
-                        <span>{pilot.experience}</span>
+ 
+                    {/* Stats section */}
+                    <div className="grid grid-cols-2 gap-4 py-4 border-t border-b border-slate-150/40 dark:border-slate-800/40 mb-6 bg-slate-50/50 dark:bg-slate-950/40 rounded-2xl px-4">
+                      <div className="space-y-0.5">
+                        <p className="text-[9px] text-muted-foreground font-semibold uppercase tracking-wider font-mono">Rating</p>
+                        <div className="flex items-center gap-1 text-slate-800 dark:text-slate-100 font-bold text-xs font-mono">
+                          <Star className="h-3.5 w-3.5 fill-primary text-primary" />
+                          <span>{pilot.rating || "5.0"}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 text-gray-600">
-                        <Clock className="h-4 w-4" />
-                        <span>{pilot.completed_jobs} jobs</span>
+                      <div className="space-y-0.5">
+                        <p className="text-[9px] text-muted-foreground font-semibold uppercase tracking-wider font-mono">Missions</p>
+                        <p className="text-xs font-bold text-slate-800 dark:text-slate-100 font-mono">
+                          {pilot.completed_jobs} Completed
+                        </p>
                       </div>
                     </div>
-                  </CardHeader>
-
-                  <CardContent>
-                    <div className="space-y-4">
-                      {/* Certifications */}
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900 mb-2">Certifications</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {parseArray(pilot.certifications).map((cert, idx) => (
-                            <Badge key={idx} variant="secondary" className="text-xs rounded-full">
-                              {cert}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Specializations */}
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900 mb-2">Specializations</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {parseArray(pilot.specializations).map((spec, idx) => (
-                            <Badge key={idx} className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 border-0 rounded-full">
-                              {spec}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Hourly Rate */}
-                      <div className="pt-4 border-t border-gray-100">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-gray-600">Starting from</p>
-                            <p className="text-2xl font-bold text-gray-900">₹{pilot.hourly_rate}<span className="text-sm text-gray-600">/hour</span></p>
-                          </div>
-                          <Button
-                            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl"
-                            onClick={() => handleContactClick(pilot)}
-                            disabled={bookingInProgress}
+ 
+                    {/* Certifications / Accreditations */}
+                    <div className="space-y-2 mb-4">
+                      <h4 className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider font-mono">Licenses & Certifications</h4>
+                      <div className="flex flex-wrap gap-1.5">
+                        {parseArray(pilot.certifications, 'certifications').map((cert, idx) => (
+                          <span 
+                            key={idx} 
+                            className="inline-block text-[10px] font-mono px-2.5 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-muted-foreground rounded-xl shadow-sm"
                           >
-                            {bookingInProgress && pendingPilot?.id === pilot.id ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Booking...
-                              </>
-                            ) : (
-                              'Contact'
-                            )}
-                          </Button>
-                        </div>
+                            {cert}
+                          </span>
+                        ))}
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+ 
+                    {/* Specializations */}
+                    <div className="space-y-2 mb-6">
+                      <h4 className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider font-mono">Operations Focus</h4>
+                      <div className="flex flex-wrap gap-1.5">
+                        {parseArray(pilot.specializations, 'specializations').map((spec, idx) => (
+                          <span 
+                            key={idx} 
+                            className="inline-block text-[10px] font-mono px-2.5 py-1 bg-primary/5 border border-primary/10 text-primary rounded-xl font-medium"
+                          >
+                            {spec}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+ 
+                  {/* Hourly Rate & CTA Button Footer */}
+                  <div className="pt-4 border-t border-slate-150/40 dark:border-slate-800/40 flex items-center justify-between mt-auto">
+                    <div>
+                      <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider font-mono">Hourly Rate</p>
+                      <p className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+                        ₹{pilot.hourly_rate}
+                        <span className="text-xs text-muted-foreground font-normal">/hr</span>
+                      </p>
+                    </div>
+                    <Button
+                      className="bg-foreground hover:bg-primary text-background dark:bg-foreground dark:hover:bg-primary dark:text-background dark:hover:text-primary-foreground rounded-full px-5 py-2 text-xs font-semibold tracking-wide transition-all duration-300 hover:scale-[1.02] cursor-pointer shadow-sm border-0"
+                      onClick={() => handleContactClick(pilot)}
+                      disabled={bookingInProgress}
+                    >
+                      {bookingInProgress && pendingPilot?.id === pilot.id ? (
+                        <>
+                          <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                          Booking...
+                        </>
+                      ) : (
+                        'Hire Crew'
+                      )}
+                    </Button>
+                  </div>
+                </div>
               ))}
             </div>
           )}
         </section>
 
-        {/* CTA Section */}
-        <section className="container mx-auto px-4 pb-20">
-          <Card className="bg-gradient-to-r from-blue-600 to-purple-600 border-0 text-white overflow-hidden relative">
-            <div className="absolute inset-0 bg-grid-white/10"></div>
-            <CardContent className="relative z-10 py-16 text-center">
-              <Plane className="h-16 w-16 mx-auto mb-6 opacity-90" />
-              <h2 className="text-4xl font-black mb-4">Are You a Certified Drone Pilot?</h2>
-              <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-                Join our network of professional drone operators and connect with clients looking for your expertise
+        {/* Premium Claude-Style Capabilities Section */}
+        <section className="container mx-auto px-6 pb-24">
+          <div className="border-t border-border pt-16">
+            
+            {/* Header */}
+            <div className="max-w-3xl text-left mb-16 space-y-4">
+              <span className="text-[10px] font-bold text-primary uppercase tracking-[0.25em] font-sans">
+                Core Capabilities
+              </span>
+              <h2 className="text-4xl md:text-5xl font-serif text-foreground font-normal leading-tight">
+                AeroHive Airspace Capabilities
+              </h2>
+              <p className="text-lg text-muted-foreground font-light font-serif italic">
+                Architected for high-fidelity civilian flight coordination and mission-critical commercial analytics.
               </p>
-              <Button
-                asChild
-                size="lg"
-                className="bg-white text-blue-600 hover:bg-gray-100 shadow-xl hover:shadow-2xl rounded-xl px-8 py-6 text-lg font-semibold transition-all duration-300 hover:scale-105"
-              >
-                <Link href="/drone-pilots/register">
-                  <UserPlus className="h-5 w-5 mr-2" />
-                  Register Now - It's Free
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
+            </div>
+
+            {/* Grid Layout inspired by Claude's clean, humanist layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              
+              {/* Column 1: Cinematography */}
+              <div className="space-y-6 flex flex-col justify-between p-4 rounded-3xl hover:bg-card/75 border border-transparent hover:border-border/50 backdrop-blur-sm transition-all duration-300">
+                <div className="space-y-5">
+                  <div className="h-10 w-10 bg-foreground text-background rounded-xl flex items-center justify-center">
+                    <Plane className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-2xl font-serif font-normal text-foreground">
+                    Cinematography
+                  </h3>
+                  <p className="text-sm text-muted-foreground font-light leading-relaxed font-sans">
+                    Deploy high-end cinematic quadcopters for seamless, broadcast-ready dynamic filming. Capture stunning RAW video feeds with calibrated color profiling.
+                  </p>
+                </div>
+                <Button variant="outline" className="border-border hover:bg-foreground hover:text-background text-foreground rounded-full px-5 py-2 text-xs font-semibold tracking-wide transition-colors self-start mt-4">
+                  Learn more
+                </Button>
+              </div>
+
+              {/* Column 2: Industrial Surveying */}
+              <div className="space-y-6 flex flex-col justify-between p-4 rounded-3xl hover:bg-card/75 border border-transparent hover:border-border/50 backdrop-blur-sm transition-all duration-300">
+                <div className="space-y-5">
+                  <div className="h-10 w-10 bg-primary text-primary-foreground rounded-xl flex items-center justify-center">
+                    <SlidersHorizontal className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-2xl font-serif font-normal text-foreground">
+                    Industrial Surveying
+                  </h3>
+                  <p className="text-sm text-muted-foreground font-light leading-relaxed font-sans">
+                    Conduct deep structure audits, automated thermal leak isolation, and high-frequency elevation analytics with minimal physical setup.
+                  </p>
+                </div>
+                <Button variant="outline" className="border-border hover:bg-foreground hover:text-background text-foreground rounded-full px-5 py-2 text-xs font-semibold tracking-wide transition-colors self-start mt-4">
+                  Learn more
+                </Button>
+              </div>
+
+              {/* Column 3: Precision Mapping */}
+              <div className="space-y-6 flex flex-col justify-between p-4 rounded-3xl hover:bg-card/75 border border-transparent hover:border-border/50 backdrop-blur-sm transition-all duration-300">
+                <div className="space-y-5">
+                  <div className="h-10 w-10 bg-primary text-primary-foreground rounded-xl flex items-center justify-center">
+                    <TrendingUp className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-2xl font-serif font-normal text-foreground">
+                    Precision Mapping
+                  </h3>
+                  <p className="text-sm text-muted-foreground font-light leading-relaxed font-sans">
+                    Generate millimetric elevation maps, multispectral crop analytics, and real-time absolute coordinate grids integrated instantly to GIS.
+                  </p>
+                </div>
+                <Button variant="outline" className="border-border hover:bg-foreground hover:text-background text-foreground rounded-full px-5 py-2 text-xs font-semibold tracking-wide transition-colors self-start mt-4">
+                  Learn more
+                </Button>
+              </div>
+
+              {/* Column 4: Airspace Compliance */}
+              <div className="space-y-6 flex flex-col justify-between p-4 rounded-3xl hover:bg-card/75 border border-transparent hover:border-border/50 backdrop-blur-sm transition-all duration-300">
+                <div className="space-y-5">
+                  <div className="h-10 w-10 bg-primary text-primary-foreground rounded-xl flex items-center justify-center">
+                    <CheckCircle2 className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-2xl font-serif font-normal text-foreground">
+                    Compliance Ops
+                  </h3>
+                  <p className="text-sm text-muted-foreground font-light leading-relaxed font-sans">
+                    Guaranteed digital flight authorization checks, active regulator compliance validations, and certified flight crew logs maintained automatically.
+                  </p>
+                </div>
+                <Button variant="outline" className="border-border hover:bg-foreground hover:text-background text-foreground rounded-full px-5 py-2 text-xs font-semibold tracking-wide transition-colors self-start mt-4">
+                  Learn more
+                </Button>
+              </div>
+
+            </div>
+          </div>
         </section>
       </div>
       <FAQSection pageName="Drone Pilots" customFAQs={pilotFAQs} />

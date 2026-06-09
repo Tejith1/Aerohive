@@ -150,7 +150,11 @@ export async function GET(request: NextRequest) {
                 order_uuid: booking.order_uuid,
                 earnings_estimated: earningsEstimated,
                 earnings_confirmed: earningsConfirmed,
-                hourly_rate: hourlyRate
+                hourly_rate: hourlyRate,
+                location_name: booking.requirements?.location_name || '',
+                requirements: booking.requirements || {},
+                client_location_lat: booking.client_location_lat,
+                client_location_lng: booking.client_location_lng
             }
         })
 

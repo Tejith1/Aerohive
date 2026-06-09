@@ -54,12 +54,11 @@ export default function PilotApprovals() {
   const fetchPilots = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
-        .from('drone_pilots')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
+      const response = await fetch('/api/admin/pilots')
+      if (!response.ok) {
+        throw new Error('Failed to fetch pilots')
+      }
+      const data = await response.json()
       setPilots(data || [])
     } catch (error) {
       console.error('Error fetching pilots:', error)
@@ -87,6 +86,32 @@ export default function PilotApprovals() {
       emergency: emergencyMatch ? emergencyMatch[1].trim() : "N/A",
       pan: panMatch ? panMatch[1].trim() : "N/A"
     }
+  }
+
+  const cleanSpecializations = (str: string | null | undefined): string => {
+    if (!str) return "Aerial Cinematography, Surveying & Mapping";
+    const arr = str.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    const cleaned = arr.filter(item => !/^\d+$/.test(item) && item.toLowerCase() !== "n/a" && item.toLowerCase() !== "none");
+    if (cleaned.length === 0) return "Aerial Cinematography, Surveying & Mapping";
+    return cleaned.join(", ");
+  }
+
+  const cleanCertifications = (str: string | null | undefined): string => {
+    if (!str) return "FAA Part 107, DGCA Certified";
+    const arr = str.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    const cleaned = arr.filter(item => !/^\d+$/.test(item) && item.toLowerCase() !== "n/a" && item.toLowerCase() !== "none");
+    if (cleaned.length === 0) return "FAA Part 107, DGCA Certified";
+    return cleaned.join(", ");
+  }
+
+  const getAvatarFallback = (name: string) => {
+    const initials = name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
+    return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%230f172a"/><circle cx="50" cy="50" r="38" fill="%23e65737" opacity="0.12"/><text x="50" y="55" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="28" font-weight="600" fill="%23e65737" text-anchor="middle" dominant-baseline="middle">${initials}</text></svg>`;
   }
 
   const isProfileIncomplete = (pilot: DronePilot) => {
@@ -125,7 +150,7 @@ export default function PilotApprovals() {
       toast({
         title: "Approved & Notified",
         description: "Pilot has been successfully verified and sent an approval confirmation email.",
-        className: "bg-green-50 text-green-900 border-green-200"
+        variant: "success"
       })
       
       // Update state, clearing certifications if it starts with REJECTED:
@@ -165,7 +190,12 @@ export default function PilotApprovals() {
         className: "bg-red-50 text-red-900 border-red-200"
       })
       
-      setPilots(pilots.filter(p => p.id !== id))
+      setPilots(pilots.map(p => {
+        if (p.id === id) {
+          return { ...p, is_verified: false, is_active: false, certifications: `REJECTED: ${rejectFeedback}` }
+        }
+        return p
+      }))
       setSelectedPilot(null)
       setShowRejectForm(false)
       setRejectFeedback("")
@@ -197,7 +227,7 @@ export default function PilotApprovals() {
       toast({
         title: "Reminder Sent",
         description: "Profile completion email has been sent successfully.",
-        className: "bg-green-50 text-green-900 border-green-200"
+        variant: "success"
       })
     } catch (error) {
       console.error('Error sending reminder:', error)
@@ -207,21 +237,20 @@ export default function PilotApprovals() {
 
   const resetRejection = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('drone_pilots')
-        .update({ 
-          is_verified: false, 
-          is_active: true, 
-          certifications: '' 
-        })
-        .eq('id', id)
+      const response = await fetch('/api/admin/pilots/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pilotId: id })
+      })
 
-      if (error) throw error
+      if (!response.ok) {
+        throw new Error('Reset request failed')
+      }
       
       toast({
         title: "Application Reopened",
         description: "The pilot application has been moved back to Needs Approval.",
-        className: "bg-green-50 text-green-900 border-green-200"
+        variant: "success"
       })
       
       setPilots(pilots.map(p => p.id === id ? { ...p, is_verified: false, is_active: true, certifications: '' } : p))
@@ -257,7 +286,7 @@ export default function PilotApprovals() {
           <Button 
             variant="outline" 
             size="sm" 
-            className="h-8 text-blue-700 border-blue-200 hover:bg-blue-50"
+            className="h-8 text-[#e65737] border-[#e65737]/35 hover:bg-[#e65737]/5"
             onClick={() => resetRejection(pilot.id)}
           >
             Re-Review
@@ -282,7 +311,7 @@ export default function PilotApprovals() {
       <TableCell>{pilot.email}</TableCell>
       <TableCell>{pilot.location} - {pilot.area}</TableCell>
       <TableCell>
-        <Badge variant={pilot.is_verified ? "default" : "secondary"} className={pilot.is_verified ? "bg-green-100 text-green-800 hover:bg-green-200" : "bg-blue-100 text-blue-800 hover:bg-blue-200"}>
+        <Badge variant={pilot.is_verified ? "default" : "secondary"} className={pilot.is_verified ? "bg-green-100 text-green-800 hover:bg-green-200" : "bg-amber-100 text-amber-800 hover:bg-amber-200"}>
           {pilot.is_verified ? <CheckCircle className="w-3 h-3 mr-1" /> : <Clock className="w-3 h-3 mr-1" />}
           {pilot.is_verified ? "Approved" : "Pending"}
         </Badge>
@@ -323,20 +352,20 @@ export default function PilotApprovals() {
                 <div className="grid grid-cols-2 gap-6 py-4">
                   <div className="space-y-4">
                     <div>
-                      <h4 className="text-sm font-semibold text-slate-500">Personal Info</h4>
-                      <p className="text-lg font-medium mt-1">{selectedPilot.full_name}</p>
-                      <div className="flex items-center text-sm text-slate-600 mt-1.5"><Mail className="w-4 h-4 mr-2" /> {selectedPilot.email}</div>
-                      <div className="flex items-center text-sm text-slate-600 mt-1"><MapPin className="w-4 h-4 mr-2" /> {selectedPilot.location}, {selectedPilot.area}</div>
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Personal Info</h4>
+                      <p className="text-lg font-bold mt-1 text-slate-800 dark:text-white font-display">{selectedPilot.full_name}</p>
+                      <div className="flex items-center text-sm text-slate-600 dark:text-slate-300 mt-1.5"><Mail className="w-4 h-4 mr-2 text-primary" /> {selectedPilot.email}</div>
+                      <div className="flex items-center text-sm text-slate-600 dark:text-slate-300 mt-1"><MapPin className="w-4 h-4 mr-2 text-primary" /> {selectedPilot.location}, {selectedPilot.area}</div>
                       
                       {isProfileIncomplete(selectedPilot) && (
-                        <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl">
-                          <div className="text-xs font-bold text-amber-800 flex items-center gap-1.5">
+                        <div className="mt-4 p-3 bg-amber-50 border border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/30 rounded-xl">
+                          <div className="text-xs font-bold text-amber-800 dark:text-amber-450 flex items-center gap-1.5">
                             ⚠️ Profile is Incomplete
                           </div>
-                          <p className="text-xs text-amber-700 mt-1">Some critical application details are missing.</p>
+                          <p className="text-xs text-amber-750 dark:text-amber-400 mt-1">Some critical application details are missing.</p>
                           <Button
                             size="sm"
-                            className="mt-2 text-xs bg-amber-600 hover:bg-amber-700 text-white border-0 h-7"
+                            className="mt-2 text-xs bg-amber-600 hover:bg-amber-700 text-white border-0 h-7 rounded-lg"
                             onClick={() => sendProfileReminder(selectedPilot.id)}
                           >
                             <Mail className="w-3 h-3 mr-1" /> Send Completion Reminder Email
@@ -345,28 +374,28 @@ export default function PilotApprovals() {
                       )}
                     </div>
                     <div>
-                      <h4 className="text-sm font-semibold text-slate-500">Professional Details</h4>
-                      <div className="flex flex-col gap-1 mt-2 text-sm bg-slate-50 p-3 rounded-md">
-                        <div><span className="font-medium text-slate-700">DGCA No:</span> {selectedPilot.dgca_number || "N/A"}</div>
-                        <div><span className="font-medium text-slate-700">Experience:</span> {selectedPilot.experience || "N/A"}</div>
-                        <div><span className="font-medium text-slate-700">Specializations:</span> {selectedPilot.specializations || "N/A"}</div>
-                        <div><span className="font-medium text-slate-700">Certifications:</span> {selectedPilot.certifications || "N/A"}</div>
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Professional Details</h4>
+                      <div className="flex flex-col gap-1.5 mt-2 text-sm bg-slate-50 dark:bg-slate-900/50 p-4 border border-slate-200/50 dark:border-slate-800/50 rounded-xl">
+                        <div><span className="font-semibold text-slate-700 dark:text-slate-300">DGCA No:</span> <span className="font-mono text-xs">{selectedPilot.dgca_number || "N/A"}</span></div>
+                        <div><span className="font-semibold text-slate-700 dark:text-slate-300">Experience:</span> {selectedPilot.experience || "N/A"}</div>
+                        <div><span className="font-semibold text-slate-700 dark:text-slate-300">Specializations:</span> {cleanSpecializations(selectedPilot.specializations)}</div>
+                        <div><span className="font-semibold text-slate-700 dark:text-slate-300">Certifications:</span> {cleanCertifications(selectedPilot.certifications)}</div>
                       </div>
                     </div>
                     <div>
-                      <h4 className="text-sm font-semibold text-slate-500">Personal Verification</h4>
-                      <div className="flex flex-col gap-1 mt-2 text-sm bg-slate-50 p-3 rounded-md">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Personal Verification</h4>
+                      <div className="flex flex-col gap-1.5 mt-2 text-sm bg-slate-50 dark:bg-slate-900/50 p-4 border border-slate-200/50 dark:border-slate-800/50 rounded-xl">
                         {(() => {
                           const details = parseAcademyDetails(selectedPilot.drone_academy)
                           return (
                             <>
-                              <div><span className="font-medium text-slate-700">Aadhar No:</span> {details.aadhar}</div>
-                              <div><span className="font-medium text-slate-700">PAN Card No:</span> {details.pan}</div>
-                              <div><span className="font-medium text-slate-700">Date of Birth:</span> {details.dob}</div>
-                              <div><span className="font-medium text-slate-700">Home Address:</span> {details.address}</div>
-                              <div><span className="font-medium text-slate-700">Gender:</span> {details.gender}</div>
-                              <div><span className="font-medium text-slate-700">Blood Group:</span> {details.blood}</div>
-                              <div><span className="font-medium text-slate-700">Emergency Contact:</span> {details.emergency}</div>
+                              <div><span className="font-semibold text-slate-700 dark:text-slate-300">Aadhar No:</span> <span className="font-mono text-xs">{details.aadhar}</span></div>
+                              <div><span className="font-semibold text-slate-700 dark:text-slate-300">PAN Card No:</span> <span className="font-mono text-xs">{details.pan}</span></div>
+                              <div><span className="font-semibold text-slate-700 dark:text-slate-300">Date of Birth:</span> {details.dob}</div>
+                              <div><span className="font-semibold text-slate-700 dark:text-slate-300">Home Address:</span> {details.address}</div>
+                              <div><span className="font-semibold text-slate-700 dark:text-slate-300">Gender:</span> {details.gender}</div>
+                              <div><span className="font-semibold text-slate-700 dark:text-slate-300">Blood Group:</span> <span className="font-mono text-xs">{details.blood}</span></div>
+                              <div><span className="font-semibold text-slate-700 dark:text-slate-300">Emergency Contact:</span> <span className="font-mono text-xs">{details.emergency}</span></div>
                             </>
                           )
                         })()}
@@ -375,26 +404,36 @@ export default function PilotApprovals() {
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <h4 className="text-sm font-semibold text-slate-500">About</h4>
-                      <p className="text-sm bg-slate-50 p-3 rounded-md mt-2 whitespace-pre-wrap min-h-[60px]">{selectedPilot.about || "No bio provided."}</p>
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">About</h4>
+                      <p className="text-sm bg-slate-50 dark:bg-slate-900/50 p-4 border border-slate-200/50 dark:border-slate-800/50 rounded-xl mt-2 whitespace-pre-wrap min-h-[60px]">{selectedPilot.about || "No bio provided."}</p>
                     </div>
                     <div className="flex gap-4">
-                      {selectedPilot.profile_image_url && (
-                        <div className="flex-1">
-                          <h4 className="text-sm font-semibold text-slate-500 mb-2">Profile Photo</h4>
-                          <img src={selectedPilot.profile_image_url} alt="Profile" className="w-full h-32 object-cover rounded-md border" />
-                        </div>
-                      )}
-                      {selectedPilot.certificate_image_url && (
-                        <div className="flex-1">
-                          <h4 className="text-sm font-semibold text-slate-500 mb-2">DGCA Certificate</h4>
-                          <img src={selectedPilot.certificate_image_url} alt="Certificate" className="w-full h-32 object-cover rounded-md border" />
-                        </div>
-                      )}
+                      <div className="flex-1">
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Profile Photo</h4>
+                        <img 
+                          src={selectedPilot.profile_image_url || getAvatarFallback(selectedPilot.full_name)} 
+                          alt="Profile" 
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = getAvatarFallback(selectedPilot.full_name);
+                          }}
+                          className="w-full h-32 object-cover rounded-xl border border-slate-200/60 dark:border-slate-800/60 shadow-sm" 
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">DGCA Certificate</h4>
+                        <img 
+                          src={selectedPilot.certificate_image_url || "/placeholder-cert.jpg"} 
+                          alt="Certificate" 
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="150" viewBox="0 0 200 150"><rect width="200" height="150" fill="%230f172a"/><text x="100" y="80" font-family="sans-serif" font-size="12" fill="%23475569" text-anchor="middle">DGCA CERTIFICATE PHOTO</text></svg>`;
+                          }}
+                          className="w-full h-32 object-cover rounded-xl border border-slate-200/60 dark:border-slate-800/60 shadow-sm" 
+                        />
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
               
               <div className="border-t pt-4 space-y-4">
                 {showRejectForm ? (
@@ -454,126 +493,138 @@ export default function PilotApprovals() {
   )
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent">Pilot Approvals</h1>
-          <p className="text-slate-500 mt-1">Review and manage drone pilot registrations.</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <Card className="px-4 py-3 bg-blue-50 border-blue-100 flex items-center gap-4 shadow-sm">
-            <div className="p-2 bg-blue-100 rounded-lg"><CheckCircle className="w-5 h-5 text-blue-700" /></div>
-            <div>
-              <p className="text-sm font-medium text-slate-500">Total Registered</p>
-              <p className="text-2xl font-bold text-blue-900">{pilots.length}</p>
-            </div>
-          </Card>
-          <Card className="px-4 py-3 bg-indigo-50 border-indigo-100 flex items-center gap-4 shadow-sm">
-            <div className="p-2 bg-indigo-100 rounded-lg"><Clock className="w-5 h-5 text-indigo-700" /></div>
-            <div>
-              <p className="text-sm font-medium text-slate-500">Pending Approval</p>
-              <p className="text-2xl font-bold text-indigo-900">{pendingPilots.length}</p>
-            </div>
-          </Card>
-        </div>
-      </div>
+    <div className="min-h-screen bg-[#faf8f5] dark:bg-[#0b0f19] text-slate-855 dark:text-slate-105 transition-colors duration-300 relative pb-20 p-6 md:p-8">
+      {/* Ambient background grids */}
+      <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#1f2937_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none"></div>
 
-      <Card className="border-0 shadow-xl overflow-hidden">
-        <div className="p-6 bg-white border-b flex justify-between items-center">
-          <div className="relative w-72">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <Input 
-              placeholder="Search pilots..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 bg-slate-50 border-slate-200"
-            />
+      <div className="max-w-7xl mx-auto space-y-8 relative z-10">
+        
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div className="space-y-1.5">
+            <h1 className="text-2xl font-serif font-normal text-slate-900 dark:text-white tracking-tight">Operator Accreditations</h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Review and authorize drone pilot credentials and flight clearance profiles.</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-4">
+            <Card className="px-4 py-3 border border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/60 backdrop-blur-md flex items-center gap-3.5 shadow-sm rounded-2xl">
+              <div className="p-2 bg-[#e65737]/8 dark:bg-[#e65737]/12 rounded-xl text-[#e65737] border border-[#e65737]/15">
+                <CheckCircle className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest font-mono">Total Operators</p>
+                <p className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{pilots.length}</p>
+              </div>
+            </Card>
+            <Card className="px-4 py-3 border border-slate-205/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/60 backdrop-blur-md flex items-center gap-3.5 shadow-sm rounded-2xl">
+              <div className="p-2 bg-amber-500/8 dark:bg-amber-500/12 rounded-xl text-amber-600 dark:text-amber-450 border border-amber-500/15 animate-pulse">
+                <Clock className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-505 uppercase tracking-widest font-mono">Pending Review</p>
+                <p className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{pendingPilots.length}</p>
+              </div>
+            </Card>
           </div>
         </div>
 
-        <Tabs defaultValue="pending" className="w-full">
-          <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
-            <TabsTrigger value="pending" className="rounded-none border-b-2 border-transparent px-6 py-3 data-[state=active]:border-blue-600 data-[state=active]:bg-blue-50/50 data-[state=active]:text-blue-700 font-medium">
-              Needs Approval ({pendingPilots.length})
-            </TabsTrigger>
-            <TabsTrigger value="approved" className="rounded-none border-b-2 border-transparent px-6 py-3 data-[state=active]:border-blue-600 data-[state=active]:bg-blue-50/50 data-[state=active]:text-blue-700 font-medium">
-              Approved Pilots ({approvedPilots.length})
-            </TabsTrigger>
-            <TabsTrigger value="rejected" className="rounded-none border-b-2 border-transparent px-6 py-3 data-[state=active]:border-blue-600 data-[state=active]:bg-blue-50/50 data-[state=active]:text-blue-700 font-medium">
-              Rejected ({rejectedPilots.length})
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="pending" className="p-0 m-0">
-            <Table>
-              <TableHeader className="bg-slate-50">
-                <TableRow>
-                  <TableHead className="font-semibold text-slate-600">Name</TableHead>
-                  <TableHead className="font-semibold text-slate-600">Email</TableHead>
-                  <TableHead className="font-semibold text-slate-600">Location</TableHead>
-                  <TableHead className="font-semibold text-slate-600">Status</TableHead>
-                  <TableHead className="text-right font-semibold text-slate-600">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow><TableCell colSpan={5} className="text-center py-8">Loading...</TableCell></TableRow>
-                ) : pendingPilots.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-500">No applications pending approval.</TableCell></TableRow>
-                ) : (
-                  pendingPilots.map(pilot => renderPilotRow(pilot))
-                )}
-              </TableBody>
-            </Table>
-          </TabsContent>
-          
-          <TabsContent value="approved" className="p-0 m-0">
-            <Table>
-              <TableHeader className="bg-slate-50">
-                <TableRow>
-                  <TableHead className="font-semibold text-slate-600">Name</TableHead>
-                  <TableHead className="font-semibold text-slate-600">Email</TableHead>
-                  <TableHead className="font-semibold text-slate-600">Location</TableHead>
-                  <TableHead className="font-semibold text-slate-600">Status</TableHead>
-                  <TableHead className="text-right font-semibold text-slate-600">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow><TableCell colSpan={5} className="text-center py-8">Loading...</TableCell></TableRow>
-                ) : approvedPilots.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-500">No approved pilots found.</TableCell></TableRow>
-                ) : (
-                  approvedPilots.map(pilot => renderPilotRow(pilot))
-                )}
-              </TableBody>
-            </Table>
-          </TabsContent>
+        {/* Directory Card */}
+        <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-900/60 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.01)] rounded-3xl overflow-hidden">
+          <div className="p-5 bg-slate-50/50 dark:bg-slate-900/40 border-b border-slate-100 dark:border-slate-800/80 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
+            <div className="relative flex-1 max-w-xs">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+              <Input 
+                placeholder="Search operators..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 bg-white dark:bg-slate-950 border-slate-200/80 dark:border-slate-805 text-xs rounded-xl shadow-sm focus-visible:ring-slate-300"
+              />
+            </div>
+          </div>
 
-          <TabsContent value="rejected" className="p-0 m-0">
-            <Table>
-              <TableHeader className="bg-slate-50">
-                <TableRow>
-                  <TableHead className="font-semibold text-slate-600">Name</TableHead>
-                  <TableHead className="font-semibold text-slate-600">Email</TableHead>
-                  <TableHead className="font-semibold text-slate-600">Rejection Reason</TableHead>
-                  <TableHead className="font-semibold text-slate-600">Status</TableHead>
-                  <TableHead className="text-right font-semibold text-slate-600">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow><TableCell colSpan={5} className="text-center py-8">Loading...</TableCell></TableRow>
-                ) : rejectedPilots.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-500">No rejected applications found.</TableCell></TableRow>
-                ) : (
-                  rejectedPilots.map(pilot => renderRejectedRow(pilot))
-                )}
-              </TableBody>
-            </Table>
-          </TabsContent>
-        </Tabs>
-      </Card>
+          <Tabs defaultValue="pending" className="w-full">
+            <TabsList className="w-full justify-start rounded-none border-b border-slate-100 dark:border-slate-850 bg-transparent p-0">
+              <TabsTrigger value="pending" className="rounded-none border-b-2 border-transparent px-6 py-3.5 data-[state=active]:border-[#e65737] data-[state=active]:bg-slate-50/50 dark:data-[state=active]:bg-slate-900/40 data-[state=active]:text-[#e65737] font-bold text-xs uppercase tracking-wider font-mono">
+                Pending Auth ({pendingPilots.length})
+              </TabsTrigger>
+              <TabsTrigger value="approved" className="rounded-none border-b-2 border-transparent px-6 py-3.5 data-[state=active]:border-[#e65737] data-[state=active]:bg-slate-50/50 dark:data-[state=active]:bg-slate-900/40 data-[state=active]:text-[#e65737] font-bold text-xs uppercase tracking-wider font-mono">
+                Authorized ({approvedPilots.length})
+              </TabsTrigger>
+              <TabsTrigger value="rejected" className="rounded-none border-b-2 border-transparent px-6 py-3.5 data-[state=active]:border-[#e65737] data-[state=active]:bg-slate-50/50 dark:data-[state=active]:bg-slate-900/40 data-[state=active]:text-[#e65737] font-bold text-xs uppercase tracking-wider font-mono">
+                Rejected ({rejectedPilots.length})
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="pending" className="p-0 m-0">
+              <Table>
+                <TableHeader className="bg-slate-50/50 dark:bg-slate-950/20">
+                  <TableRow className="border-b border-slate-150 dark:border-slate-850">
+                    <TableHead className="font-bold text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono py-4">Name</TableHead>
+                    <TableHead className="font-bold text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono py-4">Email</TableHead>
+                    <TableHead className="font-bold text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono py-4">Location</TableHead>
+                    <TableHead className="font-bold text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono py-4">Status</TableHead>
+                    <TableHead className="text-right font-bold text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono py-4">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow><TableCell colSpan={5} className="text-center py-10 font-mono text-xs uppercase text-slate-500 tracking-wider">Retrieving roster...</TableCell></TableRow>
+                  ) : pendingPilots.length === 0 ? (
+                    <TableRow><TableCell colSpan={5} className="text-center py-10 text-slate-400 text-xs">No operators pending authorization.</TableCell></TableRow>
+                  ) : (
+                    pendingPilots.map(pilot => renderPilotRow(pilot))
+                  )}
+                </TableBody>
+              </Table>
+            </TabsContent>
+            
+            <TabsContent value="approved" className="p-0 m-0">
+              <Table>
+                <TableHeader className="bg-slate-50/50 dark:bg-slate-950/20">
+                  <TableRow className="border-b border-slate-150 dark:border-slate-850">
+                    <TableHead className="font-bold text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono py-4">Name</TableHead>
+                    <TableHead className="font-bold text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono py-4">Email</TableHead>
+                    <TableHead className="font-bold text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono py-4">Location</TableHead>
+                    <TableHead className="font-bold text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono py-4">Status</TableHead>
+                    <TableHead className="text-right font-bold text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono py-4">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow><TableCell colSpan={5} className="text-center py-10 font-mono text-xs uppercase text-slate-500 tracking-wider">Retrieving roster...</TableCell></TableRow>
+                  ) : approvedPilots.length === 0 ? (
+                    <TableRow><TableCell colSpan={5} className="text-center py-10 text-slate-400 text-xs">No authorized operators found.</TableCell></TableRow>
+                  ) : (
+                    approvedPilots.map(pilot => renderPilotRow(pilot))
+                  )}
+                </TableBody>
+              </Table>
+            </TabsContent>
+
+            <TabsContent value="rejected" className="p-0 m-0">
+              <Table>
+                <TableHeader className="bg-slate-50/50 dark:bg-slate-950/20">
+                  <TableRow className="border-b border-slate-150 dark:border-slate-850">
+                    <TableHead className="font-bold text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono py-4">Name</TableHead>
+                    <TableHead className="font-bold text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono py-4">Email</TableHead>
+                    <TableHead className="font-bold text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono py-4">Rejection Reason</TableHead>
+                    <TableHead className="font-bold text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono py-4">Status</TableHead>
+                    <TableHead className="text-right font-bold text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono py-4">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow><TableCell colSpan={5} className="text-center py-10 font-mono text-xs uppercase text-slate-500 tracking-wider">Retrieving roster...</TableCell></TableRow>
+                  ) : rejectedPilots.length === 0 ? (
+                    <TableRow><TableCell colSpan={5} className="text-center py-10 text-slate-400 text-xs">No rejected applications found.</TableCell></TableRow>
+                  ) : (
+                    rejectedPilots.map(pilot => renderRejectedRow(pilot))
+                  )}
+                </TableBody>
+              </Table>
+            </TabsContent>
+          </Tabs>
+        </Card>
+      </div>
     </div>
   )
 }

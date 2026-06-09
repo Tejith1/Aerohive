@@ -255,40 +255,59 @@ export default function TrainingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
       <ModernHeader />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-900 via-indigo-800 to-purple-900 text-white py-20">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-200 to-white bg-clip-text text-transparent">
-            Drone Training & Certification
-          </h1>
-          <p className="text-xl mb-8 text-blue-100 max-w-3xl mx-auto">
-            Master professional drone operations with certified training from leading aviation instructors.
-            From beginner courses to advanced certifications, launch your drone career today.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Button size="lg" className="bg-white text-blue-900 hover:bg-blue-50">
-              <Award className="w-5 h-5 mr-2" />
-              Browse Certifications
-            </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-900">
-              Find Instructors
-            </Button>
+      <section className="relative pt-28 lg:pt-36 pb-20 overflow-hidden text-center bg-background border-b border-border">
+        <div className="absolute inset-0 bg-grid-pattern opacity-[0.01] pointer-events-none"></div>
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="max-w-4xl mx-auto space-y-6">
+            {/* Custom Flight path & Graduation Propeller Logo */}
+            <div className="flex justify-center mb-2 animate-pulse">
+              <svg className="w-20 h-20 text-primary" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <circle cx="50" cy="50" r="40" strokeDasharray="3 3" className="opacity-30" />
+                <path d="M20 70c10-30 30-40 60-30" strokeDasharray="4 2" />
+                <path d="M50 25L80 35L50 45L20 35Z" className="fill-background stroke-primary" />
+                <path d="M35 40v12c0 8 10 10 15 10s15-2 15-10V40" />
+                <path d="M80 35v15l-4 4" />
+                <circle cx="50" cy="35" r="3" className="fill-primary animate-pulse" />
+              </svg>
+            </div>
+            <div className="inline-flex items-center justify-center space-x-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary"></span>
+              <span className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase font-mono">
+                // CERTIFICATIONS & ACADEMY
+              </span>
+            </div>
+            <h1 className="text-4xl md:text-6xl font-light tracking-tight font-display text-foreground leading-tight">
+              Drone Training & <span className="font-semibold text-primary block sm:inline">Certification</span>
+            </h1>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-sans font-light">
+              Master professional drone operations with certified training from leading aviation instructors. From beginner courses to advanced certifications.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4 pt-2">
+              <Button size="lg" className="bg-primary hover:bg-primary/95 text-white rounded-full px-6 py-3.5 text-sm font-medium transition-all duration-300 border-0">
+                <Award className="w-5 h-5 mr-2" />
+                Browse Certifications
+              </Button>
+              <Button size="lg" variant="outline" className="border border-border text-foreground hover:bg-muted rounded-full px-6 py-3.5 text-sm font-medium transition-all duration-300 bg-card/50 backdrop-blur-sm">
+                Find Instructors
+              </Button>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Navigation Tabs */}
-      <section className="py-8 bg-white border-b">
+      <section className="py-8 bg-card border-b border-border">
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-            <div className="flex items-center bg-gray-100 rounded-lg p-1">
+            <div className="flex items-center bg-muted rounded-full p-1 border border-border">
               <Button
                 variant={activeTab === "courses" ? "default" : "ghost"}
                 onClick={() => setActiveTab("courses")}
-                className="rounded-md"
+                className="rounded-full px-6 py-2"
               >
                 <BookOpen className="w-4 h-4 mr-2" />
                 Training Courses
@@ -296,7 +315,7 @@ export default function TrainingPage() {
               <Button
                 variant={activeTab === "providers" ? "default" : "ghost"}
                 onClick={() => setActiveTab("providers")}
-                className="rounded-md"
+                className="rounded-full px-6 py-2"
               >
                 <User className="w-4 h-4 mr-2" />
                 Training Providers
@@ -305,13 +324,13 @@ export default function TrainingPage() {
 
             <div className="flex flex-col sm:flex-row gap-4 items-center">
               <div className="flex items-center gap-2 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
                   type="text"
                   placeholder={`Search ${activeTab}...`}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-64"
+                  className="pl-10 w-64 rounded-full border-border bg-background"
                 />
               </div>
 
@@ -320,7 +339,7 @@ export default function TrainingPage() {
                   <select
                     value={levelFilter}
                     onChange={(e) => setLevelFilter(e.target.value)}
-                    className="border rounded-md px-3 py-2 text-sm"
+                    className="border border-border rounded-full px-4 py-2 text-sm bg-background text-foreground focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                   >
                     <option value="all">All Levels</option>
                     <option value="Beginner">Beginner</option>
@@ -332,7 +351,7 @@ export default function TrainingPage() {
                   <select
                     value={formatFilter}
                     onChange={(e) => setFormatFilter(e.target.value)}
-                    className="border rounded-md px-3 py-2 text-sm"
+                    className="border border-border rounded-full px-4 py-2 text-sm bg-background text-foreground focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                   >
                     <option value="all">All Formats</option>
                     <option value="Online">Online</option>
@@ -347,50 +366,50 @@ export default function TrainingPage() {
       </section>
 
       {/* Content Section */}
-      <section className="py-12 relative">
+      <section className="py-12 relative bg-background">
         <div className="container mx-auto px-4">
           {activeTab === "courses" ? (
-            <div className={`grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 ${!isAdmin && !authLoading ? 'blur-md pointer-events-none select-none opacity-40' : ''}`}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
               {filteredCourses.map((course) => {
                 const provider = getProviderById(course.providerId)
                 const availableSpots = course.maxParticipants - course.currentEnrollment
 
                 return (
-                  <Card key={course.id} className="overflow-hidden hover:shadow-xl transition-all duration-300">
+                  <Card key={course.id} className="overflow-hidden hover:shadow-xl transition-all duration-350 border border-border bg-card rounded-3xl">
                     <CardHeader className="pb-4">
                       <div className="flex justify-between items-start mb-2">
                         <Badge variant={course.level === "Professional" ? "default" : "secondary"}>
                           {course.level}
                         </Badge>
-                        <Badge variant="outline" className={`${course.format === "Online" ? "bg-green-50 text-green-700"
-                            : course.format === "In-Person" ? "bg-blue-50 text-blue-700"
-                              : "bg-purple-50 text-purple-700"
+                        <Badge variant="outline" className={`${course.format === "Online" ? "bg-green-500/10 text-green-500 border-0"
+                            : course.format === "In-Person" ? "bg-primary/10 text-primary border-0"
+                              : "bg-amber-500/10 text-amber-500 border-0"
                           }`}>
                           {course.format}
                         </Badge>
                       </div>
-                      <CardTitle className="text-xl mb-2">{course.title}</CardTitle>
-                      <p className="text-gray-600 text-sm">{course.description}</p>
+                      <CardTitle className="text-xl mb-2 font-display">{course.title}</CardTitle>
+                      <p className="text-muted-foreground text-sm leading-relaxed">{course.description}</p>
                     </CardHeader>
 
                     <CardContent className="space-y-4">
                       {/* Provider Info */}
                       {provider && (
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3 p-3 bg-muted/40 rounded-2xl">
                           <img
                             src={provider.profileImage}
                             alt={provider.companyName}
                             className="w-10 h-10 rounded-full object-cover"
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm text-gray-900">{provider.companyName}</p>
+                            <p className="font-medium text-sm text-foreground">{provider.companyName}</p>
                             <div className="flex items-center gap-1">
                               <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                              <span className="text-xs text-gray-600">{provider.rating} ({provider.reviewCount})</span>
+                              <span className="text-xs text-muted-foreground">{provider.rating} ({provider.reviewCount})</span>
                             </div>
                           </div>
                           {provider.isVerified && (
-                            <Badge variant="secondary" className="bg-green-100 text-green-800">
+                            <Badge variant="secondary" className="bg-green-150 text-green-800 border-0">
                               <Award className="w-3 h-3 mr-1" />
                               Verified
                             </Badge>
@@ -401,21 +420,21 @@ export default function TrainingPage() {
                       {/* Course Details */}
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-gray-400" />
-                          <span>{course.duration} hours</span>
+                          <Clock className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">{course.duration} hours</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4 text-gray-400" />
-                          <span>{availableSpots} spots left</span>
+                          <Users className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">{availableSpots} spots left</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-gray-400" />
-                          <span>{new Date(course.startDate).toLocaleDateString()}</span>
+                          <Calendar className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">{new Date(course.startDate).toLocaleDateString()}</span>
                         </div>
                         {course.location && (
                           <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-gray-400" />
-                            <span className="truncate">{course.location}</span>
+                            <MapPin className="w-4 h-4 text-muted-foreground" />
+                            <span className="truncate text-muted-foreground">{course.location}</span>
                           </div>
                         )}
                       </div>
@@ -423,10 +442,10 @@ export default function TrainingPage() {
                       {/* Prerequisites */}
                       {course.prerequisites.length > 0 && (
                         <div>
-                          <p className="text-sm font-medium text-gray-900 mb-2">Prerequisites:</p>
+                          <p className="text-sm font-medium text-foreground mb-2">Prerequisites:</p>
                           <div className="flex flex-wrap gap-1">
                             {course.prerequisites.map((prereq, index) => (
-                              <Badge key={index} variant="outline" className="text-xs">
+                              <Badge key={index} variant="outline" className="text-xs border-border">
                                 {prereq}
                               </Badge>
                             ))}
@@ -435,10 +454,10 @@ export default function TrainingPage() {
                       )}
 
                       {/* Price and Action */}
-                      <div className="pt-4 border-t">
+                      <div className="pt-4 border-t border-border">
                         <div className="flex items-center justify-between mb-3">
                           <div>
-                            <span className="text-2xl font-bold text-blue-600">₹{course.price.toLocaleString('en-IN')}</span>
+                            <span className="text-2xl font-bold text-primary">₹{course.price.toLocaleString('en-IN')}</span>
                             {course.certificationProvided && (
                               <div className="text-xs text-green-600 font-medium">Certificate Included</div>
                             )}
@@ -453,12 +472,12 @@ export default function TrainingPage() {
 
                         <div className="space-y-2">
                           <Button
-                            className="w-full bg-blue-600 hover:bg-blue-700"
+                            className="w-full bg-primary hover:bg-primary/90 text-white rounded-full py-2.5 transition-all duration-300 border-0"
                             disabled={availableSpots === 0}
                           >
                             {availableSpots > 0 ? "Enroll Now" : "Join Waitlist"}
                           </Button>
-                          <Button variant="outline" className="w-full">
+                          <Button variant="outline" className="w-full rounded-full">
                             View Details
                           </Button>
                         </div>
@@ -469,9 +488,9 @@ export default function TrainingPage() {
               })}
             </div>
           ) : (
-            <div className={`grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 ${!isAdmin && !authLoading ? 'blur-md pointer-events-none select-none opacity-40' : ''}`}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
               {filteredProviders.map((provider) => (
-                <Card key={provider.id} className="overflow-hidden hover:shadow-xl transition-all duration-300">
+                <Card key={provider.id} className="overflow-hidden hover:shadow-xl transition-all duration-350 border border-border bg-card rounded-3xl">
                   <CardHeader className="text-center pb-4">
                     <div className="relative inline-block">
                       <img
@@ -485,23 +504,23 @@ export default function TrainingPage() {
                         </div>
                       )}
                     </div>
-                    <CardTitle className="text-xl mb-2">{provider.companyName}</CardTitle>
-                    <p className="text-gray-600 text-sm mb-3">{provider.description}</p>
+                    <CardTitle className="text-xl mb-2 font-display">{provider.companyName}</CardTitle>
+                    <p className="text-muted-foreground text-sm mb-3 leading-relaxed">{provider.description}</p>
                     <div className="flex items-center justify-center gap-1 mb-2">
                       <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                      <span className="font-medium">{provider.rating}</span>
-                      <span className="text-sm text-gray-500">({provider.reviewCount} reviews)</span>
+                      <span className="font-medium text-foreground">{provider.rating}</span>
+                      <span className="text-sm text-muted-foreground">({provider.reviewCount} reviews)</span>
                     </div>
                   </CardHeader>
 
                   <CardContent className="space-y-4">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <MapPin className="w-4 h-4" />
                       {provider.location}
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium text-gray-900 mb-2">Specializations:</p>
+                      <p className="text-sm font-medium text-foreground mb-2">Specializations:</p>
                       <div className="flex flex-wrap gap-1">
                         {provider.specializations.map((spec, index) => (
                           <Badge key={index} variant="secondary" className="text-xs">
@@ -512,21 +531,21 @@ export default function TrainingPage() {
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium text-gray-900 mb-2">Certifications:</p>
+                      <p className="text-sm font-medium text-foreground mb-2">Certifications:</p>
                       <div className="flex flex-wrap gap-1">
                         {provider.certifications.map((cert, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
+                          <Badge key={index} variant="outline" className="text-xs border-border">
                             {cert}
                           </Badge>
                         ))}
                       </div>
                     </div>
 
-                    <div className="pt-4 border-t space-y-2">
-                      <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                    <div className="pt-4 border-t border-border space-y-2">
+                      <Button className="w-full bg-primary hover:bg-primary/90 text-white rounded-full py-2.5 transition-all duration-300 border-0">
                         View Courses
                       </Button>
-                      <Button variant="outline" className="w-full">
+                      <Button variant="outline" className="w-full rounded-full">
                         Contact Provider
                       </Button>
                     </div>
@@ -539,10 +558,10 @@ export default function TrainingPage() {
           {((activeTab === "courses" && filteredCourses.length === 0) ||
             (activeTab === "providers" && filteredProviders.length === 0)) && (
               <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">No {activeTab} found matching your criteria.</p>
+                <p className="text-muted-foreground text-lg">No {activeTab} found matching your criteria.</p>
                 <Button
                   variant="outline"
-                  className="mt-4"
+                  className="mt-4 rounded-full"
                   onClick={() => {
                     setSearchTerm("")
                     setLevelFilter("all")
@@ -555,7 +574,7 @@ export default function TrainingPage() {
             )}
 
           <ComingSoonOverlay
-            show={!isAdmin}
+            show={false}
             description="Our drone training and certification programs are being developed. Expert training courses will be available soon."
           />
         </div>
