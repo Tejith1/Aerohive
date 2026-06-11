@@ -173,8 +173,10 @@ export function ModernFooter({ showNewsletter = true }: ModernFooterProps) {
           <div className="lg:col-span-4 space-y-6">
             
             {/* Logo */}
-            <Link href="/" className="flex items-center group shrink-0" aria-label="AeroHive Home text">
-              <span className="text-xl font-bold tracking-tight text-white">AeroHive</span>
+            <Link href="/" className="flex items-center shrink-0 hover:opacity-90 transition-opacity" aria-label="AeroHive Home text">
+              <span className="font-sans font-black text-xl uppercase tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+                AEROHIVE
+              </span>
             </Link>
 
             {/* Prompt input styled like Claude chat prompt */}

@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/contexts/auth-context"
 import { NotificationProvider } from "@/contexts/notification-context"
 import { ThemeProvider } from "@/components/theme-provider"
+import SplashScreen from "@/components/SplashScreen"
 import "./globals.css"
 
 const Chatbot = dynamic(() => import('@/components/Chatbot'), {
@@ -52,6 +53,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <AuthProvider>
             <NotificationProvider>
+              <SplashScreen />
               <Suspense fallback={null}>{children}</Suspense>
               <Chatbot />
               <Toaster />

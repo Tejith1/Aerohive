@@ -139,11 +139,9 @@ export default function RegisterPage() {
       {/* Top Left Logo Header */}
       <div className="absolute top-8 left-8 z-20">
         <Link href="/">
-          <img
-            src="/aerohive-logo-v2.png"
-            alt="AeroHive"
-            className="h-[32px] w-auto object-contain"
-          />
+          <span className="font-sans font-black text-2xl uppercase tracking-tight bg-gradient-to-r from-[#2563eb] to-[#4f46e5] bg-clip-text text-transparent dark:from-[#f97316] dark:to-[#ea580c]">
+            AEROHIVE
+          </span>
         </Link>
       </div>
 
