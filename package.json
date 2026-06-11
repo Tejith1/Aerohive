@@ -96,5 +96,11 @@
   "browserslist": [
     "defaults",
     "not ie 11"
-  ]
+  ],
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@tailwindcss/oxide",
+      "esbuild"
+    ]
+  }
 }
