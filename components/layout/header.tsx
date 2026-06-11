@@ -45,9 +45,9 @@ export function Header() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-            <span className="font-bold text-2xl bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
-              AeroHive
+          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+            <span className="font-sans font-black text-2xl uppercase tracking-tight bg-gradient-to-r from-[#2563eb] to-[#4f46e5] bg-clip-text text-transparent dark:from-[#f97316] dark:to-[#ea580c]">
+              AEROHIVE
             </span>
           </Link>
 
