@@ -163,9 +163,11 @@ export function ModernHeader() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center shrink-0 hover:opacity-90 transition-opacity" aria-label="AeroHive Home">
-            <span className="font-sans font-black text-2xl uppercase tracking-tight bg-gradient-to-r from-[#2563eb] to-[#4f46e5] bg-clip-text text-transparent dark:from-[#f97316] dark:to-[#ea580c] transition-all duration-300">
-              AEROHIVE
-            </span>
+            <img
+              src="/Aerohive text logo scaled up.png"
+              alt="AeroHive Logo"
+              className="h-8 w-auto object-contain transition-all duration-300"
+            />
           </Link>
 
           {/* Desktop Navigation with Claude-Style Hover Mega Menus */}

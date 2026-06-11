@@ -174,9 +174,11 @@ export function ModernFooter({ showNewsletter = true }: ModernFooterProps) {
             
             {/* Logo */}
             <Link href="/" className="flex items-center shrink-0 hover:opacity-90 transition-opacity" aria-label="AeroHive Home text">
-              <span className="font-sans font-black text-xl uppercase tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-                AEROHIVE
-              </span>
+              <img
+                src="/Aerohive text logo scaled up.png"
+                alt="AeroHive Logo"
+                className="h-7 w-auto object-contain"
+              />
             </Link>
 
             {/* Prompt input styled like Claude chat prompt */}

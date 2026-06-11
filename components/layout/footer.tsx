@@ -13,8 +13,12 @@ export function Footer() {
                 <Plane className="text-white h-6 w-6" />
               </div>
               <div className="flex flex-col">
-                <span className="font-bold text-2xl">AeroHive</span>
-                <span className="text-sm text-blue-200">Professional Drones</span>
+                <img
+                  src="/Aerohive text logo scaled up.png"
+                  alt="AeroHive Logo"
+                  className="h-7 w-auto object-contain"
+                />
+                <span className="text-xs text-blue-200 mt-1">Professional Drones</span>
               </div>
             </Link>
             <p className="text-blue-100 text-sm leading-relaxed">
