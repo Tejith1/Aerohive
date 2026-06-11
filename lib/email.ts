@@ -294,7 +294,13 @@ export function generateEmailHtml(type: 'client' | 'pilot' | 'client_declined', 
                             </p>
 
                             <!-- Structured Grey Tabular Details Grid -->
-                            <table width="100%" cellspacing="0" cellpadding="0" style="border: 1px solid #eef2f3; border-radius: 12px; background-color: #fbfcff; margin-bottom: 30px; borde                            ${checklistHtml}
+                            <table width="100%" cellspacing="0" cellpadding="0" style="border: 1px solid #eef2f3; border-radius: 12px; background-color: #fbfcff; margin-bottom: 30px; border-collapse: separate; overflow: hidden;">
+                                <tbody>
+                                    ${detailsHtml}
+                                </tbody>
+                            </table>
+
+                            ${checklistHtml}
 
                             <!-- Dynamic OTP Segmented Block -->
                             ${otpSegmentedHtml}
