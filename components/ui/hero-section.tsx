@@ -3,8 +3,9 @@
 import React from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Play, Shield, Star, Users } from "lucide-react"
+import { ArrowRight, Play, Shield } from "lucide-react"
 
 interface HeroSectionProps {
   title: string
@@ -30,120 +31,167 @@ export function HeroSection({
   primaryButtonHref,
   secondaryButtonText,
   secondaryButtonHref,
-  backgroundImage = "/placeholder.svg?height=800&width=800",
+  backgroundImage = "/hero-drone.jpg",
   stats,
   features
 }: HeroSectionProps) {
+  // Balanced organic stagger animations for human-designed feel
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.08,
+        delayChildren: 0.1
+      }
+    }
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const } 
+    }
+  }
+
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50 min-h-screen flex items-center">
-      {/* Background decoration */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/20 via-transparent to-purple-100/20"></div>
-      <div className="absolute top-0 left-0 w-full h-full bg-grid-pattern opacity-5"></div>
+    <section className="relative bg-background text-foreground min-h-[80vh] flex items-center pt-28 lg:pt-36 pb-16 border-b border-border overflow-hidden">
+      
+      {/* Structural Minimal Grid Background (inspired by architectural drawings) */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-[0.015] pointer-events-none"></div>
+      
+      <div className="container mx-auto px-6 lg:px-12 relative z-10 max-w-7xl">
+        <div className="grid lg:grid-cols-12 gap-16 items-center">
+          
+          {/* Text/Editorial side */}
+          <motion.div 
+            className="lg:col-span-7 space-y-10 text-left"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            {/* Elegant minimal hairline category tag */}
+            <motion.div variants={itemVariants} className="inline-flex items-center space-x-2.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse"></span>
+              <span className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase font-mono">
+                SYSTEM COCKPIT V2
+              </span>
+            </motion.div>
 
-      <div className="container mx-auto px-4 py-16 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          {/* Content Side */}
-          <div className="space-y-8 animate-fade-in-scale">
-            {/* Badge */}
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200">
-              <Shield className="h-4 w-4 text-blue-600 mr-2" />
-              <span className="text-sm font-medium text-blue-700">Trusted by professionals worldwide</span>
-            </div>
-
-            {/* Main heading */}
-            <div className="space-y-4">
-              <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
-                <span className="block text-gray-900">{title}</span>
-                <span className="block bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  {subtitle}
-                </span>
+            {/* Massive editorial high-contrast header */}
+            <motion.div variants={itemVariants} className="space-y-6">
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-normal tracking-tight text-foreground leading-[1.1] font-display">
+                {title} <br />
+                <span className="text-primary font-normal">{subtitle}</span>
               </h1>
 
-              <p className="text-xl text-gray-600 leading-relaxed max-w-2xl">
+              <p className="text-base md:text-lg text-muted-foreground max-w-xl leading-relaxed font-sans font-light">
                 {description}
               </p>
-            </div>
+            </motion.div>
 
-            {/* Features list */}
+            {/* Editorial Features Grid */}
             {features && (
-              <div className="flex flex-wrap gap-4">
+              <motion.div 
+                variants={itemVariants} 
+                className="grid grid-cols-2 gap-x-8 gap-y-4 pt-4 border-t border-border max-w-lg"
+              >
                 {features.map((feature, index) => (
-                  <div key={index} className="flex items-center text-sm text-gray-600">
-                    <Star className="h-4 w-4 text-amber-400 mr-2 fill-current" />
-                    {feature}
+                  <div key={index} className="flex items-center space-x-3 text-base text-foreground">
+                    <span className="h-1.5 w-1.5 bg-primary rounded-full shrink-0"></span>
+                    <span className="font-sans font-light text-sm">{feature}</span>
                   </div>
                 ))}
-              </div>
+              </motion.div>
             )}
 
-            {/* Action buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            {/* Premium clicking boxes */}
+            <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-6 pt-4">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                className="bg-foreground hover:bg-primary text-background px-6 py-3.5 text-sm font-medium rounded-full transition-all duration-300 shadow-sm cursor-pointer border-0"
                 asChild
               >
                 <Link href={primaryButtonHref}>
                   {primaryButtonText}
-                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
 
               {secondaryButtonText && secondaryButtonHref && (
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-4 text-lg rounded-xl transition-all duration-300"
-                  asChild
+                <Link 
+                  href={secondaryButtonHref}
+                  className="group inline-flex items-center space-x-2 text-xs font-semibold tracking-wider text-primary uppercase hover:text-primary/80 transition-colors cursor-pointer font-mono"
                 >
-                  <Link href={secondaryButtonHref}>
-                    <Play className="mr-2 h-5 w-5" />
-                    {secondaryButtonText}
-                  </Link>
-                </Button>
+                  <span>{secondaryButtonText}</span>
+                  <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
+                </Link>
               )}
-            </div>
+            </motion.div>
 
-            {/* Stats */}
+            {/* Clean numeric highlights */}
             {stats && (
-              <div className="grid grid-cols-3 gap-8 pt-8 border-t border-gray-200">
+              <motion.div 
+                variants={itemVariants} 
+                className="grid grid-cols-3 gap-8 pt-8 border-t border-border max-w-md"
+              >
                 {stats.map((stat, index) => (
-                  <div key={index} className="text-center">
-                    <div className="text-3xl font-bold text-gray-900">{stat.value}</div>
-                    <div className="text-sm text-gray-600">{stat.label}</div>
+                  <div key={index} className="space-y-1">
+                    <div className="text-3xl font-normal text-foreground tracking-tight font-mono">{stat.value}</div>
+                    <div className="text-[9px] font-semibold tracking-widest text-muted-foreground uppercase font-mono">{stat.label}</div>
                   </div>
                 ))}
-              </div>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
 
-          {/* Visual Side */}
-          <div className="relative animate-slide-in-right">
-            {/* Main image */}
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-3xl blur-3xl"></div>
+          {/* Visual Showcase */}
+          <div className="lg:col-span-5 relative flex justify-center lg:justify-end">
+            <motion.div 
+              className="relative w-full max-w-[460px] aspect-[4/5] bg-card overflow-hidden border border-border rounded-3xl shadow-sm"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] as const }}
+            >
               <Image
                 src={backgroundImage}
-                alt="Hero Visual"
-                width={1920}
-                height={1080}
+                alt="AeroHive Aviation System"
+                fill
                 priority
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="relative z-10 w-full h-auto rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-500"
+                className="object-cover transition-all duration-700 hover:scale-[1.01]"
               />
-
-              {/* Floating elements */}
-              <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg animate-float">
-                4.8★
-              </div>
-
-              <div className="absolute -bottom-4 -left-4 bg-white rounded-xl p-4 shadow-lg animate-bounce-in">
-                <div className="flex items-center space-x-2">
-                  <Users className="h-5 w-5 text-blue-600" />
-                  <span className="text-sm font-medium text-gray-700">50K+ Users</span>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+              
+              {/* Floating tech panel overlay */}
+              <div className="absolute bottom-6 left-6 right-6 p-5 rounded-2xl bg-[#141412] text-slate-100 border border-slate-800 text-left space-y-3.5 z-20 pointer-events-none shadow-xl">
+                <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                  <span className="text-[9px] font-mono tracking-[0.15em] text-slate-400 uppercase">FLIGHT TELEMETRY FEED</span>
+                  <span className="text-emerald-450 animate-pulse flex items-center gap-1.5 text-[8px] font-mono font-semibold">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 inline-block"></span>
+                    UPLINK_ACTIVE
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-2 pt-1 font-mono">
+                  <div>
+                    <span className="text-[8px] tracking-wider text-slate-500 block uppercase">PROP_SPEED</span>
+                    <span className="text-[10px] text-slate-200">14,200 RPM</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] tracking-wider text-slate-500 block uppercase">LATENCY</span>
+                    <span className="text-[10px] text-slate-200">4.2 ms</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] tracking-wider text-slate-500 block uppercase">GNSS_UPLINK</span>
+                    <span className="text-[10px] text-slate-200">18 SATELLITES</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] tracking-wider text-slate-500 block uppercase">PAYLOAD</span>
+                    <span className="text-[10px] text-slate-200">ACTIVE_THERMAL</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>

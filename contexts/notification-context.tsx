@@ -47,7 +47,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                 return
             }
 
-            const channel = supabase
+            // Only subscribe to realtime if we successfully fetched (table exists)
+            let channel: any = null
+            try {
+              channel = supabase
                 .channel(`user-notifications-${user.id}`)
                 .on(
                     'postgres_changes',
@@ -97,9 +100,12 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                     }
                 )
                 .subscribe()
+            } catch (_subscribeErr) {
+              // Table may not exist yet — skip realtime subscription silently
+            }
 
             return () => {
-                supabase.removeChannel(channel)
+                if (channel) supabase.removeChannel(channel)
             }
         } else {
             setNotifications([])

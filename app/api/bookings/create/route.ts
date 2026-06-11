@@ -243,6 +243,7 @@ export async function POST(request: NextRequest) {
             scheduledAt: dateTimeDisplay,
             durationHours: duration_hours,
             chargesNote,
+            requirements: requirements?.note || "",
             trackingLink,
             acceptJobLink,
             googleMapsLink,

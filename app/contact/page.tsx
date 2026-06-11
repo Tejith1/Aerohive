@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Mail, Phone, MapPin, Clock, Send, MessageSquare, HeadphonesIcon, Plane, Globe, Shield, Zap, CheckCircle, AlertCircle, User, FileText, Camera, Star, ArrowRight, Loader2 } from "lucide-react"
+import { Mail, Phone, MapPin, Clock, Send, MessageSquare, HeadphonesIcon, Globe, AlertCircle, User, FileText, Star, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -37,32 +37,32 @@ const contactInfo = [
     title: "Email Support",
     details: ["support@aerohive.co.in", "aerohive.help@gmail.com"],
     description: "Get detailed responses within 2 hours",
-    color: "text-blue-600",
-    bgColor: "bg-blue-50"
+    color: "text-blue-600 dark:text-[#e65737]",
+    bgColor: "bg-blue-600/10 dark:bg-[#e65737]/10"
   },
   {
     icon: Phone,
     title: "Phone Support",
     details: ["+91 7075894588", "+91 9014369289"],
     description: "24/7 technical support available",
-    color: "text-green-600",
-    bgColor: "bg-green-50"
+    color: "text-blue-600 dark:text-[#e65737]",
+    bgColor: "bg-blue-600/10 dark:bg-[#e65737]/10"
   },
   {
     icon: MapPin,
     title: "Headquarters",
     details: ["HYDERABAD, TELANGANA, INDIA", "Pincode: 500090"],
     description: "Visit our innovation center",
-    color: "text-purple-600",
-    bgColor: "bg-purple-50"
+    color: "text-blue-600 dark:text-[#e65737]",
+    bgColor: "bg-blue-600/10 dark:bg-[#e65737]/10"
   },
   {
     icon: Clock,
     title: "Business Hours",
     details: ["Mon-Fri: 6AM - 10PM PST", "Sat-Sun: 8AM - 6PM PST"],
     description: "Extended hours for global support",
-    color: "text-orange-600",
-    bgColor: "bg-orange-50"
+    color: "text-blue-600 dark:text-[#e65737]",
+    bgColor: "bg-blue-600/10 dark:bg-[#e65737]/10"
   }
 ]
 
@@ -73,7 +73,7 @@ const supportChannels = [
     description: "Speak directly with our technical experts",
     response: "< 2 minutes",
     availability: "24/7",
-    color: "text-green-600"
+    color: "text-blue-600 dark:text-[#e65737]"
   },
   {
     icon: Mail,
@@ -81,7 +81,7 @@ const supportChannels = [
     description: "Detailed technical assistance via email",
     response: "< 2 hours",
     availability: "24/7",
-    color: "text-purple-600"
+    color: "text-blue-600 dark:text-[#e65737]"
   },
   {
     icon: FileText,
@@ -89,22 +89,8 @@ const supportChannels = [
     description: "Access documentation, tutorials, and FAQs",
     response: "Instant",
     availability: "24/7",
-    color: "text-orange-600"
+    color: "text-blue-600 dark:text-[#e65737]"
   }
-]
-
-const offices = [
-  {
-    city: "Hyderabad",
-    country: "India",
-    address: "HYDERABAD, TELANGANA, INDIA - 500090",
-    phone: "+91 7075894588",
-    email: "aerohive.help@gmail.com",
-    type: "Global Headquarters",
-    timezone: "IST",
-    specialties: ["R&D", "Engineering", "Innovation"]
-  },
-
 ]
 
 const departments = [
@@ -120,8 +106,8 @@ const departments = [
 const priorities = [
   { value: "low", label: "General Inquiry", color: "text-green-600" },
   { value: "medium", label: "Product Support", color: "text-yellow-600" },
-  { value: "high", label: "Technical Issue", color: "text-orange-600" },
-  { value: "urgent", label: "Critical/Emergency", color: "text-red-600" }
+  { value: "high", label: "Technical Issue", color: "text-blue-600 dark:text-orange-500" },
+  { value: "urgent", label: "Critical/Emergency", color: "text-[#e65737]" }
 ]
 
 const defaultReviews = [
@@ -276,566 +262,525 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300">
       <ModernHeader />
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative py-24 aviation-gradient text-white overflow-hidden">
-          {/* Animated Background Elements */}
-          <div className="absolute inset-0">
-            <div className="absolute top-20 left-10 animate-float">
-              <MessageSquare className="h-8 w-8 text-white/20" />
+        <section className="relative pt-32 pb-20 border-b border-border/40 overflow-hidden bg-background">
+          <div className="container mx-auto px-6 max-w-7xl relative z-10 text-center">
+            {/* Custom Transmission Waves & Satellite Uplink Logo */}
+            <div className="flex justify-center mb-6 animate-pulse">
+              <svg className="w-16 h-16 text-blue-600 dark:text-[#e65737]" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <circle cx="50" cy="50" r="40" strokeDasharray="3 3" className="opacity-30" />
+                <path d="M40 75h20M50 75V60M35 45a15 15 0 0 1 30 0" strokeWidth="2" />
+                <path d="M50 45a10 10 0 0 1 0-20 10 10 0 0 1 0 20" strokeDasharray="2 2" />
+                <path d="M50 35a20 20 0 0 1 0-40 20 20 0 0 1 0 40" strokeDasharray="4 2" />
+                <circle cx="50" cy="45" r="3" className="fill-blue-600 dark:fill-[#e65737]" />
+                <circle cx="50" cy="15" r="2" className="fill-blue-600 dark:fill-[#e65737] animate-ping" />
+              </svg>
             </div>
-            <div className="absolute top-32 right-20 animate-float-delayed">
-              <HeadphonesIcon className="h-6 w-6 text-white/30" />
-            </div>
-            <div className="absolute bottom-32 left-32 animate-float">
-              <Mail className="h-7 w-7 text-white/25" />
-            </div>
-            <div className="absolute bottom-20 right-16 animate-float-delayed">
-              <Globe className="h-9 w-9 text-white/20" />
-            </div>
-          </div>
 
-          <div className="relative z-10 container mx-auto px-4 text-center">
-            <div className="max-w-4xl mx-auto">
-              <Badge className="bg-white/20 text-white border-white/30 mb-6 px-6 py-2 text-sm font-medium">
-                🌍 Global Support Network
-              </Badge>
-              <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-                Contact Us
-              </h1>
-              <p className="text-xl md:text-2xl text-blue-100 mb-8 leading-relaxed">
-                Get in touch with our world-class support team. We're here to help you soar.
-              </p>
+            <span className="font-mono-tech text-[11px] uppercase tracking-[0.2em] text-blue-600 dark:text-[#e65737] mb-6 block">
+              [ TRANSMISSION PROTOCOL / ESTABLISHED ]
+            </span>
+            <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-black tracking-tighter uppercase leading-[0.9] max-w-4xl mx-auto mb-6 text-foreground">
+              Contact <span className="text-blue-600 dark:text-[#e65737]">Support</span>
+            </h1>
+            <p className="font-mono-tech text-xs tracking-wider text-muted-foreground uppercase max-w-xl mx-auto mb-10">
+              Get in touch with our specialized drone operators. Direct uplink. Response SLA under 2 hours.
+            </p>
 
-              {/* Quick Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-white">24/7</div>
-                  <div className="text-blue-200 text-sm">Support Available</div>
+            {/* Quick Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto border border-border/40 p-1 bg-card/50 backdrop-blur-sm rounded-xl">
+              {[
+                { label: "UPLINK AVAILABILITY", value: "24/7" },
+                { label: "STANDARD RESPONSE", value: "< 2 HRS" },
+                { label: "SUPPORTED LANGUAGES", value: "15" },
+                { label: "CUSTOMER SATISFACTION", value: "98%" }
+              ].map((stat, idx) => (
+                <div key={idx} className="p-4 border border-border/30 rounded-lg bg-background text-center">
+                  <div className="font-display text-xl font-black text-foreground">{stat.value}</div>
+                  <div className="font-mono-tech text-[9px] uppercase tracking-wider text-muted-foreground mt-1">{stat.label}</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-white">&lt; 2hrs</div>
-                  <div className="text-blue-200 text-sm">Response Time</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-white">15</div>
-                  <div className="text-blue-200 text-sm">Languages</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-white">98%</div>
-                  <div className="text-blue-200 text-sm">Satisfaction Rate</div>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
-                  <Send className="h-5 w-5 mr-2" />
-                  Send Us a Message
-                </Button>
-                <Button size="lg" className="bg-white/20 backdrop-blur-sm border border-white/40 text-white hover:bg-white/30 px-8 py-4 text-lg font-semibold transition-all duration-300">
-                  <Phone className="h-5 w-5 mr-2" />
-                  Call Now: +91 7075894588
-                </Button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Quick Contact Info */}
-        <section className="py-16 bg-white">
-          <div className="container mx-auto px-4">
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {contactInfo.map((info, index) => (
-                <Card key={index} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-0 shadow-lg">
-                  <CardContent className="p-6 text-center">
-                    <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl ${info.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                      <info.icon className={`h-8 w-8 ${info.color}`} />
-                    </div>
-                    <h3 className="font-bold text-gray-900 mb-2">{info.title}</h3>
-                    <div className="space-y-1 mb-3">
-                      {info.details.map((detail, i) => (
-                        <p key={i} className="text-gray-700 font-medium">{detail}</p>
-                      ))}
-                    </div>
-                    <p className="text-gray-500 text-sm">{info.description}</p>
-                  </CardContent>
-                </Card>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Contact Form & Support Channels */}
-        <section className="py-16 bg-gradient-to-br from-gray-50 to-blue-50">
-          <div className="container mx-auto px-4">
-            <div className="grid lg:grid-cols-3 gap-12">
-              {/* Contact Form */}
-              <div className="lg:col-span-2">
-                <Card className="shadow-xl border-0">
-                  <CardHeader className="bg-gradient-to-r from-primary to-blue-600 text-white rounded-t-lg">
-                    <CardTitle className="text-2xl flex items-center gap-3">
-                      <Send className="h-6 w-6" />
-                      Send Us a Message
-                    </CardTitle>
-                    <p className="text-blue-100">
-                      Fill out the form below and we'll get back to you within 2 hours.
-                    </p>
-                  </CardHeader>
-                  <CardContent className="p-8">
-                    {submitSuccess ? (
-                      <div className="text-center py-12">
-                        <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-                        <h3 className="text-2xl font-bold text-gray-900 mb-2">Message Sent Successfully!</h3>
-                        <p className="text-gray-600 mb-6">
-                          Thank you for contacting us. Our team will respond within 2 hours.
-                        </p>
-                        <Button onClick={() => setSubmitSuccess(false)} className="btn-aviation">
-                          Send Another Message
-                        </Button>
-                      </div>
-                    ) : (
-                      <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Personal Info */}
-                        <div className="grid md:grid-cols-2 gap-6">
-                          <div className="space-y-2">
-                            <Label htmlFor="name" className="text-gray-700 font-medium">
-                              Full Name *
-                            </Label>
-                            <Input
-                              id="name"
-                              type="text"
-                              value={formData.name}
-                              onChange={(e) => handleInputChange('name', e.target.value)}
-                              placeholder="Enter your full name"
-                              required
-                              className="h-12"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="email" className="text-gray-700 font-medium">
-                              Email Address *
-                            </Label>
-                            <Input
-                              id="email"
-                              type="email"
-                              value={formData.email}
-                              onChange={(e) => handleInputChange('email', e.target.value)}
-                              placeholder="your.email@company.com"
-                              required
-                              className="h-12"
-                            />
-                          </div>
-                        </div>
+        {/* Quick Contact Info grid */}
+        <section className="py-12 border-b border-border/40 bg-card/25">
+          <div className="container mx-auto px-6 max-w-7xl">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {contactInfo.map((info, index) => (
+                <div key={index} className="p-6 border border-border/40 bg-card/65 rounded-xl flex flex-col justify-between">
+                  <div>
+                    <div className="w-10 h-10 rounded-lg bg-blue-600/15 dark:bg-[#e65737]/15 flex items-center justify-center mb-4">
+                      <info.icon className="h-5 w-5 text-blue-600 dark:text-[#e65737]" />
+                    </div>
+                    <h3 className="font-display text-sm font-black text-foreground uppercase mb-2">{info.title}</h3>
+                    <div className="space-y-1 mb-4 font-mono-tech text-xs">
+                      {info.details.map((detail, i) => (
+                        <p key={i} className="text-foreground font-semibold">{detail}</p>
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-muted-foreground text-xs">{info.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
-                        <div className="grid md:grid-cols-2 gap-6">
-                          <div className="space-y-2">
-                            <Label htmlFor="phone" className="text-gray-700 font-medium">
-                              Phone Number
-                            </Label>
-                            <Input
-                              id="phone"
-                              type="tel"
-                              value={formData.phone}
-                              onChange={(e) => handleInputChange('phone', e.target.value)}
-                              placeholder="+91 7075894588"
-                              className="h-12"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="company" className="text-gray-700 font-medium">
-                              Company/Organization
-                            </Label>
-                            <Input
-                              id="company"
-                              type="text"
-                              value={formData.company}
-                              onChange={(e) => handleInputChange('company', e.target.value)}
-                              placeholder="Your company name"
-                              className="h-12"
-                            />
-                          </div>
-                        </div>
+        {/* Contact Form & Support Channels split */}
+        <section className="py-20 bg-background border-b border-border/40">
+          <div className="container mx-auto px-6 max-w-7xl">
+            <div className="grid lg:grid-cols-12 gap-12 items-start">
+              
+              {/* Form Side */}
+              <div className="lg:col-span-8">
+                <div className="border border-border/40 rounded-xl p-8 bg-card/30 backdrop-blur-sm">
+                  <h2 className="font-display text-2xl font-black text-foreground uppercase tracking-tight mb-2">
+                    Send Transmission
+                  </h2>
+                  <p className="font-mono-tech text-[10px] uppercase tracking-wider text-muted-foreground mb-8">
+                    Complete the protocol below to dispatch an automated ticket query.
+                  </p>
 
-                        {/* Department & Priority */}
-                        <div className="grid md:grid-cols-2 gap-6">
-                          <div className="space-y-2">
-                            <Label className="text-gray-700 font-medium">Department *</Label>
-                            <Select value={formData.department} onValueChange={(value) => handleInputChange('department', value)}>
-                              <SelectTrigger className="h-12">
-                                <SelectValue placeholder="Select department" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {departments.map((dept) => (
-                                  <SelectItem key={dept.value} value={dept.value}>
-                                    <div className="flex items-center gap-2">
-                                      <span>{dept.icon}</span>
-                                      <span>{dept.label}</span>
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-gray-700 font-medium">Priority Level *</Label>
-                            <Select value={formData.priority} onValueChange={(value) => handleInputChange('priority', value)}>
-                              <SelectTrigger className="h-12">
-                                <SelectValue placeholder="Select priority" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {priorities.map((priority) => (
-                                  <SelectItem key={priority.value} value={priority.value}>
-                                    <span className={priority.color}>{priority.label}</span>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-
-                        {/* Subject */}
+                  {submitSuccess ? (
+                    <div className="text-center py-12 border border-dashed border-[#e65737]/40 rounded-xl">
+                      <User className="h-12 w-12 text-blue-600 dark:text-[#e65737] mx-auto mb-4 animate-bounce" />
+                      <h3 className="font-display text-lg font-black text-foreground uppercase mb-2">Transmit Succeeded!</h3>
+                      <p className="text-muted-foreground text-xs mb-6 max-w-md mx-auto">
+                        Inquiry logged successfully. AeroHive dispatch agents will reach out to you within 2 hours.
+                      </p>
+                      <Button onClick={() => setSubmitSuccess(false)} className="bg-blue-600 dark:bg-[#e65737] hover:bg-blue-700 dark:hover:bg-[#e65737]/90 text-white rounded-full font-mono-tech text-xs uppercase tracking-wider px-6 cursor-pointer">
+                        Send New Transmit
+                      </Button>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                      <div className="grid md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <Label htmlFor="subject" className="text-gray-700 font-medium">
-                            Subject *
+                          <Label htmlFor="name" className="font-mono-tech text-[10px] uppercase tracking-wider text-muted-foreground">
+                            Full Name *
                           </Label>
                           <Input
-                            id="subject"
-                            type="text"
-                            value={formData.subject}
-                            onChange={(e) => handleInputChange('subject', e.target.value)}
-                            placeholder="Brief description of your inquiry"
+                            id="name"
+                            value={formData.name}
+                            onChange={(e) => handleInputChange('name', e.target.value)}
+                            placeholder="Enter operator name"
                             required
-                            className="h-12"
+                            className="h-11 rounded-lg border-border/50 bg-background/50 focus-visible:ring-blue-500 dark:focus-visible:ring-[#e65737] focus-visible:border-blue-500 dark:focus-visible:border-[#e65737]"
                           />
                         </div>
-
-                        {/* Message */}
                         <div className="space-y-2">
-                          <Label htmlFor="message" className="text-gray-700 font-medium">
-                            Message *
+                          <Label htmlFor="email" className="font-mono-tech text-[10px] uppercase tracking-wider text-muted-foreground">
+                            Email Address *
                           </Label>
-                          <Textarea
-                            id="message"
-                            value={formData.message}
-                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleInputChange('message', e.target.value)}
-                            placeholder="Please provide detailed information about your inquiry..."
+                          <Input
+                            id="email"
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) => handleInputChange('email', e.target.value)}
+                            placeholder="operator@company.com"
                             required
-                            rows={6}
-                            className="resize-none"
+                            className="h-11 rounded-lg border-border/50 bg-background/50 focus-visible:ring-blue-500 dark:focus-visible:ring-[#e65737] focus-visible:border-blue-500 dark:focus-visible:border-[#e65737]"
                           />
                         </div>
+                      </div>
 
-                        {/* Preferences */}
-                        <div className="space-y-4 p-6 bg-gray-50 rounded-lg border">
-                          <h4 className="font-medium text-gray-900">Communication Preferences</h4>
-                          <div className="space-y-3">
-                            <div className="flex items-center space-x-2">
-                              <Checkbox
-                                id="newsletter"
-                                checked={formData.newsletter}
-                                onCheckedChange={(checked) => handleInputChange('newsletter', !!checked)}
-                              />
-                              <Label htmlFor="newsletter" className="text-sm text-gray-700">
-                                Subscribe to our newsletter for product updates and drone industry news
-                              </Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Checkbox
-                                id="updates"
-                                checked={formData.updates}
-                                onCheckedChange={(checked) => handleInputChange('updates', !!checked)}
-                              />
-                              <Label htmlFor="updates" className="text-sm text-gray-700">
-                                Receive updates about my inquiry via email and SMS
-                              </Label>
-                            </div>
-                          </div>
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="phone" className="font-mono-tech text-[10px] uppercase tracking-wider text-muted-foreground">
+                            Phone Number
+                          </Label>
+                          <Input
+                            id="phone"
+                            value={formData.phone}
+                            onChange={(e) => handleInputChange('phone', e.target.value)}
+                            placeholder="+91 7075894588"
+                            className="h-11 rounded-lg border-border/50 bg-background/50 focus-visible:ring-blue-500 dark:focus-visible:ring-[#e65737] focus-visible:border-blue-500 dark:focus-visible:border-[#e65737]"
+                          />
                         </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="company" className="font-mono-tech text-[10px] uppercase tracking-wider text-muted-foreground">
+                            Company/Organization
+                          </Label>
+                          <Input
+                            id="company"
+                            value={formData.company}
+                            onChange={(e) => handleInputChange('company', e.target.value)}
+                            placeholder="Enter enterprise entity"
+                            className="h-11 rounded-lg border-border/50 bg-background/50 focus-visible:ring-blue-500 dark:focus-visible:ring-[#e65737] focus-visible:border-blue-500 dark:focus-visible:border-[#e65737]"
+                          />
+                        </div>
+                      </div>
 
-                        {/* Submit Button */}
-                        <Button
-                          type="submit"
-                          disabled={isSubmitting || !formData.name || !formData.email || !formData.department || !formData.priority || !formData.subject || !formData.message}
-                          className="w-full h-14 text-lg btn-aviation"
-                        >
-                          {isSubmitting ? (
-                            <>
-                              <div className="animate-spin h-5 w-5 mr-3 border-2 border-white border-t-transparent rounded-full"></div>
-                              Sending Message...
-                            </>
-                          ) : (
-                            <>
-                              <Send className="h-5 w-5 mr-2" />
-                              Send Message
-                            </>
-                          )}
-                        </Button>
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label className="font-mono-tech text-[10px] uppercase tracking-wider text-muted-foreground">
+                            Department *
+                          </Label>
+                          <Select value={formData.department} onValueChange={(value) => handleInputChange('department', value)}>
+                            <SelectTrigger className="h-11 rounded-lg border-border/50 bg-background/50 focus:ring-blue-500 dark:focus:ring-[#e65737] focus:border-blue-500 dark:focus:border-[#e65737]">
+                              <SelectValue placeholder="Choose Department" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-card border-border">
+                              {departments.map((dept) => (
+                                <SelectItem key={dept.value} value={dept.value}>
+                                  <span className="font-mono-tech text-xs tracking-wider uppercase">{dept.icon} {dept.label}</span>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="font-mono-tech text-[10px] uppercase tracking-wider text-muted-foreground">
+                            Priority level *
+                          </Label>
+                          <Select value={formData.priority} onValueChange={(value) => handleInputChange('priority', value)}>
+                            <SelectTrigger className="h-11 rounded-lg border-border/50 bg-background/50 focus:ring-blue-500 dark:focus:ring-[#e65737] focus:border-blue-500 dark:focus:border-[#e65737]">
+                              <SelectValue placeholder="Choose Severity" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-card border-border">
+                              {priorities.map((prio) => (
+                                <SelectItem key={prio.value} value={prio.value}>
+                                  <span className={`font-mono-tech text-xs tracking-wider uppercase ${prio.color}`}>{prio.label}</span>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
 
-                        <p className="text-xs text-gray-500 text-center">
-                          By submitting this form, you agree to our Terms of Service and Privacy Policy.
-                          We typically respond within 2 hours during business hours.
-                        </p>
-                      </form>
-                    )}
-                  </CardContent>
-                </Card>
+                      <div className="space-y-2">
+                        <Label htmlFor="subject" className="font-mono-tech text-[10px] uppercase tracking-wider text-muted-foreground">
+                          Subject *
+                        </Label>
+                        <Input
+                          id="subject"
+                          value={formData.subject}
+                          onChange={(e) => handleInputChange('subject', e.target.value)}
+                          placeholder="Transmission heading"
+                          required
+                          className="h-11 rounded-lg border-border/50 bg-background/50 focus-visible:ring-blue-500 dark:focus-visible:ring-[#e65737] focus-visible:border-blue-500 dark:focus-visible:border-[#e65737]"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="message" className="font-mono-tech text-[10px] uppercase tracking-wider text-muted-foreground">
+                          Message Body *
+                        </Label>
+                        <Textarea
+                          id="message"
+                          value={formData.message}
+                          onChange={(e) => handleInputChange('message', e.target.value)}
+                          placeholder="Type details of aerial query..."
+                          required
+                          rows={5}
+                          className="rounded-lg border-border/50 bg-background/50 focus-visible:ring-blue-500 dark:focus-visible:ring-[#e65737] focus-visible:border-blue-500 dark:focus-visible:border-[#e65737] resize-none"
+                        />
+                      </div>
+
+                      <div className="space-y-3 p-4 border border-border/40 rounded-lg bg-background/30 font-mono-tech text-xs">
+                        <div className="flex items-center space-x-3">
+                          <Checkbox
+                            id="newsletter"
+                            checked={formData.newsletter}
+                            onCheckedChange={(checked) => handleInputChange('newsletter', !!checked)}
+                          />
+                          <Label htmlFor="newsletter" className="text-muted-foreground uppercase text-[10px] tracking-wider cursor-pointer">
+                            Subscribe to pre-release drone catalogs & telemetry firmware updates
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <Checkbox
+                            id="updates"
+                            checked={formData.updates}
+                            onCheckedChange={(checked) => handleInputChange('updates', !!checked)}
+                          />
+                          <Label htmlFor="updates" className="text-muted-foreground uppercase text-[10px] tracking-wider cursor-pointer">
+                            Receive real-time updates of this ticket via email and SMS
+                          </Label>
+                        </div>
+                      </div>
+
+                      <Button
+                        type="submit"
+                        disabled={isSubmitting || !formData.name || !formData.email || !formData.department || !formData.priority || !formData.subject || !formData.message}
+                        className="w-full h-12 bg-blue-600 dark:bg-[#e65737] hover:bg-blue-700 dark:hover:bg-[#e65737]/90 text-white rounded-full font-mono-tech text-xs uppercase tracking-wider cursor-pointer"
+                      >
+                        {isSubmitting ? (
+                          <span className="flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Transmitting...
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-2">
+                            <Send className="h-4 w-4" />
+                            Transmit Protocol
+                          </span>
+                        )}
+                      </Button>
+                    </form>
+                  )}
+                </div>
               </div>
 
-              {/* Support Channels */}
-              <div className="space-y-6">
+              {/* Side Channels */}
+              <div className="lg:col-span-4 space-y-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Other Ways to Reach Us</h2>
+                  <h3 className="font-display text-md font-black text-foreground uppercase mb-4 tracking-tight">
+                    Direct Channels
+                  </h3>
                   <div className="space-y-4">
-                    {supportChannels.map((channel, index) => (
-                      <Card key={index} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
-                        <CardContent className="p-6">
-                          <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                              <channel.icon className={`h-6 w-6 ${channel.color}`} />
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-gray-900 mb-1">{channel.title}</h3>
-                              <p className="text-gray-600 text-sm mb-3">{channel.description}</p>
-                              <div className="flex items-center gap-4 text-xs">
-                                <Badge variant="outline" className="text-green-600 border-green-600">
-                                  {channel.response}
-                                </Badge>
-                                <Badge variant="outline" className="text-blue-600 border-blue-600">
-                                  {channel.availability}
-                                </Badge>
-                              </div>
+                    {supportChannels.map((channel, i) => (
+                      <div key={i} className="p-5 border border-border/40 bg-card/25 rounded-xl">
+                        <div className="flex items-start gap-4">
+                          <div className="w-10 h-10 rounded-lg bg-blue-600/15 dark:bg-[#e65737]/15 flex items-center justify-center">
+                            <channel.icon className="h-5 w-5 text-blue-600 dark:text-[#e65737]" />
+                          </div>
+                          <div>
+                            <h4 className="font-display text-xs font-black text-foreground uppercase mb-1">{channel.title}</h4>
+                            <p className="text-muted-foreground text-xs mb-3">{channel.description}</p>
+                            <div className="flex items-center gap-2 font-mono-tech text-[9px] uppercase">
+                              <span className="border border-border/30 rounded px-1.5 py-0.5 bg-background text-blue-600 dark:text-[#e65737]">
+                                {channel.response}
+                              </span>
+                              <span className="border border-border/30 rounded px-1.5 py-0.5 bg-background text-muted-foreground">
+                                {channel.availability}
+                              </span>
                             </div>
                           </div>
-                        </CardContent>
-                      </Card>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
 
                 {/* Emergency Contact */}
-                <Card className="border-2 border-red-200 bg-red-50">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <AlertCircle className="h-6 w-6 text-red-600" />
-                      <h3 className="font-bold text-red-800">Emergency Support</h3>
-                    </div>
-                    <p className="text-red-700 text-sm mb-4">
-                      For critical technical issues or safety concerns with your drone.
-                    </p>
-                    <Button className="w-full bg-red-600 hover:bg-red-700">
-                      <Phone className="h-4 w-4 mr-2" />
-                      Call Emergency Line
-                    </Button>
-                  </CardContent>
-                </Card>
+                <div className="p-6 border border-red-500/30 bg-red-950/10 rounded-xl space-y-4">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-red-500" />
+                    <h3 className="font-display text-xs font-black text-red-500 uppercase tracking-tight">
+                      Emergency Support Line
+                    </h3>
+                  </div>
+                  <p className="text-muted-foreground text-xs leading-relaxed">
+                    For critical system failures during active flight telemetry operations or FAA compliance issues.
+                  </p>
+                  <Button className="w-full bg-red-600 hover:bg-red-500 text-white rounded-full font-mono-tech text-[10px] uppercase tracking-wider py-5 cursor-pointer">
+                    <Phone className="h-4 w-4 mr-2" />
+                    Call Emergency Desk
+                  </Button>
+                </div>
               </div>
+
             </div>
           </div>
         </section>
 
         {/* Global Offices */}
-        <section className="py-16 bg-white">
-          <div className="container mx-auto px-4">
+        <section className="py-20 border-b border-border/40 bg-card/25">
+          <div className="container mx-auto px-6 max-w-7xl">
             <div className="text-center mb-16">
-              <Badge className="bg-primary/10 text-primary mb-6 px-4 py-2">Global Presence</Badge>
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">Our Worldwide Offices</h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                With offices across four continents, we provide local support with global expertise.
-              </p>
+              <span className="font-mono-tech text-[11px] uppercase tracking-[0.2em] text-blue-600 dark:text-[#e65737] mb-4 block">
+                05 / GEOLOCATION NODES
+              </span>
+              <h2 className="font-display text-3xl sm:text-4xl font-black tracking-tighter uppercase leading-none text-foreground">
+                Our Offices
+              </h2>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {offices.map((office, index) => (
-                <Card key={index} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-                  <CardContent className="p-6">
-                    <div className="text-center mb-4">
-                      <Badge className="bg-primary text-white mb-3">{office.type}</Badge>
-                      <h3 className="text-xl font-bold text-gray-900">{office.city}</h3>
-                      <p className="text-gray-600">{office.country}</p>
-                    </div>
+            <div className="max-w-md mx-auto border border-border/40 p-6 rounded-xl bg-card/65">
+              <span className="font-mono-tech text-[9px] uppercase tracking-wider px-2 py-0.5 border border-blue-600/30 dark:border-[#e65737]/30 text-blue-600 dark:text-[#e65737] rounded bg-background inline-block mb-4">
+                GLOBAL HEADQUARTERS
+              </span>
+              <h3 className="font-display text-lg font-black text-foreground uppercase mb-1">Hyderabad</h3>
+              <p className="text-muted-foreground text-xs mb-4">India</p>
+              
+              <div className="space-y-2 text-xs font-mono-tech text-muted-foreground">
+                <div className="flex items-start gap-2">
+                  <MapPin className="h-4 w-4 text-blue-600 dark:text-[#e65737] shrink-0" />
+                  <span>HYDERABAD, TELANGANA, INDIA - 500090</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-blue-600 dark:text-[#e65737] shrink-0" />
+                  <span>+91 7075894588</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-blue-600 dark:text-[#e65737] shrink-0" />
+                  <span>aerohive.help@gmail.com</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-blue-600 dark:text-[#e65737] shrink-0" />
+                  <span>IST (UTC +5:30)</span>
+                </div>
+              </div>
 
-                    <div className="space-y-3 text-sm">
-                      <div className="flex items-start gap-3">
-                        <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-600">{office.address}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Phone className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-600">{office.phone}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Mail className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-600">{office.email}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Clock className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-600">{office.timezone}</span>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 pt-4 border-t">
-                      <p className="text-xs text-gray-500 mb-2">Specialties:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {office.specialties.map((specialty, i) => (
-                          <Badge key={i} variant="outline" className="text-xs">
-                            {specialty}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+              <div className="mt-6 pt-4 border-t border-border/30">
+                <p className="font-mono-tech text-[9px] text-muted-foreground uppercase mb-2">Specialties:</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {["R&D", "Aeronautical Design", "Aviation Systems"].map((spec, i) => (
+                    <span key={i} className="font-mono-tech text-[9px] uppercase tracking-wider px-2 py-0.5 border border-border/30 rounded bg-background text-foreground">
+                      {spec}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* FAQ Section */}
-        <FAQSection pageName="Contact Support" customFAQs={contactFAQs} />
-
-        {/* Customer Reviews */}
-        <section className="py-16 bg-white">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">What Our Customers Say</h2>
-              <p className="text-gray-600 mb-6">Real feedback from our satisfied customers</p>
+        {/* Customer Reviews Section */}
+        <section className="py-20 bg-background">
+          <div className="container mx-auto px-6 max-w-7xl">
+            <div className="text-center mb-16">
+              <span className="font-mono-tech text-[11px] uppercase tracking-[0.2em] text-blue-600 dark:text-[#e65737] mb-4 block">
+                06 / OPERATOR CRITIQUES
+              </span>
+              <h2 className="font-display text-3xl sm:text-4xl font-black tracking-tighter uppercase leading-none text-foreground mb-6">
+                Customer Reviews
+              </h2>
               <Button
                 onClick={() => setShowReviewForm(!showReviewForm)}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                className="bg-blue-600 dark:bg-[#e65737] hover:bg-blue-700 dark:hover:bg-[#e65737]/90 text-white rounded-full font-mono-tech text-xs uppercase tracking-wider px-6 cursor-pointer"
               >
-                <Star className="h-5 w-5 mr-2" />
-                {showReviewForm ? "Cancel" : "Write a Review"}
+                <Star className="h-4 w-4 mr-2" />
+                {showReviewForm ? "Cancel Review" : "Write a Review"}
               </Button>
             </div>
 
-            {/* Review Form */}
+            {/* Write Review Form */}
             {showReviewForm && (
-              <Card className="max-w-2xl mx-auto mb-12 border-0 shadow-xl">
-                <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    <Star className="h-5 w-5" />
-                    Share Your Experience
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <form onSubmit={handleReviewSubmit} className="space-y-4">
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="reviewName" className="font-medium">Your Name *</Label>
-                        <Input
-                          id="reviewName"
-                          placeholder="Enter your name"
-                          value={reviewFormData.reviewer_name}
-                          onChange={(e) => setReviewFormData(prev => ({ ...prev, reviewer_name: e.target.value }))}
-                          required
-                          className="h-11 rounded-xl"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="reviewRole" className="font-medium">Your Role <span className="text-sm font-normal text-gray-500">(optional)</span></Label>
-                        <Input
-                          id="reviewRole"
-                          placeholder="e.g., Photographer, Farmer"
-                          value={reviewFormData.reviewer_role}
-                          onChange={(e) => setReviewFormData(prev => ({ ...prev, reviewer_role: e.target.value }))}
-                          className="h-11 rounded-xl"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="reviewLocation" className="font-medium">Location <span className="text-sm font-normal text-gray-500">(optional)</span></Label>
+              <div className="max-w-2xl mx-auto border border-border/40 rounded-xl p-8 bg-card/30 backdrop-blur-sm mb-16">
+                <h3 className="font-display text-md font-black text-foreground uppercase mb-6 flex items-center gap-2">
+                  <Star className="h-5 w-5 text-blue-600 dark:text-[#e65737]" /> Share Your Feedback
+                </h3>
+                <form onSubmit={handleReviewSubmit} className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <Label htmlFor="reviewName" className="font-mono-tech text-[9px] uppercase tracking-wider text-muted-foreground">Your Name *</Label>
                       <Input
-                        id="reviewLocation"
-                        placeholder="e.g., Hyderabad, Telangana"
-                        value={reviewFormData.reviewer_location}
-                        onChange={(e) => setReviewFormData(prev => ({ ...prev, reviewer_location: e.target.value }))}
-                        className="h-11 rounded-xl"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="font-medium">Rating *</Label>
-                      <div className="flex items-center gap-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <button
-                            key={star}
-                            type="button"
-                            onClick={() => setReviewFormData(prev => ({ ...prev, rating: star }))}
-                            className="p-1 transition-transform hover:scale-110"
-                          >
-                            <Star
-                              className={`h-8 w-8 transition-colors ${
-                                star <= reviewFormData.rating
-                                  ? "text-yellow-400 fill-current"
-                                  : "text-gray-300"
-                              }`}
-                            />
-                          </button>
-                        ))}
-                        <span className="ml-2 text-sm text-gray-600">{reviewFormData.rating}/5</span>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="reviewComment" className="font-medium">Your Review *</Label>
-                      <Textarea
-                        id="reviewComment"
-                        placeholder="Tell us about your experience with AeroHive..."
-                        value={reviewFormData.comment}
-                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReviewFormData(prev => ({ ...prev, comment: e.target.value }))}
+                        id="reviewName"
+                        placeholder="Enter name"
+                        value={reviewFormData.reviewer_name}
+                        onChange={(e) => setReviewFormData(prev => ({ ...prev, reviewer_name: e.target.value }))}
                         required
-                        rows={4}
-                        className="rounded-xl resize-none"
+                        className="h-10 border-border/50 bg-background/50 focus-visible:ring-blue-500 dark:focus-visible:ring-[#e65737] focus-visible:border-blue-500 dark:focus-visible:border-[#e65737]"
                       />
                     </div>
-                    <Button
-                      type="submit"
-                      disabled={reviewSubmitting}
-                      className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                    >
-                      {reviewSubmitting ? (
-                        <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> Submitting...</>
-                      ) : (
-                        <><Send className="h-5 w-5 mr-2" /> Submit Review</>
-                      )}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
+                    <div className="space-y-1">
+                      <Label htmlFor="reviewRole" className="font-mono-tech text-[9px] uppercase tracking-wider text-muted-foreground">Your Role</Label>
+                      <Input
+                        id="reviewRole"
+                        placeholder="e.g. Flight Captain"
+                        value={reviewFormData.reviewer_role}
+                        onChange={(e) => setReviewFormData(prev => ({ ...prev, reviewer_role: e.target.value }))}
+                        className="h-10 border-border/50 bg-background/50 focus-visible:ring-blue-500 dark:focus-visible:ring-[#e65737] focus-visible:border-blue-500 dark:focus-visible:border-[#e65737]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="reviewLocation" className="font-mono-tech text-[9px] uppercase tracking-wider text-muted-foreground">Location</Label>
+                    <Input
+                      id="reviewLocation"
+                      placeholder="e.g. Hyderabad, India"
+                      value={reviewFormData.reviewer_location}
+                      onChange={(e) => setReviewFormData(prev => ({ ...prev, reviewer_location: e.target.value }))}
+                      className="h-10 border-border/50 bg-background/50 focus-visible:ring-blue-600 dark:focus-visible:ring-[#e65737] focus-visible:border-blue-600 dark:focus-visible:border-[#e65737]"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="font-mono-tech text-[9px] uppercase tracking-wider text-muted-foreground block">Rating *</Label>
+                    <div className="flex items-center gap-1.5">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setReviewFormData(prev => ({ ...prev, rating: star }))}
+                          className="transition-transform hover:scale-110 p-0.5"
+                        >
+                          <Star
+                            className={`h-6 w-6 transition-colors ${
+                              star <= reviewFormData.rating
+                                ? "text-blue-600 dark:text-[#e65737] fill-current"
+                                : "text-border"
+                            }`}
+                          />
+                        </button>
+                      ))}
+                      <span className="font-mono-tech text-xs text-muted-foreground ml-2">{reviewFormData.rating}/5</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="reviewComment" className="font-mono-tech text-[9px] uppercase tracking-wider text-muted-foreground">Comment *</Label>
+                    <Textarea
+                      id="reviewComment"
+                      placeholder="Enter details of feedback..."
+                      value={reviewFormData.comment}
+                      onChange={(e) => setReviewFormData(prev => ({ ...prev, comment: e.target.value }))}
+                      required
+                      rows={4}
+                      className="border-border/50 bg-background/50 focus-visible:ring-blue-500 dark:focus-visible:ring-[#e65737] focus-visible:border-blue-500 dark:focus-visible:border-[#e65737] resize-none"
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={reviewSubmitting}
+                    className="w-full h-11 bg-blue-600 dark:bg-[#e65737] hover:bg-blue-700 dark:hover:bg-[#e65737]/90 text-white rounded-full font-mono-tech text-xs uppercase tracking-wider cursor-pointer"
+                  >
+                    {reviewSubmitting ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" /> Submitting...
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        <Send className="h-4 w-4" /> Submit Review
+                      </span>
+                    )}
+                  </Button>
+                </form>
+              </div>
             )}
 
-            {/* Reviews Grid */}
+            {/* Display Reviews */}
             {reviewsLoading ? (
               <div className="flex justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-[#e65737]" />
               </div>
             ) : (
-              <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
                 {displayedReviews.map((review) => (
-                  <Card key={review.id} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                    <CardContent className="p-6">
+                  <div key={review.id} className="p-6 border border-border/40 bg-card/35 rounded-xl flex flex-col justify-between hover:border-blue-600/30 dark:hover:border-[#e65737]/30 transition-colors duration-200">
+                    <div>
                       <div className="flex items-center gap-1 mb-4">
                         {[...Array(review.rating)].map((_, i) => (
-                          <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
+                          <Star key={i} className="h-4 w-4 text-blue-600 dark:text-[#e65737] fill-current" />
                         ))}
                         {[...Array(5 - review.rating)].map((_, i) => (
-                          <Star key={`empty-${i}`} className="h-5 w-5 text-gray-200" />
+                          <Star key={`empty-${i}`} className="h-4 w-4 text-border" />
                         ))}
                       </div>
-                      <p className="text-gray-700 mb-4 leading-relaxed">"{review.comment}"</p>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-primary to-blue-600 rounded-full flex items-center justify-center">
-                          <User className="h-5 w-5 text-white" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-900">{review.reviewer_name}</h4>
-                          {review.reviewer_role && <p className="text-gray-600 text-sm">{review.reviewer_role}</p>}
-                          {review.reviewer_location && <p className="text-gray-500 text-xs">{review.reviewer_location}</p>}
-                        </div>
+                      <p className="text-muted-foreground text-xs leading-relaxed mb-6">"{review.comment}"</p>
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-4 border-t border-border/20">
+                      <div className="w-8 h-8 rounded-full bg-blue-600/10 dark:bg-[#e65737]/10 flex items-center justify-center text-blue-600 dark:text-[#e65737]">
+                        <User className="h-4 w-4" />
                       </div>
-                    </CardContent>
-                  </Card>
+                      <div>
+                        <h4 className="font-display text-[10px] font-black text-foreground uppercase tracking-tight">{review.reviewer_name}</h4>
+                        {review.reviewer_role && <p className="font-mono-tech text-[9px] text-blue-600 dark:text-[#e65737] uppercase tracking-wider">{review.reviewer_role}</p>}
+                        {review.reviewer_location && <p className="text-muted-foreground text-[8px] font-mono-tech uppercase">{review.reviewer_location}</p>}
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
@@ -843,27 +788,8 @@ export default function ContactPage() {
         </section>
       </main>
 
+      <FAQSection pageName="Contact Support" customFAQs={contactFAQs} />
       <ModernFooter />
-
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(5deg); }
-        }
-        
-        @keyframes float-delayed {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-15px) rotate(-3deg); }
-        }
-        
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
-        }
-        
-        .animate-float-delayed {
-          animation: float-delayed 8s ease-in-out infinite;
-        }
-      `}</style>
     </div>
   )
 }

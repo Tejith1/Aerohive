@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, HelpCircle, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -82,79 +83,92 @@ export function FAQSection({ pageName, customFAQs }: FAQSectionProps) {
   };
 
   return (
-    <section className="py-24 bg-gradient-to-br from-gray-50 via-white to-blue-50/30 overflow-hidden relative">
-      {/* Decorative background elements */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100/40 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-100/40 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl pointer-events-none"></div>
-
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-100 text-blue-600 text-sm font-semibold mb-4">
-            <HelpCircle className="h-4 w-4" />
-            <span>Support Center</span>
+    <section className="py-24 bg-background border-t border-border overflow-hidden relative">
+      <div className="container mx-auto px-6 max-w-7xl relative z-10">
+        <div className="text-center mb-16 space-y-4">
+          <div className="inline-flex items-center space-x-2.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse"></span>
+            <span className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase font-mono">
+              // SUPPORT_HUB
+            </span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Frequently Asked <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Questions</span>
+          <h2 className="text-3xl md:text-5xl font-normal text-foreground tracking-tight leading-[1.1] font-display">
+            Frequently Asked <span className="text-primary font-normal">Questions</span>
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Find quick answers to common questions about {pageName.toLowerCase()} or ask us directly.
+          <p className="text-base text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
+            Find immediate answers regarding {pageName.toLowerCase()} or submit a direct inquiry to our flight engineering team.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          {/* FAQ Accordion */}
-          <div className="space-y-4">
-            {faqs.map((faq, index) => (
-              <div 
-                key={index}
-                className="group border border-gray-200 rounded-2xl bg-white overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-blue-200"
-              >
-                <button
-                  onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                  className="w-full flex items-center justify-between p-6 text-left"
-                >
-                  <span className="font-bold text-lg text-gray-800 group-hover:text-blue-600 transition-colors">
-                    {faq.question}
-                  </span>
-                  <div className={`transform transition-transform duration-300 bg-gray-50 p-2 rounded-xl text-gray-400 group-hover:text-blue-600 group-hover:bg-blue-50 ${openIndex === index ? 'rotate-180 text-blue-600 bg-blue-50' : ''}`}>
-                    <ChevronDown className="h-5 w-5" />
-                  </div>
-                </button>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
+          {/* FAQ Accordion Side */}
+          <div className="lg:col-span-7 space-y-4">
+            {faqs.map((faq, index) => {
+              const isOpen = openIndex === index;
+              return (
                 <div 
-                  className={`px-6 transition-all duration-300 ease-in-out ${openIndex === index ? 'max-h-96 pb-6 opacity-100' : 'max-h-0 opacity-0'}`}
+                  key={index}
+                  className="group border border-border rounded-2xl bg-card overflow-hidden transition-all duration-300 hover:shadow-sm"
                 >
-                  <p className="text-gray-600 leading-relaxed border-t border-gray-100 pt-4">
-                    {faq.answer}
-                  </p>
+                  <button
+                    onClick={() => setOpenIndex(isOpen ? null : index)}
+                    className="w-full flex items-center justify-between p-6 text-left cursor-pointer border-0 bg-transparent"
+                  >
+                    <span className="font-medium text-base md:text-lg text-foreground group-hover:text-primary transition-colors pr-4 leading-snug font-display">
+                      {faq.question}
+                    </span>
+                    <motion.div 
+                      animate={{ rotate: isOpen ? 180 : 0 }}
+                      className={`p-2 rounded-xl text-muted-foreground group-hover:text-primary group-hover:bg-primary/5 ${isOpen ? 'text-primary bg-primary/10' : ''}`}
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </motion.div>
+                  </button>
+
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25, ease: "easeInOut" }}
+                      >
+                        <div className="px-6 pb-6 border-t border-border pt-4">
+                          <p className="text-muted-foreground leading-relaxed font-light text-sm md:text-base">
+                            {faq.answer}
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
-          {/* Ask a Doubt Form */}
-          <div className="lg:sticky lg:top-32">
-            <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-xl rounded-3xl overflow-hidden p-1">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-600 opacity-5"></div>
+          {/* Form Side */}
+          <div className="lg:col-span-5 lg:sticky lg:top-32">
+            <Card className="border border-border bg-card shadow-sm rounded-3xl overflow-hidden p-1">
               <CardContent className="p-8 relative">
                 <div className="flex items-center space-x-4 mb-8">
-                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg text-white">
-                    <HelpCircle className="h-7 w-7" />
+                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                    <HelpCircle className="h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-900">Still have a Doubt?</h3>
-                    <p className="text-gray-500">Ask us anything about this section.</p>
+                    <h3 className="text-xl font-normal text-foreground font-display tracking-tight">Still have Questions?</h3>
+                    <p className="text-xs text-muted-foreground">Ask our flight technicians directly.</p>
                   </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4">
                     <div className="space-y-2">
                       <Input
                         placeholder="Your Name"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         required
-                        className="rounded-xl border-gray-200 bg-white/50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 transition-all h-12"
+                        className="rounded-xl border-border bg-background focus:ring-2 focus:ring-primary/20 transition-all h-12 text-foreground"
                       />
                     </div>
                     <div className="space-y-2">
@@ -164,30 +178,30 @@ export function FAQSection({ pageName, customFAQs }: FAQSectionProps) {
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         required
-                        className="rounded-xl border-gray-200 bg-white/50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 transition-all h-12"
+                        className="rounded-xl border-border bg-background focus:ring-2 focus:ring-primary/20 transition-all h-12 text-foreground"
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Textarea
-                      placeholder="Type your question or doubt here..."
+                      placeholder="Explain your telemetry or rig inquiry here..."
                       value={formData.doubt}
                       onChange={(e) => setFormData({ ...formData, doubt: e.target.value })}
                       required
-                      className="rounded-xl border-gray-200 bg-white/50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 transition-all min-h-[120px] resize-none"
+                      className="rounded-xl border-border bg-background focus:ring-2 focus:ring-primary/20 transition-all min-h-[120px] resize-none text-foreground"
                     />
                   </div>
                   <Button 
                     type="submit" 
                     disabled={isSubmitting}
-                    className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-lg font-bold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300 hover:scale-[1.02] flex items-center justify-center space-x-2"
+                    className="w-full h-12 bg-primary hover:bg-primary/95 text-white rounded-full text-sm font-semibold tracking-wide border-0 transition-all duration-300 flex items-center justify-center space-x-2 cursor-pointer"
                   >
                     {isSubmitting ? (
                       <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     ) : (
                       <>
-                        <span>Submit Question</span>
-                        <Send className="h-5 w-5" />
+                        <span>Submit Inquiry</span>
+                        <Send className="h-4 w-4" />
                       </>
                     )}
                   </Button>

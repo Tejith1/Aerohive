@@ -944,7 +944,10 @@ export const getNotifications = async (userId: string, limit: number = 20) => {
     .limit(limit)
 
   if (error) {
-    console.error('Error fetching notifications:', error)
+    // Silently ignore PGRST205 (table not found in schema cache) — notifications table may not exist yet
+    if (error.code !== 'PGRST205' && !error.message?.includes("Could not find the table 'public.notifications'")) {
+      console.error('Error fetching notifications:', error)
+    }
     return []
   }
   return data as Notification[]

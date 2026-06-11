@@ -132,283 +132,306 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/20 via-transparent to-purple-100/20"></div>
-      
-      <ModernHeader />
+    <div className="min-h-screen bg-[#fbf9f6] text-[#191919] relative overflow-hidden flex flex-col lg:flex-row">
+      {/* Background Grid Pattern */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-[0.01] pointer-events-none"></div>
 
-      <main className="flex-1 flex items-center justify-center py-20 px-4 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 max-w-6xl w-full items-center">
-          {/* Left side - Marketing content */}
-          <div className="hidden lg:block space-y-8 animate-fade-in-scale">
-            <div className="space-y-4">
-              <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200">
-                <Sparkles className="h-4 w-4 text-blue-600 mr-2" />
-                <span className="text-sm font-medium text-blue-700">Join 50,000+ pilots worldwide</span>
-              </div>
-              
-              <h1 className="text-5xl font-bold tracking-tight">
-                <span className="block text-gray-900">Start Your</span>
-                <span className="block bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  Aerial Journey
-                </span>
-              </h1>
-              
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Create your account and get access to premium drones, expert support, and exclusive pilot community.
-              </p>
-            </div>
+      {/* Top Left Logo Header */}
+      <div className="absolute top-8 left-8 z-20">
+        <Link href="/">
+          <img
+            src="/aerohive-logo-v2.png"
+            alt="AeroHive"
+            className="h-[32px] w-auto object-contain"
+          />
+        </Link>
+      </div>
 
-            {/* Features */}
-            <div className="space-y-4">
-              {[
-                { icon: Shield, title: "Secure & Trusted", description: "Your data is encrypted and protected" },
-                { icon: Plane, title: "Premium Products", description: "Access to latest drone technology" },
-                { icon: Sparkles, title: "Expert Support", description: "24/7 assistance from drone specialists" }
-              ].map((feature, index) => (
-                <div key={index} className="flex items-start space-x-4 p-4 rounded-xl bg-white/60 backdrop-blur-sm border border-gray-100">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <feature.icon className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{feature.title}</h3>
-                    <p className="text-sm text-gray-600">{feature.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+      {/* Left Column - Hero Header & Registration Form Card */}
+      <div className="w-full lg:w-[48%] flex flex-col justify-center px-8 sm:px-16 lg:px-20 py-24 relative z-10">
+        <div className="max-w-[440px] w-full">
+          {/* Main Hero Header */}
+          <div className="mb-8 mt-12">
+            <h1 className="text-4xl sm:text-5xl font-serif text-slate-900 font-normal leading-[1.1] tracking-tight mb-3">
+              Join the grid,<br />fly sooner.
+            </h1>
+            <p className="text-slate-500 font-serif italic text-base">
+              Deploy advanced fleet operations and track real-time airspace telemetry in seconds.
+            </p>
           </div>
 
-          {/* Right side - Registration form */}
-          <Card className="w-full border-0 shadow-2xl bg-white/95 backdrop-blur-sm animate-slide-in-right">
-            <CardHeader className="text-center pb-6 pt-8">
-              <div className="mx-auto mb-4 h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center shadow-lg">
-                <UserPlus className="text-white h-8 w-8" />
-              </div>
-              <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Create Account
-              </CardTitle>
-              <CardDescription className="text-gray-600 text-base">
-                Join AeroHive and start your drone journey today
-              </CardDescription>
-            </CardHeader>
+          {/* Minimal Card */}
+          <div className="w-full bg-[#fdfcfa]/90 border border-slate-200/50 rounded-[28px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.01)] backdrop-blur-sm">
+            {/* Google Signup Button */}
+            <button
+              type="button"
+              onClick={handleGoogleSignup}
+              className="w-full h-11 flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-2xl text-sm font-sans font-medium transition-all cursor-pointer shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
+            >
+              <img 
+                src="https://www.svgrepo.com/show/475656/google-color.svg" 
+                alt="Google logo"
+                className="w-4 h-4"
+              />
+              <span>Sign up with Google</span>
+            </button>
 
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4 px-8">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">
-                    First Name
-                  </Label>
+            {/* Divider */}
+            <div className="relative my-4 flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-100" />
+              </div>
+              <span className="relative px-3 bg-[#fdfcfa] text-[10px] font-bold text-slate-400 uppercase tracking-widest font-sans">
+                or
+              </span>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-3.5">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
                   <Input
                     id="firstName"
-                    placeholder="John"
+                    placeholder="First name"
                     value={formData.firstName}
                     onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                    className="h-11 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 rounded-lg"
+                    className="h-10 bg-white border border-slate-200 focus:ring-1 focus:ring-[#069494] focus:border-[#069494] rounded-2xl text-sm font-sans px-3 shadow-[inset_0_1px_2px_rgba(0,0,0,0.01)]"
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
-                    Last Name
-                  </Label>
+                <div className="space-y-1">
                   <Input
                     id="lastName"
-                    placeholder="Doe"
+                    placeholder="Last name"
                     value={formData.lastName}
                     onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                    className="h-11 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 rounded-lg"
+                    className="h-10 bg-white border border-slate-200 focus:ring-1 focus:ring-[#069494] focus:border-[#069494] rounded-2xl text-sm font-sans px-3 shadow-[inset_0_1px_2px_rgba(0,0,0,0.01)]"
                     required
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Email
-                </Label>
+              <div className="space-y-1">
                 <Input
                   id="email"
                   type="email"
-                  placeholder="john@gmail.com"
+                  placeholder="Email address"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="h-11 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 rounded-lg"
+                  className="h-10 bg-white border border-slate-200 focus:ring-1 focus:ring-[#069494] focus:border-[#069494] rounded-2xl text-sm font-sans px-3 shadow-[inset_0_1px_2px_rgba(0,0,0,0.01)]"
                   required
                 />
-                <p className="text-xs text-gray-500">Use a real email address to receive confirmation link</p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
-                  Phone <span className="text-gray-400">(Optional)</span>
-                </Label>
+              <div className="space-y-1">
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="+91 98765 43210"
+                  placeholder="Phone number (optional)"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="h-11 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 rounded-lg"
+                  className="h-10 bg-white border border-slate-200 focus:ring-1 focus:ring-[#069494] focus:border-[#069494] rounded-2xl text-sm font-sans px-3 shadow-[inset_0_1px_2px_rgba(0,0,0,0.01)]"
                 />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                  Password
-                </Label>
+
+              <div className="space-y-1">
                 <div className="relative">
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Create a strong password"
+                    placeholder="Create password"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="h-11 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 rounded-lg pr-10"
+                    className="h-10 bg-white border border-slate-200 focus:ring-1 focus:ring-[#069494] focus:border-[#069494] rounded-2xl text-sm font-sans px-3 pr-10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.01)]"
                     required
                   />
-                  <Button
+                  <button
                     type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-650 flex items-center justify-center p-1 rounded-full"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-500" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-gray-500" />
-                    )}
-                  </Button>
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
-                <p className="text-xs text-gray-500">Must be at least 6 characters</p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-                  Confirm Password
-                </Label>
+              <div className="space-y-1">
                 <div className="relative">
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirm your password"
+                    placeholder="Confirm password"
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                    className="h-11 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 rounded-lg pr-10"
+                    className="h-10 bg-white border border-slate-200 focus:ring-1 focus:ring-[#069494] focus:border-[#069494] rounded-2xl text-sm font-sans px-3 pr-10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.01)]"
                     required
                   />
-                  <Button
+                  <button
                     type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-650 flex items-center justify-center p-1 rounded-full"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-500" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-gray-500" />
-                    )}
-                  </Button>
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
               </div>
 
-              <div className="space-y-3 pt-2">
+              <div className="space-y-2 pt-1">
                 <div className="flex items-start space-x-2">
                   <Checkbox
                     id="terms"
                     checked={formData.agreeToTerms}
                     onCheckedChange={(checked) => setFormData({ ...formData, agreeToTerms: checked as boolean })}
-                    className="mt-0.5"
+                    className="mt-0.5 border-slate-350 focus:ring-[#069494]"
                     required
                   />
-                  <Label htmlFor="terms" className="text-sm text-gray-600 leading-relaxed cursor-pointer">
+                  <Label htmlFor="terms" className="text-[10px] text-slate-550 leading-relaxed cursor-pointer font-sans">
                     I agree to the{" "}
-                    <Link href="/terms" className="text-blue-600 hover:text-blue-700 hover:underline font-medium">
+                    <Link href="/terms" className="font-semibold text-[#069494] hover:text-[#058080]">
                       Terms of Service
                     </Link>{" "}
                     and{" "}
-                    <Link href="/privacy" className="text-blue-600 hover:text-blue-700 hover:underline font-medium">
+                    <Link href="/privacy" className="font-semibold text-[#069494] hover:text-[#058080]">
                       Privacy Policy
                     </Link>
                   </Label>
                 </div>
-
-                <div className="flex items-start space-x-2">
-                  <Checkbox
-                    id="newsletter"
-                    checked={formData.subscribeNewsletter}
-                    onCheckedChange={(checked) => setFormData({ ...formData, subscribeNewsletter: checked as boolean })}
-                    className="mt-0.5"
-                  />
-                  <Label htmlFor="newsletter" className="text-sm text-gray-600 leading-relaxed cursor-pointer">
-                    Subscribe to our newsletter for drone updates and exclusive offers
-                  </Label>
-                </div>
               </div>
-            </CardContent>
 
-            <CardFooter className="flex flex-col space-y-4 pb-8 pt-6 px-8">
-              <Button 
-                type="submit" 
-                className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+              <button
+                type="submit"
+                className="w-full h-11 bg-[#191919] hover:bg-black text-white font-sans text-sm font-semibold rounded-2xl transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center border-0"
                 disabled={isLoading}
               >
-                {isLoading ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Creating Account...
-                  </>
-                ) : (
-                  <>
-                    Create Account
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </>
-                )}
-              </Button>
+                {isLoading ? "Creating account..." : "Create Account"}
+              </button>
+            </form>
+          </div>
 
-              <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-gray-500">Or sign up with</span>
-                </div>
-              </div>
-
-              <Button
-                type="button"
-                onClick={handleGoogleSignup}
-                variant="outline"
-                className="w-full h-12 flex items-center justify-center gap-3 border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-all duration-300"
-              >
-                <img
-                  src="https://www.svgrepo.com/show/475656/google-color.svg"
-                  alt="Google logo"
-                  className="w-5 h-5"
-                />
-                <span>Sign up with Google</span>
-              </Button>
-
-              <div className="text-center text-sm text-gray-600">
-                Already have an account?{" "}
-                <Link href={`/login${redirectUrl !== "/" ? `?redirect=${encodeURIComponent(redirectUrl)}` : ""}`} className="font-semibold text-blue-600 hover:text-blue-700 hover:underline">
-                  Sign in
-                </Link>
-              </div>
-            </CardFooter>
-          </form>
-        </Card>
+          {/* Links Under Card */}
+          <div className="mt-6 text-center">
+            <span className="text-xs text-slate-500 font-sans">
+              Already have an account?{" "}
+              <Link href={`/login${redirectUrl !== "/" ? `?redirect=${encodeURIComponent(redirectUrl)}` : ""}`} className="font-semibold text-[#069494] hover:underline ml-1">
+                Sign in
+              </Link>
+            </span>
+          </div>
         </div>
-      </main>
+      </div>
 
-      <ModernFooter />
+      {/* Right Column - Editorial About AeroHive Narrative Block */}
+      <div className="hidden lg:flex flex-1 bg-[#121620] relative flex-col justify-between p-16 overflow-hidden border-l border-slate-900 text-left">
+        <div className="absolute inset-0 bg-grid-white/[0.015] pointer-events-none"></div>
+
+        {/* Floating Glowing Accents */}
+        <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-[#069494]/10 blur-[150px]"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[#FF8243]/5 blur-[120px]"></div>
+
+        {/* Top meta block */}
+        <div className="relative z-10 w-full">
+          <div className="inline-block px-3 py-1 bg-[#069494]/10 border border-[#069494]/20 rounded-full text-[10px] font-bold text-[#069494] uppercase tracking-wider font-sans">
+            Enterprise Airspace Orchestration
+          </div>
+        </div>
+
+        {/* Narrative & Stats block */}
+        <div className="max-w-[480px] space-y-8 relative z-10 my-auto">
+          <h2 className="text-4xl md:text-5xl font-serif text-white font-normal leading-tight">
+            About AeroHive
+          </h2>
+          <p className="text-base text-slate-400 font-light leading-relaxed font-sans">
+            AeroHive is the premier enterprise aviation platform architected for advanced civilian and commercial flight operations. By unifying professional flight scheduling, real-time telemetry pipelines, certified pilot directories, and hardware-level diagnostics, we enable drone fleets worldwide to coordinate safely, comply fully with regional airspace regulators, and execute complex missions with absolute high-fidelity precision.
+          </p>
+
+          <div className="flex items-center space-x-8 pt-4 border-t border-white/5">
+            <div className="space-y-1">
+              <p className="text-2xl font-bold text-white font-sans">50k+</p>
+              <p className="text-[10px] text-slate-500 font-bold font-sans uppercase tracking-widest">Active Pilots</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-2xl font-bold text-white font-sans">120k+</p>
+              <p className="text-[10px] text-slate-500 font-bold font-sans uppercase tracking-widest">Missions Synced</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-2xl font-bold text-white font-sans">99.9%</p>
+              <p className="text-[10px] text-slate-500 font-bold font-sans uppercase tracking-widest">System Uptime</p>
+            </div>
+          </div>
+        </div>
+
+        {/* High-Fidelity Spinning Perspective Drone Animation */}
+        <div className="absolute right-12 bottom-12 w-[180px] h-[180px] bg-white/5 border border-white/10 rounded-[28px] flex flex-col items-center justify-center relative overflow-hidden shadow-2xl p-4 backdrop-blur-md z-10">
+          <div className="absolute top-3 left-4 text-[7px] font-bold text-slate-500 uppercase tracking-widest font-sans">System Monitor</div>
+          
+          {/* Custom Isometric SVG Drone */}
+          <svg className="w-16 h-16 text-slate-200 mt-2" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Perspective Oval Guards */}
+            <ellipse cx="30" cy="35" rx="16" ry="6" stroke="currentColor" strokeWidth="2.5" opacity="0.8" />
+            <ellipse cx="70" cy="35" rx="16" ry="6" stroke="currentColor" strokeWidth="2.5" opacity="0.8" />
+            <ellipse cx="20" cy="65" rx="20" ry="8" stroke="currentColor" strokeWidth="3" />
+            <ellipse cx="80" cy="65" rx="20" ry="8" stroke="currentColor" strokeWidth="3" />
+
+            {/* Symmetrical Diagonal Arms */}
+            <path d="M50 48 L30 35" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" />
+            <path d="M50 48 L70 35" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" />
+            <path d="M50 48 L20 65" stroke="currentColor" strokeWidth="5.5" strokeLinecap="round" />
+            <path d="M50 48 L80 65" stroke="currentColor" strokeWidth="5.5" strokeLinecap="round" />
+
+            {/* Central Drone Body (Perspective Capsule) */}
+            <path d="M43 42 C43 38, 57 38, 57 42 L55 58 C55 62, 45 62, 45 58 Z" fill="currentColor" stroke="currentColor" strokeWidth="2" />
+            <circle cx="50" cy="46" r="3.5" fill="#FF8243" />
+
+            {/* Embedded CSS for Propeller Spin Animations */}
+            <style>{`
+              @keyframes spin-prop-register-global {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+              .global-register-prop {
+                animation: spin-prop-register-global 0.08s linear infinite;
+              }
+              .global-register-prop-reverse {
+                animation: spin-prop-register-global 0.06s linear infinite reverse;
+              }
+            `}</style>
+
+            {/* Spinning Propellers scaled for perspective */}
+            <g transform="translate(30, 35) scale(1, 0.38)">
+              <g className="global-register-prop" style={{ transformOrigin: '0px 0px' }}>
+                <path d="M-15 0 H15" stroke="#FF8243" strokeWidth="3" strokeLinecap="round" />
+              </g>
+            </g>
+
+            <g transform="translate(70, 35) scale(1, 0.38)">
+              <g className="global-register-prop-reverse" style={{ transformOrigin: '0px 0px' }}>
+                <path d="M-15 0 H15" stroke="#069494" strokeWidth="3" strokeLinecap="round" />
+              </g>
+            </g>
+
+            <g transform="translate(20, 65) scale(1, 0.4)">
+              <g className="global-register-prop-reverse" style={{ transformOrigin: '0px 0px' }}>
+                <path d="M-19 0 H19" stroke="#069494" strokeWidth="3.5" strokeLinecap="round" />
+              </g>
+            </g>
+
+            <g transform="translate(80, 65) scale(1, 0.4)">
+              <g className="global-register-prop" style={{ transformOrigin: '0px 0px' }}>
+                <path d="M-19 0 H19" stroke="#FF8243" strokeWidth="3.5" strokeLinecap="round" />
+              </g>
+            </g>
+          </svg>
+          
+          <div className="mt-2.5 text-center">
+            <span className="text-[8px] font-mono text-[#069494] animate-pulse tracking-widest font-bold">ROTORS ACTIVE</span>
+          </div>
+        </div>
+
+        {/* Bottom meta stats */}
+        <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 relative z-10 w-full">
+          <span>OPERATOR PLATFORM</span>
+          <span>© AEROHIVE GLOBAL</span>
+        </div>
+      </div>
     </div>
   )
 }

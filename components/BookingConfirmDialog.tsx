@@ -11,7 +11,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Loader2, MapPin, Calendar, Clock, Sparkles, User, Mail, ShieldAlert } from 'lucide-react'
+import { Loader2, MapPin, Calendar, Clock, ShieldCheck, User, Mail, ShieldAlert, Phone } from 'lucide-react'
 
 interface BookingConfirmDialogProps {
     isOpen: boolean
@@ -24,6 +24,7 @@ interface BookingConfirmDialogProps {
         lng?: number
         userName: string
         userEmail: string
+        userPhone: string
     }) => void
     onCancel: () => void
     pilotName?: string
@@ -54,6 +55,7 @@ export function BookingConfirmDialog({
 }: BookingConfirmDialogProps) {
     const [userName, setUserName] = useState('')
     const [userEmail, setUserEmail] = useState('')
+    const [userPhone, setUserPhone] = useState('')
     const [location, setLocation] = useState('')
     const [lat, setLat] = useState<number | undefined>(undefined)
     const [lng, setLng] = useState<number | undefined>(undefined)
@@ -76,9 +78,11 @@ export function BookingConfirmDialog({
                 ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim()
                 : currentUser?.email?.split('@')[0] || ''
             const defaultEmail = currentUser?.email || ''
+            const defaultPhone = currentUser?.phone || ''
 
             setUserName(defaultName)
             setUserEmail(defaultEmail)
+            setUserPhone(defaultPhone)
         }
     }, [isOpen, currentUser])
 
@@ -141,6 +145,10 @@ export function BookingConfirmDialog({
             setError("Please specify a valid client email.")
             return
         }
+        if (!userPhone.trim()) {
+            setError("Please specify a client phone number.")
+            return
+        }
         if (!location.trim()) {
             setError("Please specify a flight location/address.")
             return
@@ -162,69 +170,88 @@ export function BookingConfirmDialog({
             lat,
             lng,
             userName,
-            userEmail
+            userEmail,
+            userPhone
         })
     }
 
     return (
         <AlertDialog open={isOpen} onOpenChange={(open) => !open && onCancel()}>
-            <AlertDialogContent className="max-w-lg bg-slate-900 border border-slate-800 text-white rounded-xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto">
-                <AlertDialogHeader className="space-y-2 border-b border-slate-800 pb-4">
-                    <AlertDialogTitle className="flex items-center gap-2 text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">
-                        <Sparkles className="h-5 w-5 text-blue-400" />
+            <AlertDialogContent className="max-w-xl bg-[#fbf9f6] dark:bg-slate-900 border border-[#e8e3d9] dark:border-slate-855 text-slate-800 dark:text-slate-200 rounded-[32px] shadow-2xl p-8 max-h-[95vh] overflow-y-auto">
+                <AlertDialogHeader className="space-y-3 border-b border-[#e8e3d9]/60 dark:border-slate-800/60 pb-6 text-left">
+                    <AlertDialogTitle className="flex items-center gap-2 text-2xl font-serif font-normal text-slate-900 dark:text-slate-100">
+                        <ShieldCheck className="h-5.5 w-5.5 text-[#e65737]" />
                         Complete Pilot Booking
                     </AlertDialogTitle>
-                    <AlertDialogDescription className="text-slate-400 text-sm">
-                        Specify details for scheduling your drone operations with {pilotName ? <strong className="text-blue-300">{pilotName}</strong> : "your selected pilot"}.
+                    <AlertDialogDescription className="text-slate-500 dark:text-slate-400 font-serif italic text-[15px] leading-relaxed">
+                        Specify details for scheduling your drone operations with {pilotName ? <strong className="text-slate-800 dark:text-slate-200 font-semibold">{pilotName}</strong> : "your selected pilot"}.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
 
-                <div className="space-y-4 py-4">
+                <div className="space-y-5 py-5 text-left">
                     {error && (
-                        <div className="bg-red-950/40 border border-red-800/80 rounded-lg p-3 text-red-300 text-xs flex items-center gap-2">
-                            <ShieldAlert className="h-4 w-4 shrink-0" />
+                        <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 rounded-2xl p-4 text-red-700 dark:text-red-400 text-xs flex items-center gap-2 font-sans font-medium">
+                            <ShieldAlert className="h-4 w-4 shrink-0 text-red-500" />
                             <span>{error}</span>
                         </div>
                     )}
 
                     {/* Section 1: User Account Details (Editable) */}
-                    <div className="grid grid-cols-2 gap-3 bg-slate-950/50 border border-slate-800/50 p-3 rounded-lg">
-                        <div className="space-y-1">
-                            <label className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold block">
-                                Client Name
-                            </label>
-                            <div className="relative flex items-center">
-                                <User className="absolute left-2.5 h-3.5 w-3.5 text-slate-500" />
-                                <input
-                                    type="text"
-                                    value={userName}
-                                    onChange={(e) => setUserName(e.target.value)}
-                                    className="w-full bg-slate-950/80 border border-slate-800 rounded-lg py-1.5 pl-8 pr-2.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500 transition"
-                                    placeholder="Enter your name"
-                                />
-                            </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-[#fdfcfa] dark:bg-slate-950 border border-[#e8e3d9] dark:border-slate-800 p-4 rounded-2xl">
+                        <div className="space-y-2">
+                           <label className="text-[10px] uppercase tracking-widest text-slate-450 dark:text-slate-550 font-bold font-sans block">
+                               Client Name
+                           </label>
+                           <div className="relative flex items-center">
+                               <User className="absolute left-3.5 h-4 w-4 text-slate-450 dark:text-slate-550" />
+                               <input
+                                   type="text"
+                                   value={userName}
+                                   onChange={(e) => setUserName(e.target.value)}
+                                   className="w-full bg-white dark:bg-slate-900 border border-[#e8e3d9] dark:border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-[#e65737] focus:ring-1 focus:ring-[#e65737] transition"
+                                   placeholder="Your name"
+                                   style={{ paddingLeft: '2.5rem' }}
+                               />
+                           </div>
                         </div>
-                        <div className="space-y-1">
-                            <label className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold block">
-                                Client Email
-                            </label>
-                            <div className="relative flex items-center">
-                                <Mail className="absolute left-2.5 h-3.5 w-3.5 text-slate-500" />
-                                <input
-                                    type="email"
-                                    value={userEmail}
-                                    onChange={(e) => setUserEmail(e.target.value)}
-                                    className="w-full bg-slate-950/80 border border-slate-800 rounded-lg py-1.5 pl-8 pr-2.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500 transition"
-                                    placeholder="Enter email address"
-                                />
-                            </div>
+                        <div className="space-y-2">
+                           <label className="text-[10px] uppercase tracking-widest text-slate-450 dark:text-slate-550 font-bold font-sans block">
+                               Client Email
+                           </label>
+                           <div className="relative flex items-center">
+                               <Mail className="absolute left-3.5 h-4 w-4 text-slate-450 dark:text-slate-550" />
+                               <input
+                                   type="email"
+                                   value={userEmail}
+                                   onChange={(e) => setUserEmail(e.target.value)}
+                                   className="w-full bg-white dark:bg-slate-900 border border-[#e8e3d9] dark:border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-[#e65737] focus:ring-1 focus:ring-[#e65737] transition"
+                                   placeholder="Email address"
+                                   style={{ paddingLeft: '2.5rem' }}
+                               />
+                           </div>
+                        </div>
+                        <div className="space-y-2">
+                           <label className="text-[10px] uppercase tracking-widest text-slate-450 dark:text-slate-550 font-bold font-sans block">
+                               Client Phone
+                           </label>
+                           <div className="relative flex items-center">
+                               <Phone className="absolute left-3.5 h-4 w-4 text-slate-450 dark:text-slate-550" />
+                               <input
+                                   type="tel"
+                                   value={userPhone}
+                                   onChange={(e) => setUserPhone(e.target.value)}
+                                   className="w-full bg-white dark:bg-slate-900 border border-[#e8e3d9] dark:border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-[#e65737] focus:ring-1 focus:ring-[#e65737] transition"
+                                   placeholder="Phone number"
+                                   style={{ paddingLeft: '2.5rem' }}
+                               />
+                           </div>
                         </div>
                     </div>
 
                     {/* Section 2: Location Detail Input */}
-                    <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                            <MapPin className="h-3.5 w-3.5 text-blue-400" />
+                    <div className="space-y-2">
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 font-sans">
+                            <MapPin className="h-4 w-4 text-[#e65737]" />
                             Flight Location / Address
                         </label>
                         <div className="relative flex gap-2">
@@ -233,13 +260,13 @@ export function BookingConfirmDialog({
                                 placeholder="E.g., Madhapur Sector 3, Hyderabad"
                                 value={location}
                                 onChange={(e) => setLocation(e.target.value)}
-                                className="w-full bg-slate-950 border border-slate-800 rounded-lg py-2 px-3 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                                className="w-full bg-white dark:bg-slate-900 border border-[#e8e3d9] dark:border-slate-800 rounded-xl py-2.5 px-4 text-sm text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-[#e65737] focus:ring-1 focus:ring-[#e65737] transition"
                             />
                             <button
                                 type="button"
                                 onClick={handleAutoDetectLocation}
                                 disabled={isDetectingLocation}
-                                className="bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 text-xs rounded-lg px-3 py-2 flex items-center gap-1.5 font-medium transition active:scale-95 disabled:opacity-50 shrink-0"
+                                className="bg-[#e65737]/10 dark:bg-[#e65737]/20 hover:bg-[#e65737]/20 text-[#e65737] border border-[#e65737]/20 dark:border-[#e65737]/45 text-xs rounded-xl px-4 py-2 flex items-center gap-1.5 font-bold tracking-wider uppercase font-sans transition active:scale-95 disabled:opacity-50 shrink-0 cursor-pointer"
                             >
                                 {isDetectingLocation ? (
                                     <>
@@ -257,22 +284,22 @@ export function BookingConfirmDialog({
 
                     {/* Section 3: Date & Hours Selection */}
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                                <Calendar className="h-3.5 w-3.5 text-blue-400" />
+                        <div className="space-y-2">
+                            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 font-sans">
+                                <Calendar className="h-4 w-4 text-[#e65737]" />
                                 Date & Time
                             </label>
                             <input
                                 type="datetime-local"
                                 value={scheduledAt}
                                 onChange={(e) => setScheduledAt(e.target.value)}
-                                className="w-full bg-slate-950 border border-slate-800 rounded-lg py-2 px-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition [color-scheme:dark]"
+                                className="w-full bg-white dark:bg-slate-900 border border-[#e8e3d9] dark:border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-[#e65737] focus:ring-1 focus:ring-[#e65737] transition"
                             />
                         </div>
 
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                                <Clock className="h-3.5 w-3.5 text-blue-400" />
+                        <div className="space-y-2">
+                            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 font-sans">
+                                <Clock className="h-4 w-4 text-[#e65737]" />
                                 Duration (Hours)
                             </label>
                             <input
@@ -281,39 +308,39 @@ export function BookingConfirmDialog({
                                 max={24}
                                 value={durationHours}
                                 onChange={(e) => setDurationHours(Math.max(1, parseInt(e.target.value) || 1))}
-                                className="w-full bg-slate-950 border border-slate-800 rounded-lg py-2 px-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                                className="w-full bg-white dark:bg-slate-900 border border-[#e8e3d9] dark:border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-[#e65737] focus:ring-1 focus:ring-[#e65737] transition"
                             />
                         </div>
                     </div>
 
                     {/* Section 4: Live Money Counter display */}
-                    <div className="bg-gradient-to-r from-blue-950/40 to-indigo-950/40 border border-blue-900/50 rounded-lg p-4 flex items-center justify-between mt-2">
+                    <div className="bg-[#fdfbf7] dark:bg-slate-950 border border-[#e8e3d9] dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between mt-2 shadow-sm">
                         <div className="space-y-1">
-                            <p className="text-xs text-blue-300 font-semibold uppercase tracking-wider">
+                            <p className="text-xs text-[#e65737] font-bold uppercase tracking-widest font-sans">
                                 Dynamic Cost Estimation
                             </p>
-                            <p className="text-[10px] text-slate-400">
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-sans">
                                 Calculated at ₹{hourlyRate.toLocaleString()}/hour for {durationHours} hour{durationHours > 1 ? 's' : ''}
                             </p>
                         </div>
                         <div className="text-right">
-                            <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400">
+                            <span className="text-3xl font-black text-emerald-700 dark:text-emerald-450 font-sans">
                                 ₹{totalAmount.toLocaleString()}
                             </span>
                         </div>
                     </div>
                 </div>
 
-                <AlertDialogFooter className="border-t border-slate-800 pt-4 mt-2 gap-2 sm:gap-0">
+                <AlertDialogFooter className="border-t border-[#e8e3d9]/60 dark:border-slate-800/60 pt-5 mt-2 gap-3 sm:gap-0 justify-end flex items-center">
                     <AlertDialogCancel
                         onClick={onCancel}
-                        className="bg-transparent hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white rounded-lg transition"
+                        className="bg-transparent hover:bg-slate-100 dark:hover:bg-slate-850 border border-[#e8e3d9] dark:border-slate-800 text-slate-650 dark:text-slate-400 hover:text-slate-850 dark:hover:text-slate-200 rounded-full px-6 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer"
                     >
                         Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction
                         onClick={handleSubmit}
-                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg font-bold shadow-lg shadow-blue-500/20 transition active:scale-95"
+                        className="bg-slate-900 hover:bg-[#e65737] text-white dark:bg-white dark:hover:bg-[#e65737] dark:text-slate-900 dark:hover:text-white rounded-full px-6 py-2.5 text-xs font-semibold uppercase tracking-wider transition-all duration-300 hover:scale-[1.02] border-0 cursor-pointer animate-pulse hover:animate-none"
                     >
                         ✓ Request Secure Booking
                     </AlertDialogAction>

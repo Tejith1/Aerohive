@@ -118,7 +118,7 @@ export default function UsersManagement() {
       toast({
         title: "Success",
         description: "User created successfully",
-        className: "border-green-200 bg-green-50 text-green-900",
+        variant: "success",
       })
 
       // Reset form and close dialog

@@ -96,11 +96,11 @@ export function NotificationDropdown() {
                 <DropdownMenuPrimitive.Trigger asChild>
                     <button
                         type="button"
-                        className="relative h-10 w-10 rounded-xl hover:bg-gray-100 text-gray-600 hover:text-gray-800 transition-all duration-200 flex items-center justify-center"
+                        className="relative h-10 w-10 rounded-xl bg-neutral-100/60 dark:bg-neutral-900/60 hover:bg-[#e65737]/10 dark:hover:bg-[#e65737]/15 text-neutral-600 dark:text-neutral-400 hover:text-[#e65737] dark:hover:text-[#e65737] border border-neutral-200/40 dark:border-neutral-800/40 transition-all duration-300 flex items-center justify-center cursor-pointer"
                     >
-                        <Bell className="h-5 w-5" />
+                        <Bell className="h-5 w-5 transition-transform duration-300 group-hover:rotate-12" />
                         {totalUnreadCount > 0 && (
-                            <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-full">
+                            <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-[10px] font-bold bg-[#e65737] text-white rounded-full border border-background shadow-md animate-pulse">
                                 {totalUnreadCount > 9 ? '9+' : totalUnreadCount}
                             </span>
                         )}
@@ -110,13 +110,12 @@ export function NotificationDropdown() {
                     <DropdownMenuPrimitive.Content
                         align="end"
                         sideOffset={8}
-                        className="w-96 p-0 bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden z-[9999] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
+                        className="w-96 p-0 bg-white/95 dark:bg-[#121210]/95 backdrop-blur-xl border border-neutral-200/50 dark:border-neutral-800/60 rounded-2xl shadow-2xl overflow-hidden z-[9999] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
                     >
                         {/* Header */}
-                        <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                        <div className="px-5 py-4 border-b border-neutral-100/60 dark:border-neutral-800/60 bg-gradient-to-r from-neutral-50/50 to-white/50 dark:from-neutral-900/40 dark:to-neutral-950/40">
                             <div className="flex items-center justify-between mb-3">
-                                <h3 className="font-bold text-gray-900 flex items-center gap-2">
-                                    <Sparkles className="h-4 w-4 text-blue-500" />
+                                <h3 className="font-bold text-neutral-900 dark:text-white flex items-center gap-2 font-display uppercase tracking-tight text-sm">
                                     Notifications
                                 </h3>
                                 {currentUnreadCount > 0 && (
@@ -124,7 +123,7 @@ export function NotificationDropdown() {
                                         variant="ghost"
                                         size="sm"
                                         onClick={handleMarkAllAsRead}
-                                        className="text-xs h-7 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg"
+                                        className="text-xs h-7 text-[#e65737] hover:text-[#cc5032] hover:bg-[#e65737]/10 rounded-lg font-mono-tech uppercase tracking-wider"
                                     >
                                         <Check className="h-3 w-3 mr-1" />
                                         Mark all read
@@ -133,31 +132,31 @@ export function NotificationDropdown() {
                             </div>
 
                             {/* Tabs */}
-                            <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+                            <div className="flex gap-1.5 bg-neutral-100/80 dark:bg-neutral-900/80 rounded-xl p-1 border border-neutral-200/20 dark:border-neutral-800/20">
                                 <button
                                     onClick={() => setActiveTab('activity')}
-                                    className={`flex-1 text-xs font-medium py-1.5 px-3 rounded-md transition-all duration-200 ${activeTab === 'activity'
-                                        ? 'bg-white text-gray-900 shadow-sm'
-                                        : 'text-gray-600 hover:text-gray-900'
+                                    className={`flex-1 text-xs font-semibold py-2 px-3 rounded-lg transition-all duration-300 font-mono-tech uppercase tracking-wider ${activeTab === 'activity'
+                                        ? 'bg-white dark:bg-neutral-800 text-[#e65737] dark:text-white shadow-sm border border-neutral-200/20 dark:border-neutral-700/20'
+                                        : 'text-neutral-500 hover:text-[#e65737] dark:text-neutral-400 dark:hover:text-[#e65737]'
                                         }`}
                                 >
-                                    Recent Activity
+                                    Activity
                                     {actionUnreadCount > 0 && (
-                                        <span className="ml-1.5 inline-flex items-center justify-center h-4 w-4 text-[10px] bg-blue-500 text-white rounded-full">
+                                        <span className="ml-1.5 inline-flex items-center justify-center h-4 w-4 text-[9px] bg-[#e65737] text-white rounded-full font-bold">
                                             {actionUnreadCount}
                                         </span>
                                     )}
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('all')}
-                                    className={`flex-1 text-xs font-medium py-1.5 px-3 rounded-md transition-all duration-200 ${activeTab === 'all'
-                                        ? 'bg-white text-gray-900 shadow-sm'
-                                        : 'text-gray-600 hover:text-gray-900'
+                                    className={`flex-1 text-xs font-semibold py-2 px-3 rounded-lg transition-all duration-300 font-mono-tech uppercase tracking-wider ${activeTab === 'all'
+                                        ? 'bg-white dark:bg-neutral-800 text-[#e65737] dark:text-white shadow-sm border border-neutral-200/20 dark:border-neutral-700/20'
+                                        : 'text-neutral-500 hover:text-[#e65737] dark:text-neutral-400 dark:hover:text-[#e65737]'
                                         }`}
                                 >
-                                    All Notifications
+                                    System
                                     {dbUnreadCount > 0 && (
-                                        <span className="ml-1.5 inline-flex items-center justify-center h-4 w-4 text-[10px] bg-purple-500 text-white rounded-full">
+                                        <span className="ml-1.5 inline-flex items-center justify-center h-4 w-4 text-[9px] bg-[#e65737] text-white rounded-full font-bold">
                                             {dbUnreadCount}
                                         </span>
                                     )}
@@ -166,53 +165,53 @@ export function NotificationDropdown() {
                         </div>
 
                         {/* Content */}
-                        <div className="max-h-[400px] overflow-y-auto">
+                        <div className="max-h-[400px] overflow-y-auto divide-y divide-neutral-100/40 dark:divide-neutral-850/40">
                             {activeTab === 'activity' ? (
                                 // Action Notifications (Local)
                                 actionNotifications.length === 0 ? (
                                     <div className="p-8 text-center">
-                                        <div className="h-14 w-14 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                            <ShoppingCart className="h-7 w-7 text-blue-500" />
+                                        <div className="h-14 w-14 bg-gradient-to-br from-[#e65737]/10 to-amber-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-[#e65737]/20">
+                                            <ShoppingCart className="h-7 w-7 text-[#e65737]" />
                                         </div>
-                                        <p className="text-gray-900 font-medium mb-1">No recent activity</p>
-                                        <p className="text-sm text-gray-500">Your cart and booking activities will appear here.</p>
+                                        <p className="text-neutral-900 dark:text-white font-bold mb-1 font-display uppercase text-xs tracking-wider">No recent activity</p>
+                                        <p className="text-xs text-neutral-500 dark:text-neutral-400 font-mono-tech uppercase tracking-wider">Your bookings and cart actions will flash here.</p>
                                     </div>
                                 ) : (
                                     actionNotifications.map((notification) => (
                                         <div
                                             key={notification.id}
-                                            className={`relative px-4 py-3 hover:bg-gray-50/80 transition-all duration-200 cursor-pointer group ${!notification.isRead ? 'bg-blue-50/40' : ''
+                                            className={`relative px-5 py-4 hover:bg-[#e65737]/5 dark:hover:bg-[#e65737]/10 transition-all duration-300 cursor-pointer group ${!notification.isRead ? 'bg-[#e65737]/3 dark:bg-[#e65737]/5' : ''
                                                 }`}
                                             onClick={() => handleNotificationClick(notification)}
                                         >
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 shrink-0 h-10 w-10 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center shadow-sm">
+                                            <div className="flex gap-4">
+                                                <div className="mt-0.5 shrink-0 h-10 w-10 rounded-xl bg-neutral-50 dark:bg-neutral-900/80 border border-neutral-200/30 dark:border-neutral-800/50 flex items-center justify-center shadow-inner transition-transform duration-300 group-hover:scale-105">
                                                     {getActionIcon(notification.type, notification.imageUrl)}
                                                 </div>
                                                 <div className="flex-1 min-w-0 space-y-1">
                                                     <div className="flex items-start justify-between gap-2">
-                                                        <p className={`text-sm leading-tight ${!notification.isRead ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>
+                                                        <p className={`text-sm leading-tight transition-colors group-hover:text-[#e65737] ${!notification.isRead ? 'font-bold text-neutral-900 dark:text-white' : 'text-neutral-700 dark:text-neutral-350'}`}>
                                                             {notification.title}
                                                         </p>
-                                                        <div className="flex items-center gap-1 shrink-0">
+                                                        <div className="flex items-center gap-1.5 shrink-0">
                                                             {!notification.isRead && (
-                                                                <div className="h-2 w-2 rounded-full bg-blue-600" />
+                                                                <div className="h-2 w-2 rounded-full bg-[#e65737] shadow-[0_0_8px_#e65737]" />
                                                             )}
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation()
                                                                     removeActionNotification(notification.id)
                                                                 }}
-                                                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 rounded-md transition-all"
+                                                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-md transition-all text-neutral-400 dark:text-neutral-500 hover:text-[#e65737]"
                                                             >
-                                                                <X className="h-3 w-3 text-gray-400" />
+                                                                <X className="h-3 w-3" />
                                                             </button>
                                                         </div>
                                                     </div>
-                                                    <p className="text-xs text-gray-500 line-clamp-2">
+                                                    <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-normal">
                                                         {notification.message}
                                                     </p>
-                                                    <p className="text-[10px] text-gray-400">
+                                                    <p className="text-[9px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mt-1">
                                                         {formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}
                                                     </p>
                                                 </div>
@@ -230,43 +229,43 @@ export function NotificationDropdown() {
                             ) : (
                                 // DB Notifications
                                 isLoading ? (
-                                    <div className="p-8 text-center text-gray-400">
-                                        <div className="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                                        <p className="text-sm">Loading...</p>
+                                    <div className="p-8 text-center text-neutral-400 dark:text-neutral-500">
+                                        <div className="animate-spin h-6 w-6 border-2 border-[#e65737] border-t-transparent rounded-full mx-auto mb-2"></div>
+                                        <p className="text-xs font-mono-tech uppercase tracking-widest">Syncing logs...</p>
                                     </div>
                                 ) : dbNotifications.length === 0 ? (
                                     <div className="p-8 text-center">
-                                        <div className="h-14 w-14 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                            <Bell className="h-7 w-7 text-purple-500" />
+                                        <div className="h-14 w-14 bg-gradient-to-br from-[#e65737]/10 to-amber-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-[#e65737]/20">
+                                            <Bell className="h-7 w-7 text-[#e65737]" />
                                         </div>
-                                        <p className="text-gray-900 font-medium mb-1">No notifications</p>
-                                        <p className="text-sm text-gray-500">We'll notify you when something important happens.</p>
+                                        <p className="text-neutral-900 dark:text-white font-bold mb-1 font-display uppercase text-xs tracking-wider">No notifications</p>
+                                        <p className="text-xs text-neutral-500 dark:text-neutral-400 font-mono-tech uppercase tracking-wider">Aviation dispatch notifications will appear here.</p>
                                     </div>
                                 ) : (
                                     dbNotifications.map((notification) => (
                                         <div
                                             key={notification.id}
-                                            className={`relative px-4 py-3 hover:bg-gray-50/80 transition-all duration-200 cursor-pointer ${!notification.is_read ? 'bg-purple-50/40' : ''
+                                            className={`relative px-5 py-4 hover:bg-[#e65737]/5 dark:hover:bg-[#e65737]/10 transition-all duration-300 cursor-pointer ${!notification.is_read ? 'bg-[#e65737]/3 dark:bg-[#e65737]/5' : ''
                                                 }`}
                                             onClick={() => !notification.is_read && markDbAsRead(notification.id)}
                                         >
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 shrink-0 h-10 w-10 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center shadow-sm">
+                                            <div className="flex gap-4">
+                                                <div className="mt-0.5 shrink-0 h-10 w-10 rounded-xl bg-neutral-50 dark:bg-neutral-900/80 border border-neutral-200/30 dark:border-neutral-800/50 flex items-center justify-center shadow-inner transition-transform duration-300 group-hover:scale-105">
                                                     {getDbIcon(notification.type)}
                                                 </div>
                                                 <div className="flex-1 min-w-0 space-y-1">
                                                     <div className="flex items-start justify-between gap-2">
-                                                        <p className={`text-sm leading-tight ${!notification.is_read ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>
+                                                        <p className={`text-sm leading-tight transition-colors group-hover:text-[#e65737] ${!notification.is_read ? 'font-bold text-neutral-900 dark:text-white' : 'text-neutral-700 dark:text-neutral-350'}`}>
                                                             {notification.title}
                                                         </p>
                                                         {!notification.is_read && (
-                                                            <div className="h-2 w-2 rounded-full bg-purple-600 shrink-0 mt-1" />
+                                                            <div className="h-2 w-2 rounded-full bg-[#e65737] shadow-[0_0_8px_#e65737] shrink-0 mt-1" />
                                                         )}
                                                     </div>
-                                                    <p className="text-xs text-gray-500 line-clamp-2">
+                                                    <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-normal">
                                                         {notification.message}
                                                     </p>
-                                                    <p className="text-[10px] text-gray-400">
+                                                    <p className="text-[9px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mt-1">
                                                         {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                                                     </p>
                                                 </div>
@@ -281,20 +280,20 @@ export function NotificationDropdown() {
                         </div>
 
                         {/* Footer */}
-                        <div className="p-2 border-t border-gray-100 bg-gray-50/50 flex gap-2">
+                        <div className="p-3 bg-neutral-50/50 dark:bg-neutral-950/50 border-t border-neutral-100/50 dark:border-neutral-800/50 flex gap-2">
                             {activeTab === 'activity' && actionNotifications.length > 0 && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
                                     onClick={clearActionNotifications}
-                                    className="flex-1 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                                    className="flex-1 text-xs text-neutral-500 hover:text-[#e65737] hover:bg-[#e65737]/10 rounded-xl transition-all duration-200 h-9 font-semibold font-mono-tech uppercase tracking-wider"
                                 >
                                     <Trash2 className="h-3 w-3 mr-1" />
                                     Clear All
                                 </Button>
                             )}
                             {activeTab === 'all' && dbNotifications.length > 0 && (
-                                <Button variant="ghost" size="sm" asChild className="flex-1 text-xs text-gray-500 hover:text-gray-700 rounded-lg">
+                                <Button variant="ghost" size="sm" asChild className="flex-1 text-xs text-neutral-500 hover:text-[#e65737] hover:bg-[#e65737]/10 rounded-xl transition-all duration-200 h-9 font-semibold font-mono-tech uppercase tracking-wider">
                                     <Link href="/account/notifications">View all notifications</Link>
                                 </Button>
                             )}

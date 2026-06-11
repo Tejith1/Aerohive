@@ -104,9 +104,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     initializeAuth()
 
+    // Safety net: force isLoading to false after 2000ms maximum to prevent locks
+    const safetyTimeout = setTimeout(() => {
+      setIsLoading(false)
+    }, 2000)
+
     // Listen for auth changes (only if supabase is initialized)
     if (!supabase) {
       setIsLoading(false)
+      clearTimeout(safetyTimeout)
       return
     }
 
@@ -193,7 +199,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               toast({
                 title: "✅ Welcome!",
                 description: "You've successfully signed in with Google.",
-                className: "border-green-200 bg-green-50 text-green-900",
+                variant: "success",
                 duration: 5000,
               })
             }
@@ -236,6 +242,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .subscribe()
 
     return () => {
+      clearTimeout(safetyTimeout)
       data.subscription.unsubscribe()
       supabase.removeChannel(channel)
     }
@@ -458,7 +465,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         toast({
           title: "Welcome back!",
           description: isAdminEmail ? "Signed in as Administrator" : "Successfully signed in",
-          className: "border-green-200 bg-green-50 text-green-900",
+          variant: "success",
           duration: 3000,
         })
 
@@ -568,7 +575,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       toast({
         title: "Account Created! 🎉",
         description: result.message || "Welcome to AeroHive! Logging you in...",
-        className: "border-green-200 bg-green-50 text-green-900",
+        variant: "success",
       })
 
       // Now log them in
@@ -631,7 +638,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       toast({
         title: "Logged Out",
         description: "You've been successfully logged out.",
-        className: "border-blue-200 bg-blue-50 text-blue-900",
+        variant: "info",
       })
 
       // 5. Hard navigation to destroy all in-memory React state
@@ -700,7 +707,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       toast({
         title: "Password Updated",
         description: "Your password has been changed successfully.",
-        className: "border-green-200 bg-green-50 text-green-900",
+        variant: "success",
       })
       return { error: null }
     } catch (error: any) {

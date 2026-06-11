@@ -70,6 +70,34 @@ export default function ProductsPage() {
     loadData()
   }, [])
 
+  // Sync category filter with URL query parameter
+  useEffect(() => {
+    const categoryParam = searchParams?.get("category")
+    if (categoryParam && categories.length > 0) {
+      const getSlugFromParam = (param: string) => {
+        const p = param.toLowerCase();
+        if (p.includes('enterprise') || p.includes('industrial')) return 'industrial-drones';
+        if (p.includes('agriculture') || p.includes('agricultural')) return 'agricultural-drones';
+        if (p.includes('photography') || p.includes('cinematic')) return 'photography-drones';
+        if (p.includes('racing') || p.includes('fpv')) return 'racing-drones';
+        if (p.includes('surveillance') || p.includes('security')) return 'surveillance-drones';
+        if (p.includes('delivery') || p.includes('logistics')) return 'delivery-drones';
+        return p;
+      };
+
+      const targetSlug = getSlugFromParam(categoryParam);
+      const matched = categories.find(c => 
+        c.slug === targetSlug || 
+        c.slug.includes(targetSlug) ||
+        c.name.toLowerCase().includes(targetSlug.replace('-drones', '')) ||
+        c.id.toString() === categoryParam
+      )
+      if (matched) {
+        setSelectedCategory(matched.id.toString())
+      }
+    }
+  }, [searchParams, categories])
+
   const handleAddToCart = (product: Product) => {
     if (product.stock_quantity === 0) {
       toast({
@@ -92,7 +120,7 @@ export default function ProductsPage() {
     toast({
       title: "🎉 Added to Cart!",
       description: `${product.name} has been added to your cart.`,
-      className: "border-green-200 bg-green-50 text-green-900",
+      variant: "success",
     })
   }
 
@@ -119,11 +147,13 @@ export default function ProductsPage() {
 
   // Filter and sort products
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.category?.name.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesSearch = (product.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (product.description || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (product.category?.name || "").toLowerCase().includes(searchQuery.toLowerCase())
 
-    const matchesCategory = selectedCategory === "all" || product.category?.id === selectedCategory
+    const matchesCategory = selectedCategory === "all" || 
+      String(product.category?.id) === String(selectedCategory) || 
+      String(product.category_id) === String(selectedCategory)
 
     const matchesPrice = (!priceRange.min || product.price >= parseFloat(priceRange.min)) &&
       (!priceRange.max || product.price <= parseFloat(priceRange.max))
@@ -142,6 +172,8 @@ export default function ProductsPage() {
         return a.name.localeCompare(b.name)
       case "name_desc":
         return b.name.localeCompare(a.name)
+      case "created_asc":
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       case "created_desc":
       default:
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -149,67 +181,88 @@ export default function ProductsPage() {
   })
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300">
       <ModernHeader />
 
-      <main className="flex-1 pt-20">
-        {/* Hero Header */}
-        <section className="bg-gradient-to-br from-slate-50 via-white to-blue-50 py-16">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <div className="flex items-center justify-center mb-6">
-                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center shadow-lg">
-                  <Package className="text-white h-8 w-8" />
-                </div>
+      <main className="flex-1">
+        {/* Elegant Editorial Hero Header */}
+        <section className="relative bg-background text-foreground pt-28 lg:pt-36 pb-16 border-b border-border overflow-hidden text-center">
+          <div className="absolute inset-0 bg-grid-pattern opacity-[0.01] pointer-events-none"></div>
+          <div className="container mx-auto px-6 relative z-10">
+            <div className="max-w-4xl mx-auto space-y-6">
+              {/* Custom Drone Schematic Logo */}
+              <div className="flex justify-center mb-2">
+                <svg className="w-20 h-20 text-primary animate-spin-slow" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <circle cx="50" cy="50" r="44" strokeDasharray="3 3" className="opacity-40" />
+                  <line x1="20" y1="20" x2="80" y2="80" />
+                  <line x1="80" y1="20" x2="20" y2="80" />
+                  <rect x="42" y="42" width="16" height="16" rx="3" className="fill-background stroke-primary" />
+                  <circle cx="50" cy="50" r="3" className="fill-primary animate-pulse" />
+                  <circle cx="20" cy="20" r="8" strokeDasharray="2 1" />
+                  <circle cx="80" cy="20" r="8" strokeDasharray="2 1" />
+                  <circle cx="20" cy="80" r="8" strokeDasharray="2 1" />
+                  <circle cx="80" cy="80" r="8" strokeDasharray="2 1" />
+                  <line x1="50" y1="50" x2="90" y2="50" strokeWidth="1" className="opacity-60" />
+                </svg>
               </div>
-              <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-                Drone <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Collection</span>
+
+              {/* Subtle top indicator */}
+              <div className="inline-flex items-center justify-center space-x-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary"></span>
+                <span className="text-[11px] font-bold tracking-[0.25em] text-slate-400 uppercase font-sans">
+                  Drone Inventory
+                </span>
+              </div>
+              {/* Beautiful massive editorial headline */}
+              <h1 className="text-5xl md:text-7xl font-light tracking-[-0.02em] font-serif text-slate-900 dark:text-slate-100 leading-tight">
+                Our Drone <span className="font-semibold text-primary">Collection</span>
               </h1>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-                Discover our premium selection of professional-grade drones and aerial equipment
+              {/* Large book-like italicized summary */}
+              <p className="text-xl md:text-2xl text-slate-750 dark:text-slate-300 italic max-w-3xl mx-auto leading-relaxed font-serif">
+                Discover our premium selection of professional-grade drones, customized payloads, and high-performance aerial equipment engineered for enterprise scale.
               </p>
             </div>
           </div>
         </section>
 
-        <div className="container mx-auto px-4 py-12">
+        <div className="container mx-auto px-6 py-12">
           {/* Filters and Search */}
           <div className="grid gap-6 lg:grid-cols-4 mb-8">
             {/* Filters Sidebar */}
             <div className={`lg:block ${showFilters ? 'block' : 'hidden'} lg:col-span-1`}>
-              <Card className="border-0 shadow-xl bg-white rounded-2xl sticky top-32">
+              <Card className="border border-border shadow-[0_4px_20px_rgba(0,0,0,0.015)] bg-card rounded-3xl sticky top-32 p-2 text-foreground">
                 <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center space-x-3 text-gray-900">
-                    <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
-                      <Filter className="h-4 w-4 text-white" />
+                  <CardTitle className="flex items-center space-x-3 text-foreground">
+                    <div className="h-8 w-8 rounded-full border border-border flex items-center justify-center bg-card shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
+                      <Filter className="h-3.5 w-3.5 text-primary" />
                     </div>
-                    <span className="text-xl font-bold">Filters</span>
+                    <span className="text-lg font-serif font-normal">Filters</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {/* Search */}
-                  <div>
-                    <Label htmlFor="search" className="text-sm font-semibold text-gray-700">Search Products</Label>
-                    <div className="relative mt-2">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <div className="space-y-2">
+                    <Label htmlFor="search" className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-sans">Search Products</Label>
+                    <div className="relative">
+                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <Input
                         id="search"
                         placeholder="Search drones..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10 rounded-xl border-2 border-gray-200 focus:border-blue-500 transition-colors"
+                        className="pl-11 rounded-full border border-border bg-card text-foreground focus:ring-1 focus:ring-primary focus:border-primary font-sans text-sm transition-all"
                       />
                     </div>
                   </div>
 
                   {/* Category Filter */}
-                  <div>
-                    <Label className="text-sm font-semibold text-gray-700">Category</Label>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-sans">Category</Label>
                     <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                      <SelectTrigger className="mt-2 rounded-xl border-2 border-gray-200 focus:border-blue-500 transition-colors">
+                      <SelectTrigger className="rounded-full border border-border bg-card text-foreground focus:ring-1 focus:ring-primary focus:border-primary font-sans text-sm transition-all">
                         <SelectValue placeholder="All Categories" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl">
+                      <SelectContent className="rounded-2xl">
                         <SelectItem value="all">All Categories</SelectItem>
                         {categories.map((category) => (
                           <SelectItem key={category.id} value={category.id}>
@@ -221,22 +274,22 @@ export default function ProductsPage() {
                   </div>
 
                   {/* Price Range */}
-                  <div>
-                    <Label className="text-sm font-semibold text-gray-700">Price Range (₹)</Label>
-                    <div className="grid grid-cols-2 gap-3 mt-2">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-sans">Price Range (₹)</Label>
+                    <div className="grid grid-cols-2 gap-3">
                       <Input
                         placeholder="Min"
                         type="number"
                         value={priceRange.min}
                         onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
-                        className="rounded-xl border-2 border-gray-200 focus:border-blue-500 transition-colors"
+                        className="rounded-full border border-border bg-card text-foreground focus:ring-1 focus:ring-primary focus:border-primary font-sans text-sm transition-all"
                       />
                       <Input
                         placeholder="Max"
                         type="number"
                         value={priceRange.max}
                         onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
-                        className="rounded-xl border-2 border-gray-200 focus:border-blue-500 transition-colors"
+                        className="rounded-full border border-border bg-card text-foreground focus:ring-1 focus:ring-primary focus:border-primary font-sans text-sm transition-all"
                       />
                     </div>
                   </div>
@@ -249,9 +302,8 @@ export default function ProductsPage() {
                       setSelectedCategory("all")
                       setPriceRange({ min: "", max: "" })
                     }}
-                    className="w-full rounded-xl border-2 border-gray-300 hover:bg-gray-50 transition-all duration-300"
+                    className="w-full rounded-full border border-border hover:bg-muted text-muted-foreground transition-all duration-300 font-sans text-xs font-semibold uppercase tracking-wider"
                   >
-                    <Zap className="h-4 w-4 mr-2" />
                     Clear Filters
                   </Button>
                 </CardContent>
@@ -260,21 +312,20 @@ export default function ProductsPage() {
 
             {/* Products Grid */}
             <div className="lg:col-span-3">
-              {/* Toolbar */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
+              {/* Toolbar              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8 bg-card/50 border border-border p-4 rounded-3xl backdrop-blur-sm shadow-[0_2px_12px_rgba(0,0,0,0.01)]">
                 <div className="flex items-center space-x-6">
                   <Button
                     variant="outline"
                     onClick={() => setShowFilters(!showFilters)}
-                    className="lg:hidden rounded-xl border-2 border-gray-300 hover:bg-gray-50 transition-all duration-300"
+                    className="lg:hidden rounded-full border border-border hover:bg-muted text-foreground transition-all duration-300 font-sans text-xs font-semibold uppercase tracking-wider"
                   >
-                    <SlidersHorizontal className="h-4 w-4 mr-2" />
+                    <SlidersHorizontal className="h-3.5 w-3.5 mr-2" />
                     Filters
                   </Button>
 
                   <div className="flex items-center space-x-2">
-                    <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                    <p className="text-sm font-medium text-gray-600">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                    <p className="text-xs font-semibold text-slate-550 dark:text-slate-400 font-sans tracking-wide uppercase">
                       {isGlobalLoading ? "Updating..." : `${sortedProducts.length} products available`}
                     </p>
                   </div>
@@ -282,27 +333,27 @@ export default function ProductsPage() {
 
                 <div className="flex items-center space-x-4">
                   <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-52 rounded-xl border-2 border-gray-200 focus:border-blue-500 transition-colors">
+                    <SelectTrigger className="w-52 rounded-full border border-border bg-card text-foreground focus:ring-1 focus:ring-primary focus:border-primary font-sans text-xs font-semibold tracking-wider uppercase transition-all">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      <SelectItem value="created_desc">✨ Newest First</SelectItem>
-                      <SelectItem value="created_asc">📅 Oldest First</SelectItem>
-                      <SelectItem value="price_asc">💰 Price: Low to High</SelectItem>
-                      <SelectItem value="price_desc">💎 Price: High to Low</SelectItem>
-                      <SelectItem value="name_asc">🔤 Name: A to Z</SelectItem>
-                      <SelectItem value="name_desc">🔢 Name: Z to A</SelectItem>
+                    <SelectContent className="rounded-2xl">
+                      <SelectItem value="created_desc">Newest First</SelectItem>
+                      <SelectItem value="created_asc">Oldest First</SelectItem>
+                      <SelectItem value="price_asc">Price: Low to High</SelectItem>
+                      <SelectItem value="price_desc">Price: High to Low</SelectItem>
+                      <SelectItem value="name_asc">Name: A to Z</SelectItem>
+                      <SelectItem value="name_desc">Name: Z to A</SelectItem>
                     </SelectContent>
                   </Select>
 
-                  <div className="flex bg-gray-100 rounded-xl p-1">
+                  <div className="flex bg-muted rounded-full p-1">
                     <Button
                       variant={viewMode === "grid" ? "default" : "ghost"}
                       size="sm"
                       onClick={() => setViewMode("grid")}
-                      className={`rounded-lg transition-all duration-300 ${viewMode === "grid"
-                        ? "bg-white shadow-md text-blue-600"
-                        : "hover:bg-gray-200 text-gray-600"
+                      className={`rounded-full transition-all duration-300 px-3 py-1 ${viewMode === "grid"
+                        ? "bg-card shadow-sm text-primary"
+                        : "hover:bg-muted text-muted-foreground"
                         }`}
                     >
                       <Grid className="h-4 w-4" />
@@ -311,9 +362,9 @@ export default function ProductsPage() {
                       variant={viewMode === "list" ? "default" : "ghost"}
                       size="sm"
                       onClick={() => setViewMode("list")}
-                      className={`rounded-lg transition-all duration-300 ${viewMode === "list"
-                        ? "bg-white shadow-md text-blue-600"
-                        : "hover:bg-gray-200 text-gray-600"
+                      className={`rounded-full transition-all duration-300 px-3 py-1 ${viewMode === "list"
+                        ? "bg-card shadow-sm text-primary"
+                        : "hover:bg-muted text-muted-foreground"
                         }`}
                     >
                       <List className="h-4 w-4" />
@@ -327,27 +378,27 @@ export default function ProductsPage() {
                 {isGlobalLoading && products.length === 0 ? (
                   <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
                     {[1, 2, 3, 4, 5, 6].map((i) => (
-                      <Card key={i} className="border-0 shadow-xl bg-white rounded-2xl animate-pulse overflow-hidden">
-                        <div className="aspect-square bg-gradient-to-br from-gray-200 to-gray-300"></div>
+                      <Card key={i} className="border-0 shadow-[0_4px_20px_rgba(0,0,0,0.015)] bg-card rounded-3xl animate-pulse overflow-hidden">
+                        <div className="aspect-square bg-muted"></div>
                         <CardContent className="p-6">
                           <div className="space-y-4">
-                            <div className="h-5 bg-gray-200 rounded-lg w-3/4"></div>
-                            <div className="h-4 bg-gray-200 rounded-lg w-1/2"></div>
-                            <div className="h-8 bg-gray-200 rounded-lg w-1/3"></div>
-                            <div className="h-10 bg-gray-200 rounded-xl"></div>
+                            <div className="h-5 bg-muted rounded-full w-3/4"></div>
+                            <div className="h-4 bg-muted rounded-full w-1/2"></div>
+                            <div className="h-8 bg-muted rounded-full w-1/3"></div>
+                            <div className="h-10 bg-muted rounded-full"></div>
                           </div>
                         </CardContent>
                       </Card>
                     ))}
                   </div>
                 ) : sortedProducts.length === 0 ? (
-                  <Card className="border-0 shadow-xl bg-white rounded-2xl">
+                  <Card className="border border-border shadow-[0_4px_20px_rgba(0,0,0,0.015)] bg-card rounded-3xl">
                     <CardContent className="p-16 text-center">
-                      <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-8">
-                        <Package className="h-12 w-12 text-gray-400" />
+                      <div className="w-16 h-16 border border-border bg-background rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                        <Package className="h-6 w-6 text-slate-400 stroke-[1.5]" />
                       </div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-4">No products found</h3>
-                      <p className="text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
+                      <h3 className="text-2xl font-serif font-normal text-slate-900 mb-4">No products found</h3>
+                      <p className="text-slate-600 font-serif mb-8 max-w-md mx-auto leading-relaxed">
                         We couldn't find any products matching your criteria. Try adjusting your filters or search terms.
                       </p>
                       <Button
@@ -356,9 +407,8 @@ export default function ProductsPage() {
                           setSelectedCategory("all")
                           setPriceRange({ min: "", max: "" })
                         }}
-                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl px-8 py-3 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                        className="bg-foreground hover:bg-primary text-background rounded-full px-8 py-3 font-sans text-xs font-semibold uppercase tracking-wider shadow-md transition-all duration-300 hover:scale-[1.02] cursor-pointer"
                       >
-                        <Zap className="h-4 w-4 mr-2" />
                         Clear All Filters
                       </Button>
                     </CardContent>
@@ -367,7 +417,7 @@ export default function ProductsPage() {
                   <div className={`grid gap-6 ${viewMode === "grid"
                     ? "md:grid-cols-2 xl:grid-cols-3"
                     : "grid-cols-1"
-                    } transition-all duration-300 ${!isAdmin ? 'filter blur-sm select-none pointer-events-none opacity-50' : ''}`}>
+                    } transition-all duration-300`}>
                     {sortedProducts.map((product) => (
                       <ModernProductCard
                         key={product.id}
@@ -391,7 +441,7 @@ export default function ProductsPage() {
 
                 {/* Locked Overlay */}
                 <ComingSoonOverlay
-                  show={!isAdmin}
+                  show={false}
                   description="Our premium collection is currently being curated. Stay tuned for exclusive launches and expert-level equipment."
                 />
               </div>

@@ -108,7 +108,7 @@ export default function AdminCustomers() {
           </Card>
           <Card className="border-0 shadow-sm border border-gray-100 rounded-2xl">
             <CardContent className="p-6">
-              <div className="text-2xl font-bold text-orange-600">
+              <div className="text-2xl font-bold text-blue-600 dark:text-orange-500">
                 {Math.round((customers.filter(c => c.is_active).length / (customers.length || 1)) * 100)}%
               </div>
               <p className="text-sm text-muted-foreground">Engagement Rate</p>

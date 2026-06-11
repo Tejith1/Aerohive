@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import Link from "next/link"
 import { ShoppingCart, User, LogOut, Plane, Shield, Menu, X, ChevronDown } from "lucide-react"
@@ -46,9 +46,6 @@ export function Header() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center shadow-lg">
-              <Plane className="text-white h-6 w-6" />
-            </div>
             <span className="font-bold text-2xl bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
               AeroHive
             </span>
@@ -147,7 +144,7 @@ export function Header() {
               <Link href="/cart">
                 <ShoppingCart className="h-5 w-5" />
                 {cartItemCount > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-gradient-to-r from-orange-500 to-red-500 border-0">
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-orange-500 dark:to-orange-600 border-0">
                     {cartItemCount}
                   </Badge>
                 )}

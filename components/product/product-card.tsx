@@ -57,7 +57,7 @@ export function ProductCard({ product }: ProductCardProps) {
     toast({
       title: "🎉 Added to Cart!",
       description: `${product.name} has been added to your cart.`,
-      className: "border-green-200 bg-green-50 text-green-900",
+      variant: "success",
     })
   }
 

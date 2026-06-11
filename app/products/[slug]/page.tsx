@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Header } from "@/components/layout/header"
+import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
 import Link from "next/link"
 import { getProducts, Product } from "@/lib/supabase"
@@ -52,8 +52,8 @@ export default function ProductDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
-        <Header />
+      <div className="min-h-screen flex flex-col bg-[#fbf9f6] text-[#191919]">
+        <ModernHeader />
         <main className="flex-1 container mx-auto px-4 py-8">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
@@ -128,8 +128,8 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
-      <Header />
+    <div className="min-h-screen flex flex-col bg-[#fbf9f6] text-[#191919]">
+      <ModernHeader />
 
       <main className="flex-1 container mx-auto px-4 py-8">
         {/* Breadcrumb */}
@@ -151,7 +151,7 @@ export default function ProductDetailPage() {
                 className="w-full h-full object-cover"
               />
               {product.is_featured && (
-                <Badge className="absolute top-4 left-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white">
+                <Badge className="absolute top-4 left-4 bg-gradient-to-r from-yellow-500 to-amber-500 dark:from-orange-500 dark:to-amber-500 text-white">
                   Featured
                 </Badge>
               )}
@@ -262,7 +262,7 @@ export default function ProductDetailPage() {
                   </Button>
                 </div>
                 {product.stock_quantity < 10 && (
-                  <Badge variant="outline" className="text-orange-600">
+                  <Badge variant="outline" className="text-blue-600 dark:text-orange-400">
                     Only {product.stock_quantity} left
                   </Badge>
                 )}
@@ -392,7 +392,7 @@ export default function ProductDetailPage() {
                   {/* Power & Physical */}
                   <div>
                     <h4 className="font-semibold text-lg mb-6 flex items-center">
-                      <Battery className="h-5 w-5 mr-2 text-orange-600" />
+                      <Battery className="h-5 w-5 mr-2 text-blue-600 dark:text-orange-400" />
                       Power & Physical
                     </h4>
                     <div className="space-y-4">

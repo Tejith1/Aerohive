@@ -61,11 +61,11 @@ export function generateEmailHtml(type: 'client' | 'pilot' | 'client_declined', 
     const isPilot = type === 'pilot'
     const isDeclined = type === 'client_declined'
 
-
-    // Theme values matching Aerohive pastel teal palette
-    const headerBg = '#bfe3e7'
-    const headerText = '#0f768a'
-    const btnColor = '#0f768a'
+    // Theme values matching Aerohive brand terracotta palette
+    const headerBg = '#fdf4f2'
+    const headerText = '#e65737'
+    const btnColor = '#e65737'
+    const btnHover = '#cc5032'
 
     // Build the dynamic greeting and introductory paragraph
     let greeting = ''
@@ -85,38 +85,57 @@ export function generateEmailHtml(type: 'client' | 'pilot' | 'client_declined', 
     const detailsHtml = isPilot ? `
         <tr>
             <td style="width: 50%; padding: 12px 15px; border-bottom: 1px solid #eef2f3;">
-                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Pilot Name</div>
-                <div style="font-size: 14px; font-weight: 600; color: #2d3748; margin-top: 3px;">${d.pilotName || 'N/A'}</div>
+                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Client Name</div>
+                <div style="font-size: 14px; font-weight: 600; color: #1e293b; margin-top: 3px;">${d.clientName || 'N/A'}</div>
             </td>
             <td style="width: 50%; padding: 12px 15px; border-bottom: 1px solid #eef2f3;">
                 <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Mission Category</div>
-                <div style="font-size: 14px; font-weight: 600; color: #2d3748; margin-top: 3px;">${d.serviceType || 'General'}</div>
+                <div style="font-size: 14px; font-weight: 600; color: #1e293b; margin-top: 3px;">${d.serviceType || 'General'}</div>
             </td>
         </tr>
         <tr>
             <td style="width: 50%; padding: 12px 15px; border-bottom: 1px solid #eef2f3;">
-                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Client Name</div>
-                <div style="font-size: 14px; font-weight: 600; color: #2d3748; margin-top: 3px;">${d.clientName || 'N/A'}</div>
+                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Client Phone</div>
+                <div style="font-size: 14px; font-weight: 600; color: #1e293b; margin-top: 3px;">${d.clientPhone || 'N/A'}</div>
             </td>
             <td style="width: 50%; padding: 12px 15px; border-bottom: 1px solid #eef2f3;">
-                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Client Contact</div>
-                <div style="font-size: 14px; font-weight: 600; color: #2d3748; margin-top: 3px;">${d.clientPhone || 'N/A'}</div>
+                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Client Email</div>
+                <div style="font-size: 13px; font-weight: 600; color: #1e293b; margin-top: 3px;">${d.clientEmail || 'N/A'}</div>
+            </td>
+        </tr>
+        <tr>
+            <td style="width: 50%; padding: 12px 15px; border-bottom: 1px solid #eef2f3;">
+                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Flight Date &amp; Time</div>
+                <div style="font-size: 13px; font-weight: 600; color: #1e293b; margin-top: 3px;">${d.scheduledAt || 'N/A'}</div>
+            </td>
+            <td style="width: 50%; padding: 12px 15px; border-bottom: 1px solid #eef2f3;">
+                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Flight Duration</div>
+                <div style="font-size: 14px; font-weight: 600; color: #1e293b; margin-top: 3px;">${d.durationHours || 1} Hour(s)</div>
             </td>
         </tr>
         <tr>
             <td colspan="2" style="padding: 12px 15px; border-bottom: 1px solid #eef2f3;">
                 <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Flight Location</div>
-                <div style="font-size: 13px; font-weight: 600; color: #2d3748; margin-top: 3px; line-height: 1.4;">${d.location || 'N/A'}</div>
+                <div style="font-size: 13px; font-weight: 600; color: #1e293b; margin-top: 3px; line-height: 1.4;">${d.location || 'N/A'}</div>
+                ${d.googleMapsLink ? `
+                <div style="margin-top: 6px;">
+                    <a href="${d.googleMapsLink}" target="_blank" style="font-size: 12px; color: #e65737; font-weight: bold; text-decoration: underline;">🗺️ Open in Google Maps</a>
+                </div>
+                ` : ''}
             </td>
         </tr>
+        ${d.requirements ? `
         <tr>
-            <td style="width: 50%; padding: 12px 15px;">
-                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Duration</div>
-                <div style="font-size: 14px; font-weight: 600; color: #2d3748; margin-top: 3px;">${d.durationHours || 1} Hour(s)</div>
+            <td colspan="2" style="padding: 12px 15px; border-bottom: 1px solid #eef2f3; background-color: #fdfaf7;">
+                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Special Instructions &amp; Requirements</div>
+                <div style="font-size: 13px; font-style: italic; color: #4a5568; margin-top: 4px; line-height: 1.45;">&ldquo;${d.requirements}&rdquo;</div>
             </td>
-            <td style="width: 50%; padding: 12px 15px;">
+        </tr>
+        ` : ''}
+        <tr>
+            <td colspan="2" style="padding: 12px 15px;">
                 <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Estimated Earnings</div>
-                <div style="font-size: 15px; font-weight: 700; color: #0f768a; margin-top: 3px;">${d.estimatedAmount || 'Contact support'}</div>
+                <div style="font-size: 16px; font-weight: 700; color: #e65737; margin-top: 3px;">${d.estimatedAmount || 'Contact support'}</div>
             </td>
         </tr>
     ` : `
@@ -156,28 +175,28 @@ export function generateEmailHtml(type: 'client' | 'pilot' | 'client_declined', 
     let checklistHtml = ''
     if (isPilot) {
         checklistHtml = `
-            <div style="background-color: #f4fbfc; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+            <div style="background-color: #fffaf8; border-radius: 12px; padding: 20px; margin-bottom: 30px; border: 1px solid #f9d5cd;">
                 <div style="margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px;">
-                    <span style="color: #4caf50; font-weight: bold; font-size: 16px;">☑</span>
+                    <span style="color: #e65737; font-weight: bold; font-size: 16px;">☑</span>
                     <span style="font-size: 13.5px; color: #4a5568; line-height: 1.45;">Premium compensation &amp; travel allowance covered.</span>
                 </div>
                 <div style="margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px;">
-                    <span style="color: #4caf50; font-weight: bold; font-size: 16px;">☑</span>
+                    <span style="color: #e65737; font-weight: bold; font-size: 16px;">☑</span>
                     <span style="font-size: 13.5px; color: #4a5568; line-height: 1.45;">Encrypted flight security OTP must be verified at the site.</span>
                 </div>
                 <div style="margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px;">
-                    <span style="color: #4caf50; font-weight: bold; font-size: 16px;">☑</span>
+                    <span style="color: #e65737; font-weight: bold; font-size: 16px;">☑</span>
                     <span style="font-size: 13.5px; color: #4a5568; line-height: 1.45;">High-definition mapping overlays synced to your dashboard.</span>
                 </div>
                 <div style="display: flex; align-items: flex-start; gap: 10px;">
-                    <span style="color: #4caf50; font-weight: bold; font-size: 16px;">☑</span>
+                    <span style="color: #e65737; font-weight: bold; font-size: 16px;">☑</span>
                     <span style="font-size: 13.5px; color: #4a5568; line-height: 1.45;">Direct digital payments triggered on client security release.</span>
                 </div>
             </div>
         `
     } else if (isDeclined) {
         checklistHtml = `
-            <div style="background-color: #fcf4f4; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+            <div style="background-color: #fcf4f4; border-radius: 12px; padding: 20px; margin-bottom: 30px; border: 1px solid #f8d7da;">
                 <div style="margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px;">
                     <span style="color: #e53e3e; font-weight: bold; font-size: 16px;">⚠</span>
                     <span style="font-size: 13.5px; color: #4a5568; line-height: 1.45;">Automatic search routing for a closer replacement pilot is active.</span>
@@ -194,38 +213,38 @@ export function generateEmailHtml(type: 'client' | 'pilot' | 'client_declined', 
         `
     } else {
         checklistHtml = `
-            <div style="background-color: #f4fbfc; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+            <div style="background-color: #fffaf8; border-radius: 12px; padding: 20px; margin-bottom: 30px; border: 1px solid #f9d5cd;">
                 <div style="margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px;">
-                    <span style="color: #4caf50; font-weight: bold; font-size: 16px;">☑</span>
+                    <span style="color: #e65737; font-weight: bold; font-size: 16px;">☑</span>
                     <span style="font-size: 13.5px; color: #4a5568; line-height: 1.45;">Explore nearest certified drone pilots across custom radiuses.</span>
                 </div>
                 <div style="margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px;">
-                    <span style="color: #4caf50; font-weight: bold; font-size: 16px;">☑</span>
+                    <span style="color: #e65737; font-weight: bold; font-size: 16px;">☑</span>
                     <span style="font-size: 13.5px; color: #4a5568; line-height: 1.45;">Get real-time location telemetry &amp; live pilot arrival tracking.</span>
                 </div>
                 <div style="margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px;">
-                    <span style="color: #4caf50; font-weight: bold; font-size: 16px;">☑</span>
+                    <span style="color: #e65737; font-weight: bold; font-size: 16px;">☑</span>
                     <span style="font-size: 13.5px; color: #4a5568; line-height: 1.45;">Enjoy direct secure UPI payouts and detailed receipts.</span>
                 </div>
                 <div style="display: flex; align-items: flex-start; gap: 10px;">
-                    <span style="color: #4caf50; font-weight: bold; font-size: 16px;">☑</span>
+                    <span style="color: #e65737; font-weight: bold; font-size: 16px;">☑</span>
                     <span style="font-size: 13.5px; color: #4a5568; line-height: 1.45;">Easily track your current mission parameters on our hub.</span>
                 </div>
             </div>
         `
     }
 
-    // Build segmented custom digital boxes for OTP just like in Image 2
+    // Build segmented custom digital boxes for OTP
     let otpSegmentedHtml = ''
     if (!isPilot && !isDeclined && d.otp) {
         const otpStr = String(d.otp).trim()
         const otpChars = otpStr.split('')
         const boxes = otpChars.map(char => `
-            <span style="display: inline-block; width: 44px; height: 44px; line-height: 44px; text-align: center; font-size: 22px; font-weight: 800; color: #0f768a; background-color: #e6f4f6; border: 1.5px solid #bfe3e7; border-radius: 8px; margin: 0 4px; font-family: 'Helvetica Neue', Arial, sans-serif;">${char}</span>
+            <span style="display: inline-block; width: 44px; height: 44px; line-height: 44px; text-align: center; font-size: 22px; font-weight: 800; color: #e65737; background-color: #fdf4f2; border: 1.5px solid #f9d5cd; border-radius: 8px; margin: 0 4px; font-family: 'Helvetica Neue', Arial, sans-serif;">${char}</span>
         `).join('')
 
         otpSegmentedHtml = `
-            <div style="text-align: center; background-color: #f7fbfb; border: 1px dashed #bfe3e7; border-radius: 16px; padding: 25px; margin: 30px 0;">
+            <div style="text-align: center; background-color: #fdfdfd; border: 1px dashed #f9d5cd; border-radius: 16px; padding: 25px; margin: 30px 0;">
                 <div style="font-size: 12px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 15px;">Your Booking Security Code</div>
                 <div style="margin-bottom: 15px;">
                     ${boxes}
@@ -305,7 +324,7 @@ export function generateEmailHtml(type: 'client' | 'pilot' | 'client_declined', 
 
                             <p style="font-size: 14px; color: #4a5568; margin-bottom: 5px; line-height: 1.4;">
                                 Best Regards,<br>
-                                <strong style="color: #2d3748;">Team Aerohive</strong>
+                                Team Aerohive
                             </p>
                         </td>
                     </tr>
@@ -313,12 +332,12 @@ export function generateEmailHtml(type: 'client' | 'pilot' | 'client_declined', 
                     <!-- Footer divider and logo tag -->
                     <tr>
                         <td align="center" style="padding: 20px 35px 35px 35px; background-color: #fafbfc; border-top: 1px solid #f0f3f4;">
-                            <div style="font-size: 15px; font-weight: 700; color: #0f768a; margin-bottom: 8px;">
+                            <div style="font-size: 15px; font-weight: 700; color: #e65737; margin-bottom: 8px;">
                                 AeroHive Network
                             </div>
                             <div style="font-size: 11.5px; color: #9aa3a6; line-height: 1.45;">
-                                &copy; 2026 aerohive.com.lk &bull; Secure Drone Operations<br>
-                                Need help? Contact our <a href="mailto:aerohive.help@gmail.com" style="color: #0f768a; text-decoration: none; font-weight: 600;">Support Desk</a>
+                                &copy; 2026 aerohive.com &bull; Secure Drone Operations<br>
+                                Need help? Contact our <a href="mailto:aerohive.help@gmail.com" style="color: #e65737; text-decoration: none; font-weight: 600;">Support Desk</a>
                             </div>
                         </td>
                     </tr>
