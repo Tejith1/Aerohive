@@ -103,13 +103,33 @@ async def create_booking(req: BookingRequest):
                 pilot_res = supabase.table('drone_pilots').select("*").eq('id', req.pilot_id).single().execute()
                 pilot_data = pilot_res.data or {}
                 
-                # Fetch Client Data (from auth.users if available, or just use what we have)
-                # For demo, we assume the req contains enough or we fetch more
+                # Fetch Client Data dynamically from the users table
                 user_data = {"name": "Valued Client", "email": "client@example.com", "phone": "1234567890"}
+                if req.client_id:
+                    try:
+                        user_res = supabase.table('users').select("*").eq('id', req.client_id).single().execute()
+                        if user_res.data:
+                            user_info = user_res.data
+                            first_name = user_info.get("first_name") or ""
+                            last_name = user_info.get("last_name") or ""
+                            user_data = {
+                                "name": f"{first_name} {last_name}".strip() or "Valued Client",
+                                "email": user_info.get("email") or "client@example.com",
+                                "phone": user_info.get("phone") or "1234567890"
+                            }
+                    except Exception as user_err:
+                        print(f"DEBUG: Failed to fetch user details: {user_err}")
                 
                 from notifications import notifier
                 notifier.send_booking_notifications(
-                    booking_data={"id": booking_id, "service_type": req.service_type, "scheduled_at": req.scheduled_at, "requirements": req.requirements},
+                    booking_data={
+                        "id": booking_id,
+                        "service_type": req.service_type,
+                        "scheduled_at": req.scheduled_at,
+                        "requirements": req.requirements,
+                        "lat": req.lat,
+                        "lng": req.lng
+                    },
                     pilot_data=pilot_data,
                     user_data=user_data
                 )

@@ -32,6 +32,13 @@ class NotificationService:
         self._send_sms(user_data.get('phone'), f"AeroHive: Booking {booking_data.get('id')} confirmed with pilot {pilot_data.get('full_name')}.")
 
         # 2. Notify Pilot
+        lat = booking_data.get('lat')
+        lng = booking_data.get('lng')
+        location_str = "N/A"
+        if lat is not None and lng is not None:
+            google_maps_link = f"https://www.google.com/maps/search/?api=1&query={lat},{lng}"
+            location_str = f"Latitude: {lat}, Longitude: {lng}\n        Maps Link: {google_maps_link}"
+
         pilot_email_body = f"""
         Hello {pilot_data.get('full_name')},
         
@@ -41,12 +48,22 @@ class NotificationService:
         Scheduled Time: {booking_data.get('scheduled_at')}
         Requirements: {booking_data.get('requirements')}
         
-        Please log in to the Pilot Portal to view mission details and location.
+        Client Details:
+        - Name: {user_data.get('name', 'N/A')}
+        - Phone: {user_data.get('phone', 'N/A')}
+        - Email: {user_data.get('email', 'N/A')}
+        
+        Flight Location:
+        - Co-ordinates: {location_str}
+        
+        Please log in to the Pilot Portal to view mission details and confirm acceptance.
         
         AeroHive Ops
         """
         self._send_email(pilot_data.get('email'), f"New Mission Assigned: {booking_data.get('id')}", pilot_email_body)
-        self._send_sms(pilot_data.get('phone'), f"AeroHive: New mission {booking_data.get('id')} assigned to you. Check portal for details.")
+        
+        pilot_sms_text = f"AeroHive: New mission {booking_data.get('id')} assigned to you. Client: {user_data.get('name', 'N/A')}, Location: {lat},{lng}. Check portal for details."
+        self._send_sms(pilot_data.get('phone'), pilot_sms_text)
 
     def _send_email(self, to_email: str, subject: str, body: str):
         if not all([self.smtp_user, self.smtp_pass, to_email]):
