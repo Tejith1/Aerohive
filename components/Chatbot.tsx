@@ -669,7 +669,7 @@ export default function Chatbot() {
 
             <div className="fixed bottom-5 right-5 z-[50] flex flex-col items-end aero-font">
                 {isOpen && (
-                    <Card className="w-[430px] mb-4 shadow-[0_20px_50px_rgba(28,26,22,0.15)] border border-[#e5dfd3] animate-in slide-in-from-bottom-6 duration-300 bg-[#fbfaf7] overflow-hidden flex flex-col rounded-[24px]">
+                    <Card className="w-[430px] h-[600px] max-h-[calc(100vh-120px)] mb-4 shadow-[0_20px_50px_rgba(28,26,22,0.15)] border border-[#e5dfd3] animate-in slide-in-from-bottom-6 duration-300 bg-[#fbfaf7] overflow-hidden flex flex-col rounded-[24px]">
                         <div className="p-5 border-b border-[#e5dfd3] flex items-center justify-between bg-[#fbfaf7] text-[#191919]">
                             <div className="flex items-center gap-3">
                                 <div className="h-9 w-9 bg-white rounded-xl flex items-center justify-center border border-[#e5dfd3] shadow-sm p-1">
@@ -706,9 +706,9 @@ export default function Chatbot() {
                             </Button>
                         </div>
 
-                        <CardContent className="p-0 flex flex-col h-[530px]">
+                        <CardContent className="p-0 flex flex-col flex-1 min-h-0">
                             {/* Messages Scroll Area */}
-                            <ScrollArea className="flex-1 p-5 overscroll-contain bg-[#fbfaf7]">
+                            <ScrollArea className="flex-1 p-5 overscroll-contain bg-[#fbfaf7] overflow-hidden">
                                 <div className="flex flex-col gap-6">
                                     
                                     {/* Claude-grade Warm Greeting grid */}

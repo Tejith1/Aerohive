@@ -166,12 +166,12 @@ export function ModernHeader() {
             <img
               src="/Aerohive text logo scaled up.png"
               alt="AeroHive Logo"
-              className="h-8 w-auto object-contain transition-all duration-300"
+              className="h-6 w-auto object-contain transition-all duration-300"
             />
           </Link>
 
           {/* Desktop Navigation with Claude-Style Hover Mega Menus */}
-          <nav className="hidden lg:flex items-center space-x-1">
+          <nav className="hidden lg:flex items-center space-x-1 ml-8">
             {navigationLinks.map((link) => (
               link.hasMegaMenu ? (
                 <div
