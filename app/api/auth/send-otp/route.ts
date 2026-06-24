@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseAdminWithRetry } from '@/lib/supabase-admin'
 import { sendEmailDirect } from '@/lib/email'
 
 const MEDIATOR_EMAIL = 'aerohive.help@gmail.com'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-service-role-key'
-const supabase = createClient(supabaseUrl, supabaseKey)
+const supabase = getSupabaseAdminWithRetry()
 
 /**
  * Aerohive Phone Verification API

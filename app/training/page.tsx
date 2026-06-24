@@ -368,7 +368,8 @@ export default function TrainingPage() {
       {/* Content Section */}
       <section className="py-12 relative bg-background">
         <div className="container mx-auto px-4">
-          {activeTab === "courses" ? (
+          <div className={!isAdmin && !authLoading ? "opacity-20 blur-sm pointer-events-none transition-all duration-300" : "transition-all duration-300"}>
+            {activeTab === "courses" ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
               {filteredCourses.map((course) => {
                 const provider = getProviderById(course.providerId)
@@ -573,9 +574,11 @@ export default function TrainingPage() {
               </div>
             )}
 
+          </div>
           <ComingSoonOverlay
-            show={false}
-            description="Our drone training and certification programs are being developed. Expert training courses will be available soon."
+            show={!isAdmin && !authLoading}
+            title="Access Restricted"
+            description="This section is locked for regular customers. Only administrators can access this content."
           />
         </div>
       </section>

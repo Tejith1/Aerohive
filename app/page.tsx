@@ -13,7 +13,6 @@ import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
 import { FAQSection } from "@/components/layout/faq-section"
 import { FeaturesGrid } from "@/components/sections/features-grid"
-import { TelemetryConsole } from "@/components/sections/telemetry-console"
 import { useCartStore } from "@/lib/cart-store"
 import { toast } from "@/hooks/use-toast"
 import { getProducts, Product } from "@/lib/supabase"
@@ -686,7 +685,6 @@ export default function HomePage() {
         </motion.section>
 
         {/* Interactive Autonomous Planner & Features Grid */}
-        <TelemetryConsole />
         <FeaturesGrid />
       </main>
 

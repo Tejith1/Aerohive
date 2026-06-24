@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null
+import { getSupabaseAdminWithRetry } from '@/lib/supabase-admin'
 
 const MAX_BOOKINGS = 2
 
@@ -18,6 +14,8 @@ export async function GET(request: NextRequest) {
                 { status: 400 }
             )
         }
+
+        const supabase = getSupabaseAdminWithRetry()
 
         if (!supabase) {
             // No database - allow booking (for dev/testing)

@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseAdminWithRetry } from '@/lib/supabase-admin'
 import { sendEmailDirect, type BookingEmailDetails } from '@/lib/email'
-
-// Initialize Supabase
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null
 
 // Generate booking ID with strict hashtag format
 function generateBookingId(): string {
@@ -71,6 +66,7 @@ async function sendSMS(baseUrl: string, to: string, message: string) {
 
 export async function POST(request: NextRequest) {
     try {
+        const supabase = getSupabaseAdminWithRetry()
         const body = await request.json()
         const {
             client_id,

@@ -259,23 +259,7 @@ export default function RepairServicesPage() {
   const [filteredCenters, setFilteredCenters] = useState(repairCenters)
   const [selectedCenter, setSelectedCenter] = useState<RepairCenter | null>(null)
   const { isAdmin, isLoading: authLoading } = useAuth()
-  const [isSyncing, setIsSyncing] = useState(true)
-
-  // Use a safety timeout for loading state
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsSyncing(false)
-    }, 5000)
-    return () => clearTimeout(timer)
-  }, [])
-
-  useEffect(() => {
-    if (!authLoading) {
-      setIsSyncing(false)
-    }
-  }, [authLoading])
-
-  const isLoading = authLoading || isSyncing
+  const isLoading = authLoading
 
   useEffect(() => {
     let filtered = repairCenters.filter(center => {
@@ -418,7 +402,8 @@ export default function RepairServicesPage() {
       {/* Repair Centers Grid */}
       <section className="py-12 relative bg-background">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+          <div className={!isAdmin && !isLoading ? "opacity-20 blur-sm pointer-events-none transition-all duration-300" : "transition-all duration-300"}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
             {filteredCenters.map((center) => (
               <Card key={center.id} className="overflow-hidden hover:shadow-xl transition-all duration-350 border border-border bg-card rounded-3xl">
                 <CardHeader className="pb-4">
@@ -572,9 +557,11 @@ export default function RepairServicesPage() {
             </div>
           )}
 
+          </div>
           <ComingSoonOverlay
-            show={false}
-            description="Our drone repair services network is being established. Certified repair centers will be available soon."
+            show={!isAdmin && !isLoading}
+            title="Access Restricted"
+            description="This section is locked for regular customers. Only administrators can access this content."
           />
         </div>
       </section>

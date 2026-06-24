@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -26,6 +26,11 @@ export default function PilotLoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Prefetch dashboard route on mount for instant page transition
+  useEffect(() => {
+    router.prefetch("/pilot-panel/dashboard")
+  }, [router])
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!dgcaNumber.trim()) {
@@ -47,6 +52,7 @@ export default function PilotLoginPage() {
 
       if (!res.ok) {
         setError(data.error || "Login failed. Please try again.")
+        setLoading(false)
         return
       }
 
@@ -57,7 +63,6 @@ export default function PilotLoginPage() {
     } catch (err: any) {
       console.error("Login error:", err)
       setError("Network error. Please check your connection and try again.")
-    } finally {
       setLoading(false)
     }
   }
@@ -221,72 +226,6 @@ export default function PilotLoginPage() {
           </div>
         </div>
 
-        {/* High-Fidelity Spinning Perspective Drone Animation */}
-        <div className="absolute right-12 bottom-12 w-[180px] h-[180px] bg-white/5 border border-white/10 rounded-[28px] flex flex-col items-center justify-center relative overflow-hidden shadow-2xl p-4 backdrop-blur-md z-10">
-          <div className="absolute top-3 left-4 text-[7px] font-bold text-slate-500 uppercase tracking-widest font-sans">System Monitor</div>
-          
-          {/* Custom Isometric SVG Drone */}
-          <svg className="w-16 h-16 text-slate-200 mt-2" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            {/* Perspective Oval Guards */}
-            <ellipse cx="30" cy="35" rx="16" ry="6" stroke="currentColor" strokeWidth="2.5" opacity="0.8" />
-            <ellipse cx="70" cy="35" rx="16" ry="6" stroke="currentColor" strokeWidth="2.5" opacity="0.8" />
-            <ellipse cx="20" cy="65" rx="20" ry="8" stroke="currentColor" strokeWidth="3" />
-            <ellipse cx="80" cy="65" rx="20" ry="8" stroke="currentColor" strokeWidth="3" />
-
-            {/* Symmetrical Diagonal Arms */}
-            <path d="M50 48 L30 35" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" />
-            <path d="M50 48 L70 35" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" />
-            <path d="M50 48 L20 65" stroke="currentColor" strokeWidth="5.5" strokeLinecap="round" />
-            <path d="M50 48 L80 65" stroke="currentColor" strokeWidth="5.5" strokeLinecap="round" />
-
-            {/* Central Drone Body (Perspective Capsule) */}
-            <path d="M43 42 C43 38, 57 38, 57 42 L55 58 C55 62, 45 62, 45 58 Z" fill="currentColor" stroke="currentColor" strokeWidth="2" />
-            <circle cx="50" cy="46" r="3.5" fill="#FF8243" />
-
-            {/* Embedded CSS for Propeller Spin Animations */}
-            <style>{`
-              @keyframes spin-prop-login {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-              }
-              .login-prop {
-                animation: spin-prop-login 0.08s linear infinite;
-              }
-              .login-prop-reverse {
-                animation: spin-prop-login 0.06s linear infinite reverse;
-              }
-            `}</style>
-
-            {/* Spinning Propellers scaled for perspective */}
-            <g transform="translate(30, 35) scale(1, 0.38)">
-              <g className="login-prop" style={{ transformOrigin: '0px 0px' }}>
-                <path d="M-15 0 H15" stroke="#FF8243" strokeWidth="3" strokeLinecap="round" />
-              </g>
-            </g>
-
-            <g transform="translate(70, 35) scale(1, 0.38)">
-              <g className="login-prop-reverse" style={{ transformOrigin: '0px 0px' }}>
-                <path d="M-15 0 H15" stroke="#069494" strokeWidth="3" strokeLinecap="round" />
-              </g>
-            </g>
-
-            <g transform="translate(20, 65) scale(1, 0.4)">
-              <g className="login-prop-reverse" style={{ transformOrigin: '0px 0px' }}>
-                <path d="M-19 0 H19" stroke="#069494" strokeWidth="3.5" strokeLinecap="round" />
-              </g>
-            </g>
-
-            <g transform="translate(80, 65) scale(1, 0.4)">
-              <g className="login-prop" style={{ transformOrigin: '0px 0px' }}>
-                <path d="M-19 0 H19" stroke="#FF8243" strokeWidth="3.5" strokeLinecap="round" />
-              </g>
-            </g>
-          </svg>
-          
-          <div className="mt-2.5 text-center">
-            <span className="text-[8px] font-mono text-[#069494] animate-pulse tracking-widest font-bold">ROTORS ACTIVE</span>
-          </div>
-        </div>
 
         {/* Bottom meta stats */}
         <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 relative z-10 w-full">

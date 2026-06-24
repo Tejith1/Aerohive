@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null
+import { getSupabaseAdminWithRetry } from '@/lib/supabase-admin'
 
 export async function GET(request: NextRequest) {
     try {
@@ -17,6 +13,8 @@ export async function GET(request: NextRequest) {
             )
         }
 
+        const supabase = getSupabaseAdminWithRetry()
+
         if (!supabase) {
             return NextResponse.json(
                 { error: 'Database not configured.' },
@@ -24,12 +22,38 @@ export async function GET(request: NextRequest) {
             )
         }
 
-        // Step 1: Fetch pilot's hourly rate
-        const { data: pilotData, error: pilotError } = await supabase
-            .from('drone_pilots')
-            .select('hourly_rate, full_name')
-            .eq('id', pilotId)
-            .single()
+        // Execute Step 1 (Pilot hourly rate) and Step 2 (Bookings list) in parallel
+        const [pilotResult, bookingsResult] = await Promise.all([
+            supabase
+                .from('drone_pilots')
+                .select('hourly_rate, full_name')
+                .eq('id', pilotId)
+                .single(),
+            supabase
+                .from('bookings')
+                .select(`
+                    id,
+                    booking_reference,
+                    service_type,
+                    status,
+                    scheduled_at,
+                    duration_hours,
+                    client_id,
+                    otp_code,
+                    created_at,
+                    updated_at,
+                    order_uuid,
+                    payment_method,
+                    requirements,
+                    client_location_lat,
+                    client_location_lng
+                `)
+                .eq('pilot_id', pilotId)
+                .order('created_at', { ascending: false })
+        ])
+
+        const { data: pilotData, error: pilotError } = pilotResult
+        const { data: bookings, error: bookingsError } = bookingsResult
 
         if (pilotError || !pilotData) {
             return NextResponse.json(
@@ -39,29 +63,6 @@ export async function GET(request: NextRequest) {
         }
 
         const hourlyRate = pilotData.hourly_rate || 0
-
-        // Step 2: Fetch ALL fields from bookings for this pilot
-        const { data: bookings, error: bookingsError } = await supabase
-            .from('bookings')
-            .select(`
-                id,
-                booking_reference,
-                service_type,
-                status,
-                scheduled_at,
-                duration_hours,
-                client_id,
-                otp_code,
-                created_at,
-                updated_at,
-                order_uuid,
-                payment_method,
-                requirements,
-                client_location_lat,
-                client_location_lng
-            `)
-            .eq('pilot_id', pilotId)
-            .order('created_at', { ascending: false })
 
         if (bookingsError) {
             console.error('Error fetching pilot bookings:', bookingsError)

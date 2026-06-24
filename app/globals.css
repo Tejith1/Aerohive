@@ -73,33 +73,38 @@
 }
 
 .dark {
-  --background: #11110f; /* Matte Ink Black */
-  --foreground: #f3f1eb; /* Warm Cream Text */
-  --card: #181816; /* Warm Low-Contrast Charcoal Card */
-  --card-foreground: #f3f1eb;
-  --popover: #11110f;
-  --popover-foreground: #f3f1eb;
-  --primary: #f97316; /* Vibrant Orange for dark mode */
-  --primary-foreground: #11110f;
-  --secondary: #21211e;
-  --secondary-foreground: #f3f1eb;
-  --muted: #1e1e1c;
-  --muted-foreground: #a6a39a;
-  --accent: #f97316;
-  --accent-foreground: #11110f;
+  --background: #152238;
+  --foreground: #f8fafc;
+  --card: #192841;
+  --card-foreground: #f8fafc;
+  --popover: #152238;
+  --popover-foreground: #f8fafc;
+  --primary: #38bdf8;
+  --primary-foreground: #0f172a;
+  --secondary: #1c2e4a;
+  --secondary-foreground: #f8fafc;
+  --muted: #1c2e4a;
+  --muted-foreground: #94a3b8;
+  --accent: #203354;
+  --accent-foreground: #f8fafc;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #242422; /* Warm Dark Border */
-  --input: #181816;
-  --ring: rgba(249, 115, 22, 0.3);
-  --sidebar: #181816;
-  --sidebar-foreground: #f3f1eb;
-  --sidebar-primary: #f97316;
-  --sidebar-primary-foreground: #11110f;
-  --sidebar-accent: #21211e;
-  --sidebar-accent-foreground: #f3f1eb;
-  --sidebar-border: #242422;
-  --sidebar-ring: rgba(249, 115, 22, 0.3);
+  --border: #23395d;
+  --input: #1c2e4a;
+  --ring: rgba(56, 189, 248, 0.3);
+  --sidebar: #152238;
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #38bdf8;
+  --sidebar-primary-foreground: #0f172a;
+  --sidebar-accent: #203354;
+  --sidebar-accent-foreground: #f8fafc;
+  --sidebar-border: #23395d;
+  --sidebar-ring: rgba(56, 189, 248, 0.3);
+}
+
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -838,7 +843,7 @@ button, .btn, [role="button"], input[type="button"], input[type="submit"] {
 }
 
 .splash-bg {
-  background: radial-gradient(circle at center, #0e1424 0%, #030408 100%);
+  background: radial-gradient(circle at center, #192841 0%, #152238 100%);
   position: fixed;
   overflow: hidden;
 }

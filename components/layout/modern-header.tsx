@@ -18,7 +18,8 @@ import {
   Settings,
   Sun,
   Moon,
-  Package
+  Package,
+  Lock
 } from "lucide-react"
 import { useCartStore } from "@/lib/cart-store"
 import { useAuth } from "@/contexts/auth-context"
@@ -102,9 +103,9 @@ export function ModernHeader() {
         {
           title: "Models",
           items: [
-            { href: "/products", label: "Hive-X Sonnet ↗", desc: "Standard commercial flyer" },
-            { href: "/products", label: "Hive-Pro Opus ↗", desc: "Premium multi-spectral flagship" },
-            { href: "/products", label: "Hive-Mini Haiku ↗", desc: "Compact inspection drone" }
+            { href: "/products", label: "neutron ↗", desc: "Standard commercial flyer" },
+            { href: "/products", label: "nex ↗", desc: "Premium multi-spectral flagship" },
+            { href: "/products", label: "infinity ↗", desc: "Compact inspection drone" }
           ]
         }
       ]
@@ -166,12 +167,12 @@ export function ModernHeader() {
             <img
               src="/Aerohive text logo scaled up.png"
               alt="AeroHive Logo"
-              className="h-6 w-auto object-contain transition-all duration-300"
+              className="h-6 w-auto object-contain transition-all duration-300 dark:brightness-0 dark:invert"
             />
           </Link>
 
           {/* Desktop Navigation with Claude-Style Hover Mega Menus */}
-          <nav className="hidden lg:flex items-center space-x-1 ml-8">
+          <nav className="hidden xl:flex items-center space-x-0.5 xl:space-x-1 ml-4 xl:ml-8 shrink">
             {navigationLinks.map((link) => (
               link.hasMegaMenu ? (
                 <div
@@ -180,9 +181,12 @@ export function ModernHeader() {
                   onMouseEnter={() => setHoveredMenu(link.label)}
                   onMouseLeave={() => setHoveredMenu(null)}
                 >
-                  <button className="flex items-center space-x-2 text-foreground hover:text-primary hover:bg-primary/5 font-sans text-[15px] font-semibold tracking-wide px-4 py-2 rounded-xl cursor-pointer border-0 bg-transparent transition-all duration-300">
+                  <button className="flex items-center space-x-1.5 xl:space-x-2 text-foreground hover:text-primary hover:bg-primary/5 font-sans text-[15px] font-semibold tracking-wide px-2 xl:px-4 py-2 rounded-xl cursor-pointer border-0 bg-transparent transition-all duration-300">
                     {link.icon && <link.icon className="h-4.5 w-4.5 text-muted-foreground group-hover:text-primary transition-colors" />}
                     <span>{link.label}</span>
+                    {["Drones", "Services"].includes(link.label) && (
+                      <Lock className="h-3.5 w-3.5 text-muted-foreground/70" />
+                    )}
                     <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-300 ${hoveredMenu === link.label ? 'rotate-180 text-primary' : ''}`} />
                   </button>
 
@@ -235,11 +239,14 @@ export function ModernHeader() {
                   key={link.href}
                   variant="ghost"
                   asChild
-                  className="text-foreground hover:text-primary hover:bg-primary/5 font-sans text-[15px] font-semibold tracking-wide transition-all duration-300 rounded-xl px-4 py-2 relative group cursor-pointer"
+                  className="text-foreground hover:text-primary hover:bg-primary/5 font-sans text-[15px] font-semibold tracking-wide transition-all duration-300 rounded-xl px-2.5 xl:px-4 py-2 relative group cursor-pointer"
                 >
                   <Link href={link.href} className="flex items-center space-x-2">
                     {link.icon && <link.icon className="h-4.5 w-4.5 text-muted-foreground group-hover:text-primary transition-colors" />}
                     <span>{link.label}</span>
+                    {link.label === "Categories" && (
+                      <Lock className="h-3.5 w-3.5 text-muted-foreground/70" />
+                    )}
                     <span className="absolute bottom-1 w-0 h-[3px] bg-primary transition-all duration-300 group-hover:w-8 rounded-full"></span>
                   </Link>
                 </Button>
@@ -248,7 +255,7 @@ export function ModernHeader() {
           </nav>
 
           {/* Right side actions */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 shrink-0">
             {/* Search */}
             <Button
               variant="ghost"
@@ -257,6 +264,27 @@ export function ModernHeader() {
               aria-label="Search"
             >
               <Search className="h-5 w-5" />
+            </Button>
+
+            {/* Cart Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              asChild
+              className="relative h-10 w-10 rounded-xl hover:bg-primary/5 text-muted-foreground hover:text-primary transition-all duration-200"
+              aria-label="Shopping Cart"
+            >
+              <Link href="/cart" className="relative">
+                <ShoppingCart className="h-5 w-5" />
+                <span className="absolute -top-1 -left-1 bg-background rounded-full p-0.5 shadow-sm border border-border flex items-center justify-center">
+                  <Lock className="h-2.5 w-2.5 text-muted-foreground/80" />
+                </span>
+                {cartItemCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-primary text-white border-0 animate-bounce-in shadow-sm">
+                    {cartItemCount}
+                  </Badge>
+                )}
+              </Link>
             </Button>
 
             {/* Auth Section */}
@@ -393,29 +421,13 @@ export function ModernHeader() {
               </div>
             )}
 
-            {/* Cart Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              asChild
-              className="relative h-10 w-10 rounded-xl hover:bg-primary/5 text-muted-foreground hover:text-primary transition-all duration-200"
-              aria-label="Shopping Cart"
-            >
-              <Link href="/cart">
-                <ShoppingCart className="h-5 w-5" />
-                {cartItemCount > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-primary text-white border-0 animate-bounce-in shadow-sm">
-                    {cartItemCount}
-                  </Badge>
-                )}
-              </Link>
-            </Button>
+
 
             {/* Mobile Menu Button */}
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden h-10 w-10 rounded-xl hover:bg-primary/5 text-muted-foreground hover:text-primary transition-all duration-200"
+              className="xl:hidden h-10 w-10 rounded-xl hover:bg-primary/5 text-muted-foreground hover:text-primary transition-all duration-200"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle Mobile Menu"
             >
@@ -433,7 +445,7 @@ export function ModernHeader() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="lg:hidden border-t border-border bg-card mt-1 rounded-b-2xl shadow-md overflow-hidden"
+            className="xl:hidden border-t border-border bg-card mt-1 rounded-b-2xl shadow-md overflow-hidden"
           >
             <nav className="p-5 space-y-2">
               {navigationLinks.map((link) => (
@@ -442,6 +454,9 @@ export function ModernHeader() {
                     <div className="font-semibold text-foreground px-3 py-2 text-sm uppercase tracking-wider flex items-center gap-2">
                       {link.icon && <link.icon className="h-4.5 w-4.5 text-primary" />}
                       <span>{link.label}</span>
+                      {["Drones", "Services"].includes(link.label) && (
+                        <Lock className="h-3.5 w-3.5 text-muted-foreground/70" />
+                      )}
                     </div>
                     <div className="pl-4 space-y-2">
                       {link.columns?.flatMap(col => col.items).map((item, itemIdx) => (
@@ -465,6 +480,9 @@ export function ModernHeader() {
                   >
                     {link.icon && <link.icon className="h-4.5 w-4.5 text-muted-foreground" />}
                     <span>{link.label}</span>
+                    {link.label === "Categories" && (
+                      <Lock className="h-3.5 w-3.5 text-muted-foreground/70" />
+                    )}
                   </Link>
                 )
               ))}

@@ -211,24 +211,55 @@ export default function PilotDashboardPage() {
   // Fetch bookings once pilot session is loaded
   useEffect(() => {
     if (!pilot) return
-    fetchBookings()
+    
+    // SWR Cache Check: Load previously saved bookings/summary to render instantly
+    const cachedBookings = localStorage.getItem(`aerohive_pilot_bookings_${pilot.id}`)
+    const cachedSummary = localStorage.getItem(`aerohive_pilot_summary_${pilot.id}`)
+    
+    if (cachedBookings && cachedSummary) {
+      try {
+        setBookings(JSON.parse(cachedBookings))
+        setSummary(JSON.parse(cachedSummary))
+        setLoadingBookings(false)
+        // Silent background fetch to update list if changed
+        fetchBookings(true)
+        return
+      } catch (e) {
+        // Parse error fallback
+      }
+    }
+    
+    // Initial fetch if no cached data exists
+    fetchBookings(false)
   }, [pilot])
-
-  const fetchBookings = async () => {
+ 
+  const fetchBookings = async (isBackground = false) => {
     if (!pilot) return
-    setLoadingBookings(true)
+    if (!isBackground) {
+      setLoadingBookings(true)
+    }
     setBookingsError(null)
     try {
       const res = await fetch(`/api/pilot-auth/bookings?pilotId=${pilot.id}`)
       const data = await res.json()
       if (!res.ok) {
-        setBookingsError(data.error || "Failed to fetch bookings.")
+        if (!isBackground) {
+          setBookingsError(data.error || "Failed to fetch bookings.")
+        }
         return
       }
-      setBookings(data.bookings || [])
-      setSummary(data.summary || null)
+      const newBookings = data.bookings || []
+      const newSummary = data.summary || null
+      setBookings(newBookings)
+      setSummary(newSummary)
+      
+      // Save to cache
+      localStorage.setItem(`aerohive_pilot_bookings_${pilot.id}`, JSON.stringify(newBookings))
+      localStorage.setItem(`aerohive_pilot_summary_${pilot.id}`, JSON.stringify(newSummary))
     } catch (err: any) {
-      setBookingsError("Network error. Please try again.")
+      if (!isBackground) {
+        setBookingsError("Network error. Please try again.")
+      }
     } finally {
       setLoadingBookings(false)
     }
@@ -255,11 +286,11 @@ export default function PilotDashboardPage() {
       if (!res.ok) {
         throw new Error(data.error || "Failed to accept booking")
       }
-      fetchBookings()
+      fetchBookings(true)
     } catch (err: any) {
       setActionError(prev => ({ ...prev, [bookingId]: err.message }))
       // Rollback status on failure
-      fetchBookings()
+      fetchBookings(true)
     }
   }
 
@@ -279,10 +310,10 @@ export default function PilotDashboardPage() {
       if (!res.ok) {
         throw new Error(data.error || "Failed to reject booking")
       }
-      fetchBookings()
+      fetchBookings(true)
     } catch (err: any) {
       setActionError(prev => ({ ...prev, [bookingId]: err.message }))
-      fetchBookings()
+      fetchBookings(true)
     }
   }
 
@@ -307,7 +338,7 @@ export default function PilotDashboardPage() {
       }
       // Success! Update locally to VERIFIED
       setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: "VERIFIED" } : b))
-      fetchBookings()
+      fetchBookings(true)
     } catch (err: any) {
       setActionError(prev => ({ ...prev, [bookingId]: err.message }))
     } finally {
@@ -332,10 +363,10 @@ export default function PilotDashboardPage() {
       if (!res.ok) {
         throw new Error(data.error || "Failed to update status")
       }
-      fetchBookings()
+      fetchBookings(true)
     } catch (err: any) {
       setActionError(prev => ({ ...prev, [bookingId]: err.message }))
-      fetchBookings()
+      fetchBookings(true)
     } finally {
       setUpdatingStatus(prev => ({ ...prev, [bookingId]: false }))
     }
@@ -344,8 +375,8 @@ export default function PilotDashboardPage() {
   // Show nothing until session is verified (avoid flash)
   if (!sessionChecked || !pilot) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-800">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      <div className="min-h-screen flex items-center justify-center bg-[#faf8f5] dark:bg-[#0b0f19] text-slate-800 dark:text-slate-100">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     )
   }
@@ -531,18 +562,13 @@ export default function PilotDashboardPage() {
             </div>
 
             {/* List Screen */}
-            {loadingBookings ? (
-              <div className="flex flex-col items-center justify-center py-24 gap-4">
-                <Loader2 className="h-10 w-10 animate-spin text-blue-600 dark:text-[#e65737]" />
-                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium tracking-wide">Syncing telemetry logs...</p>
-              </div>
-            ) : bookingsError ? (
+            {bookingsError ? (
               <Card className="border-rose-200/80 dark:border-rose-950/80 bg-rose-50/50 dark:bg-rose-950/10 shadow-lg rounded-2xl">
                 <CardContent className="py-12 text-center max-w-lg mx-auto">
-                  <AlertCircle className="h-12 w-12 text-rose-600 dark:text-rose-450 mx-auto mb-4" />
+                  <AlertCircle className="h-12 w-12 text-rose-600 dark:text-rose-455 mx-auto mb-4" />
                   <p className="text-rose-900 dark:text-rose-350 font-bold text-lg mb-2">Telemetry Uplink Fail</p>
                   <p className="text-rose-650 dark:text-rose-400 text-sm mb-6 leading-relaxed">{bookingsError}</p>
-                  <Button onClick={fetchBookings} className="bg-rose-650 hover:bg-rose-750 text-white rounded-xl px-6 h-11 text-xs font-bold transition-all shadow-md">
+                  <Button onClick={() => fetchBookings(false)} className="bg-rose-650 hover:bg-rose-750 text-white rounded-xl px-6 h-11 text-xs font-bold transition-all shadow-md">
                     Retry Synchronization
                   </Button>
                 </CardContent>

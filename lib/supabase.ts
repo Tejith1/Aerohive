@@ -299,6 +299,11 @@ export const getCurrentUser = async () => {
   return user
 }
 
+// Memory cache for products to provide immediate response times
+const productQueryCache = new Map<string, { data: Product[]; timestamp: number }>()
+const productBySlugCache = new Map<string, { data: Product; timestamp: number }>()
+const CACHE_TTL = 30000 // 30 seconds TTL
+
 // Product functions
 export const getProducts = async (filters?: {
   category?: string
@@ -307,6 +312,14 @@ export const getProducts = async (filters?: {
   limit?: number
 }, retryCount = 0): Promise<Product[]> => {
   try {
+    const now = Date.now()
+    const cacheKey = JSON.stringify(filters || {})
+    const cached = productQueryCache.get(cacheKey)
+
+    if (cached && (now - cached.timestamp < CACHE_TTL)) {
+      return cached.data
+    }
+
     let query = supabase
       .from('products')
       .select(`
@@ -338,7 +351,9 @@ export const getProducts = async (filters?: {
       throw error
     }
 
-    return data as Product[]
+    const result = data as Product[]
+    productQueryCache.set(cacheKey, { data: result, timestamp: now })
+    return result
   } catch (error: any) {
     // Retry on network/connection errors
     if (retryCount < 2 && (error.message?.includes('Failed to fetch') || error.message?.includes('network') || error.code === 'PGRST301')) {
@@ -351,6 +366,13 @@ export const getProducts = async (filters?: {
 }
 
 export const getProductBySlug = async (slug: string) => {
+  const now = Date.now()
+  const cached = productBySlugCache.get(slug)
+
+  if (cached && (now - cached.timestamp < CACHE_TTL)) {
+    return cached.data
+  }
+
   const { data, error } = await supabase
     .from('products')
     .select(`
@@ -361,7 +383,10 @@ export const getProductBySlug = async (slug: string) => {
     .single()
 
   if (error) throw error
-  return data as Product
+
+  const result = data as Product
+  productBySlugCache.set(slug, { data: result, timestamp: now })
+  return result
 }
 
 export const createProduct = async (product: any) => {
@@ -744,8 +769,17 @@ export const deleteImage = async (url: string, bucket: string = 'product-images'
   }
 }
 
+// Category cache
+let cachedCategoriesList: Category[] | null = null
+let cacheTimestampCategories = 0
+
 // Category functions
 export const getCategories = async () => {
+  const now = Date.now()
+  if (cachedCategoriesList && (now - cacheTimestampCategories < CACHE_TTL)) {
+    return cachedCategoriesList
+  }
+
   const { data, error } = await supabase
     .from('categories')
     .select('*')
@@ -753,7 +787,11 @@ export const getCategories = async () => {
     .order('name')
 
   if (error) throw error
-  return data as Category[]
+
+  const result = data as Category[]
+  cachedCategoriesList = result
+  cacheTimestampCategories = now
+  return result
 }
 
 export const createCategory = async (category: Omit<Category, 'id' | 'created_at' | 'updated_at'>) => {
@@ -767,12 +805,23 @@ export const createCategory = async (category: Omit<Category, 'id' | 'created_at
   return data as Category
 }
 
+// Pilot cache
+const pilotQueryCache = new Map<string, { data: DronePilot[]; timestamp: number }>()
+
 // Drone Pilot functions
 export const getDronePilots = async (filters?: {
   location?: string
   area?: string
   search?: string
 }) => {
+  const now = Date.now()
+  const cacheKey = JSON.stringify(filters || {})
+  const cached = pilotQueryCache.get(cacheKey)
+
+  if (cached && (now - cached.timestamp < CACHE_TTL)) {
+    return cached.data
+  }
+
   let query = supabase
     .from('drone_pilots')
     .select('*')
@@ -795,7 +844,10 @@ export const getDronePilots = async (filters?: {
   const { data, error } = await query
 
   if (error) throw error
-  return data as DronePilot[]
+
+  const result = data as DronePilot[]
+  pilotQueryCache.set(cacheKey, { data: result, timestamp: now })
+  return result
 }
 
 export const createDronePilot = async (pilotData: Omit<DronePilot, 'id' | 'rating' | 'completed_jobs' | 'is_verified' | 'is_active' | 'created_at' | 'updated_at'>) => {

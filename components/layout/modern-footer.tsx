@@ -177,7 +177,7 @@ export function ModernFooter({ showNewsletter = true }: ModernFooterProps) {
               <img
                 src="/Aerohive text logo scaled up.png"
                 alt="AeroHive Logo"
-                className="h-7 w-auto object-contain"
+                className="h-7 w-auto object-contain brightness-0 invert"
               />
             </Link>
 

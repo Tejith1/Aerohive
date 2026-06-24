@@ -49,22 +49,8 @@ export default function ProductsPage() {
   const [showFilters, setShowFilters] = useState(false)
   const { addItem } = useCartStore()
   const { isAuthenticated, isAdmin, isLoading: authLoading } = useAuth()
-  const [isSyncing, setIsSyncing] = useState(true)
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsSyncing(false)
-    }, 5000)
-    return () => clearTimeout(timer)
-  }, [])
-
-  useEffect(() => {
-    if (!authLoading) {
-      setIsSyncing(false)
-    }
-  }, [authLoading])
-
-  const isGlobalLoading = authLoading || isSyncing || (isLoading && products.length === 0)
+  const isGlobalLoading = authLoading || (isLoading && products.length === 0)
 
   useEffect(() => {
     loadData()
@@ -225,228 +211,230 @@ export default function ProductsPage() {
           </div>
         </section>
 
-        <div className="container mx-auto px-6 py-12">
-          {/* Filters and Search */}
-          <div className="grid gap-6 lg:grid-cols-4 mb-8">
-            {/* Filters Sidebar */}
-            <div className={`lg:block ${showFilters ? 'block' : 'hidden'} lg:col-span-1`}>
-              <Card className="border border-border shadow-[0_4px_20px_rgba(0,0,0,0.015)] bg-card rounded-3xl sticky top-32 p-2 text-foreground">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center space-x-3 text-foreground">
-                    <div className="h-8 w-8 rounded-full border border-border flex items-center justify-center bg-card shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
-                      <Filter className="h-3.5 w-3.5 text-primary" />
+        <div className="container mx-auto px-6 py-12 relative">
+          <div className={!isAdmin && !authLoading ? "opacity-20 blur-sm pointer-events-none transition-all duration-300" : "transition-all duration-300"}>
+            {/* Filters and Search */}
+            <div className="grid gap-6 lg:grid-cols-4 mb-8">
+              {/* Filters Sidebar */}
+              <div className={`lg:block ${showFilters ? 'block' : 'hidden'} lg:col-span-1`}>
+                <Card className="border border-border shadow-[0_4px_20px_rgba(0,0,0,0.015)] bg-card rounded-3xl sticky top-32 p-2 text-foreground">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg font-semibold font-sans">Filters</CardTitle>
+                      <SlidersHorizontal className="h-4 w-4 text-slate-400" />
                     </div>
-                    <span className="text-lg font-serif font-normal">Filters</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Search */}
-                  <div className="space-y-2">
-                    <Label htmlFor="search" className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-sans">Search Products</Label>
-                    <div className="relative">
-                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-                      <Input
-                        id="search"
-                        placeholder="Search drones..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-11 rounded-full border border-border bg-card text-foreground focus:ring-1 focus:ring-primary focus:border-primary font-sans text-sm transition-all"
-                      />
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Search */}
+                    <div className="space-y-2">
+                      <Label htmlFor="search-input" className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-sans">Search</Label>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-450 w-4 h-4" />
+                        <Input
+                          id="search-input"
+                          placeholder="Search drones..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pl-9 pr-4 rounded-full border border-border bg-card text-foreground focus:ring-1 focus:ring-primary focus:border-primary font-sans text-sm transition-all"
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Category Filter */}
-                  <div className="space-y-2">
-                    <Label className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-sans">Category</Label>
-                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                      <SelectTrigger className="rounded-full border border-border bg-card text-foreground focus:ring-1 focus:ring-primary focus:border-primary font-sans text-sm transition-all">
-                        <SelectValue placeholder="All Categories" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-2xl">
-                        <SelectItem value="all">All Categories</SelectItem>
-                        {categories.map((category) => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Price Range */}
-                  <div className="space-y-2">
-                    <Label className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-sans">Price Range (₹)</Label>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Input
-                        placeholder="Min"
-                        type="number"
-                        value={priceRange.min}
-                        onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
-                        className="rounded-full border border-border bg-card text-foreground focus:ring-1 focus:ring-primary focus:border-primary font-sans text-sm transition-all"
-                      />
-                      <Input
-                        placeholder="Max"
-                        type="number"
-                        value={priceRange.max}
-                        onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
-                        className="rounded-full border border-border bg-card text-foreground focus:ring-1 focus:ring-primary focus:border-primary font-sans text-sm transition-all"
-                      />
+                    {/* Category Filter */}
+                    <div className="space-y-2">
+                      <Label className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-sans">Category</Label>
+                      <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                        <SelectTrigger className="w-full rounded-full border border-border bg-card text-foreground focus:ring-1 focus:ring-primary focus:border-primary font-sans text-sm transition-all">
+                          <SelectValue placeholder="All Categories" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl">
+                          <SelectItem value="all">All Categories</SelectItem>
+                          {categories.map((category) => (
+                            <SelectItem key={category.id} value={category.id}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                  </div>
 
-                  {/* Clear Filters */}
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setSearchQuery("")
-                      setSelectedCategory("all")
-                      setPriceRange({ min: "", max: "" })
-                    }}
-                    className="w-full rounded-full border border-border hover:bg-muted text-muted-foreground transition-all duration-300 font-sans text-xs font-semibold uppercase tracking-wider"
-                  >
-                    Clear Filters
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+                    {/* Price Range */}
+                    <div className="space-y-2">
+                      <Label className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-sans">Price Range (₹)</Label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Input
+                          placeholder="Min"
+                          type="number"
+                          value={priceRange.min}
+                          onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
+                          className="rounded-full border border-border bg-card text-foreground focus:ring-1 focus:ring-primary focus:border-primary font-sans text-sm transition-all"
+                        />
+                        <Input
+                          placeholder="Max"
+                          type="number"
+                          value={priceRange.max}
+                          onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
+                          className="rounded-full border border-border bg-card text-foreground focus:ring-1 focus:ring-primary focus:border-primary font-sans text-sm transition-all"
+                        />
+                      </div>
+                    </div>
 
-            {/* Products Grid */}
-            <div className="lg:col-span-3">
-              {/* Toolbar              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8 bg-card/50 border border-border p-4 rounded-3xl backdrop-blur-sm shadow-[0_2px_12px_rgba(0,0,0,0.01)]">
-                <div className="flex items-center space-x-6">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowFilters(!showFilters)}
-                    className="lg:hidden rounded-full border border-border hover:bg-muted text-foreground transition-all duration-300 font-sans text-xs font-semibold uppercase tracking-wider"
-                  >
-                    <SlidersHorizontal className="h-3.5 w-3.5 mr-2" />
-                    Filters
-                  </Button>
-
-                  <div className="flex items-center space-x-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                    <p className="text-xs font-semibold text-slate-550 dark:text-slate-400 font-sans tracking-wide uppercase">
-                      {isGlobalLoading ? "Updating..." : `${sortedProducts.length} products available`}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-4">
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-52 rounded-full border border-border bg-card text-foreground focus:ring-1 focus:ring-primary focus:border-primary font-sans text-xs font-semibold tracking-wider uppercase transition-all">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl">
-                      <SelectItem value="created_desc">Newest First</SelectItem>
-                      <SelectItem value="created_asc">Oldest First</SelectItem>
-                      <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                      <SelectItem value="price_desc">Price: High to Low</SelectItem>
-                      <SelectItem value="name_asc">Name: A to Z</SelectItem>
-                      <SelectItem value="name_desc">Name: Z to A</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <div className="flex bg-muted rounded-full p-1">
+                    {/* Clear Filters */}
                     <Button
-                      variant={viewMode === "grid" ? "default" : "ghost"}
-                      size="sm"
-                      onClick={() => setViewMode("grid")}
-                      className={`rounded-full transition-all duration-300 px-3 py-1 ${viewMode === "grid"
-                        ? "bg-card shadow-sm text-primary"
-                        : "hover:bg-muted text-muted-foreground"
-                        }`}
+                      variant="outline"
+                      onClick={() => {
+                        setSearchQuery("")
+                        setSelectedCategory("all")
+                        setPriceRange({ min: "", max: "" })
+                      }}
+                      className="w-full rounded-full border border-border hover:bg-muted text-muted-foreground transition-all duration-300 font-sans text-xs font-semibold uppercase tracking-wider"
                     >
-                      <Grid className="h-4 w-4" />
+                      Clear Filters
                     </Button>
-                    <Button
-                      variant={viewMode === "list" ? "default" : "ghost"}
-                      size="sm"
-                      onClick={() => setViewMode("list")}
-                      className={`rounded-full transition-all duration-300 px-3 py-1 ${viewMode === "list"
-                        ? "bg-card shadow-sm text-primary"
-                        : "hover:bg-muted text-muted-foreground"
-                        }`}
-                    >
-                      <List className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               </div>
 
-              {/* Products */}
-              <div className="relative">
-                {isGlobalLoading && products.length === 0 ? (
-                  <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-                    {[1, 2, 3, 4, 5, 6].map((i) => (
-                      <Card key={i} className="border-0 shadow-[0_4px_20px_rgba(0,0,0,0.015)] bg-card rounded-3xl animate-pulse overflow-hidden">
-                        <div className="aspect-square bg-muted"></div>
-                        <CardContent className="p-6">
-                          <div className="space-y-4">
-                            <div className="h-5 bg-muted rounded-full w-3/4"></div>
-                            <div className="h-4 bg-muted rounded-full w-1/2"></div>
-                            <div className="h-8 bg-muted rounded-full w-1/3"></div>
-                            <div className="h-10 bg-muted rounded-full"></div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                ) : sortedProducts.length === 0 ? (
-                  <Card className="border border-border shadow-[0_4px_20px_rgba(0,0,0,0.015)] bg-card rounded-3xl">
-                    <CardContent className="p-16 text-center">
-                      <div className="w-16 h-16 border border-border bg-background rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
-                        <Package className="h-6 w-6 text-slate-400 stroke-[1.5]" />
-                      </div>
-                      <h3 className="text-2xl font-serif font-normal text-slate-900 mb-4">No products found</h3>
-                      <p className="text-slate-600 font-serif mb-8 max-w-md mx-auto leading-relaxed">
-                        We couldn't find any products matching your criteria. Try adjusting your filters or search terms.
-                      </p>
-                      <Button
-                        onClick={() => {
-                          setSearchQuery("")
-                          setSelectedCategory("all")
-                          setPriceRange({ min: "", max: "" })
-                        }}
-                        className="bg-foreground hover:bg-primary text-background rounded-full px-8 py-3 font-sans text-xs font-semibold uppercase tracking-wider shadow-md transition-all duration-300 hover:scale-[1.02] cursor-pointer"
-                      >
-                        Clear All Filters
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className={`grid gap-6 ${viewMode === "grid"
-                    ? "md:grid-cols-2 xl:grid-cols-3"
-                    : "grid-cols-1"
-                    } transition-all duration-300`}>
-                    {sortedProducts.map((product) => (
-                      <ModernProductCard
-                        key={product.id}
-                        id={product.id}
-                        name={product.name}
-                        price={product.price}
-                        comparePrice={product.compare_price || undefined}
-                        imageUrl={product.image_url || "/placeholder.svg"}
-                        slug={product.slug}
-                        rating={product.average_rating || 0}
-                        reviewCount={0}
-                        isNew={false}
-                        isFeatured={product.is_featured}
-                        isOnSale={!!product.compare_price}
-                        stockQuantity={product.stock_quantity}
-                        onAddToCart={() => handleAddToCart(product)}
-                      />
-                    ))}
-                  </div>
-                )}
+              {/* Products Grid */}
+              <div className="lg:col-span-3">
+                {/* Toolbar */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8 bg-card/50 border border-border p-4 rounded-3xl backdrop-blur-sm shadow-[0_2px_12px_rgba(0,0,0,0.01)]">
+                  <div className="flex items-center space-x-6">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowFilters(!showFilters)}
+                      className="lg:hidden rounded-full border border-border hover:bg-muted text-foreground transition-all duration-300 font-sans text-xs font-semibold uppercase tracking-wider"
+                    >
+                      <SlidersHorizontal className="h-3.5 w-3.5 mr-2" />
+                      Filters
+                    </Button>
 
-                {/* Locked Overlay */}
-                <ComingSoonOverlay
-                  show={false}
-                  description="Our premium collection is currently being curated. Stay tuned for exclusive launches and expert-level equipment."
-                />
+                    <div className="flex items-center space-x-2">
+                      <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                      <p className="text-xs font-semibold text-slate-550 dark:text-slate-400 font-sans tracking-wide uppercase">
+                        {isGlobalLoading ? "Updating..." : `${sortedProducts.length} products available`}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-4">
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                      <SelectTrigger className="w-52 rounded-full border border-border bg-card text-foreground focus:ring-1 focus:ring-primary focus:border-primary font-sans text-xs font-semibold tracking-wider uppercase transition-all">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl">
+                        <SelectItem value="created_desc">Newest First</SelectItem>
+                        <SelectItem value="created_asc">Oldest First</SelectItem>
+                        <SelectItem value="price_asc">Price: Low to High</SelectItem>
+                        <SelectItem value="price_desc">Price: High to Low</SelectItem>
+                        <SelectItem value="name_asc">Name: A to Z</SelectItem>
+                        <SelectItem value="name_desc">Name: Z to A</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <div className="flex bg-muted rounded-full p-1">
+                      <Button
+                        variant={viewMode === "grid" ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setViewMode("grid")}
+                        className={`rounded-full transition-all duration-300 px-3 py-1 ${viewMode === "grid"
+                          ? "bg-card shadow-sm text-primary"
+                          : "hover:bg-muted text-muted-foreground"
+                          }`}
+                      >
+                        <Grid className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant={viewMode === "list" ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setViewMode("list")}
+                        className={`rounded-full transition-all duration-300 px-3 py-1 ${viewMode === "list"
+                          ? "bg-card shadow-sm text-primary"
+                          : "hover:bg-muted text-muted-foreground"
+                          }`}
+                      >
+                        <List className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Products */}
+                <div className="relative">
+                  {isGlobalLoading && products.length === 0 ? (
+                    <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+                      {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <Card key={i} className="border-0 shadow-[0_4px_20px_rgba(0,0,0,0.015)] bg-card rounded-3xl animate-pulse overflow-hidden">
+                          <div className="aspect-square bg-muted"></div>
+                          <CardContent className="p-6">
+                            <div className="space-y-4">
+                              <div className="h-5 bg-muted rounded-full w-3/4"></div>
+                              <div className="h-4 bg-muted rounded-full w-1/2"></div>
+                              <div className="h-8 bg-muted rounded-full w-1/3"></div>
+                              <div className="h-10 bg-muted rounded-full"></div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : sortedProducts.length === 0 ? (
+                    <Card className="border border-border shadow-[0_4px_20px_rgba(0,0,0,0.015)] bg-card rounded-3xl">
+                      <CardContent className="p-16 text-center">
+                        <div className="w-16 h-16 border border-border bg-background rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                          <Package className="h-6 w-6 text-slate-400 stroke-[1.5]" />
+                        </div>
+                        <h3 className="text-2xl font-serif font-normal text-slate-900 mb-4">No products found</h3>
+                        <p className="text-slate-600 font-serif mb-8 max-w-md mx-auto leading-relaxed">
+                          We couldn't find any products matching your criteria. Try adjusting your filters or search terms.
+                        </p>
+                        <Button
+                          onClick={() => {
+                            setSearchQuery("")
+                            setSelectedCategory("all")
+                            setPriceRange({ min: "", max: "" })
+                          }}
+                          className="bg-foreground hover:bg-primary text-background rounded-full px-8 py-3 font-sans text-xs font-semibold uppercase tracking-wider shadow-md transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+                        >
+                          Clear All Filters
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className={`grid gap-6 ${viewMode === "grid"
+                      ? "md:grid-cols-2 xl:grid-cols-3"
+                      : "grid-cols-1"
+                      } transition-all duration-300`}>
+                      {sortedProducts.map((product) => (
+                        <ModernProductCard
+                          key={product.id}
+                          id={product.id}
+                          name={product.name}
+                          price={product.price}
+                          comparePrice={product.compare_price || undefined}
+                          imageUrl={product.image_url || "/placeholder.svg"}
+                          slug={product.slug}
+                          rating={product.average_rating || 0}
+                          reviewCount={0}
+                          isNew={false}
+                          isFeatured={product.is_featured}
+                          isOnSale={!!product.compare_price}
+                          stockQuantity={product.stock_quantity}
+                          onAddToCart={() => handleAddToCart(product)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
+
+          {/* Locked Overlay */}
+          <ComingSoonOverlay
+            show={!isAdmin && !authLoading}
+            title="Access Restricted"
+            description="This section is locked for regular customers. Only administrators can access this content."
+          />
         </div>
       </main>
 

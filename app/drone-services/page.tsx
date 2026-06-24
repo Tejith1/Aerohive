@@ -277,23 +277,7 @@ export default function DroneServicesPage() {
   const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null)
   const [isLocating, setIsLocating] = useState(false)
   const { isAdmin, isLoading: authLoading } = useAuth()
-  const [isSyncing, setIsSyncing] = useState(true)
-
-  // Use a safety timeout for loading state
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsSyncing(false)
-    }, 5000)
-    return () => clearTimeout(timer)
-  }, [])
-
-  useEffect(() => {
-    if (!authLoading) {
-      setIsSyncing(false)
-    }
-  }, [authLoading])
-
-  const isLoading = authLoading || isSyncing
+  const isLoading = authLoading
 
   useEffect(() => {
     if (activeTab === "services") {
@@ -467,8 +451,11 @@ export default function DroneServicesPage() {
 }
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+    <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300">
       <ModernHeader />
+
+      <main className="flex-1 relative">
+        <div className={!isAdmin && !isLoading ? "opacity-20 blur-sm pointer-events-none transition-all duration-300 w-full" : "transition-all duration-300 w-full"}>
 
       {/* Hero Section */}
       <section className="relative pt-28 lg:pt-36 pb-20 overflow-hidden text-center bg-background border-b border-border">
@@ -622,7 +609,7 @@ export default function DroneServicesPage() {
       {/* Content Section */}
       <section className="py-12 relative bg-background">
         <div className="container mx-auto px-4">
-          {activeTab === "services" ? (
+            {activeTab === "services" ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
               {filteredServices.map((service) => {
                 const provider = getProviderById(service.providerId)
@@ -874,10 +861,6 @@ export default function DroneServicesPage() {
                 </Button>
               </div>
             )}
-            <ComingSoonOverlay
-            show={false}
-            description="Our primary drone-as-a-service marketplace is in final stages of development. Certified providers will be available soon."
-          />
         </div>
       </section>
 
@@ -898,6 +881,15 @@ export default function DroneServicesPage() {
           </div>
         </div>
       </section>
+
+        </div>
+
+        <ComingSoonOverlay
+          show={!isAdmin && !isLoading}
+          title="Access Restricted"
+          description="This section is locked for regular customers. Only administrators can access this content."
+        />
+      </main>
 
       {/* FAQ Section */}
       <FAQSection pageName="Drone Services" customFAQs={serviceFAQs} />
