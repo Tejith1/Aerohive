@@ -42,7 +42,7 @@ export default function AdminLayout({
   if (!isAdmin) return null
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-background">
+    <div className="flex h-screen w-full overflow-hidden bg-background">
       <AdminSidebar />
       <div className="flex-1 flex flex-col h-full overflow-y-auto bg-[#faf8f5] dark:bg-[#0b0c0e]">{children}</div>
     </div>

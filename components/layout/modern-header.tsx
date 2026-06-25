@@ -160,7 +160,7 @@ export function ModernHeader() {
       ? 'bg-background/90 backdrop-blur-xl shadow-sm border-b border-border py-2'
       : 'bg-transparent py-4'
       }`}>
-      <div className="container mx-auto px-6">
+      <div className="w-full px-6 md:px-10 2xl:px-16">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center shrink-0 hover:opacity-90 transition-opacity" aria-label="AeroHive Home">
@@ -172,7 +172,7 @@ export function ModernHeader() {
           </Link>
 
           {/* Desktop Navigation with Claude-Style Hover Mega Menus */}
-          <nav className="hidden xl:flex items-center space-x-0.5 xl:space-x-1 ml-4 xl:ml-8 shrink">
+          <nav className="hidden xl:flex items-center space-x-0.5 xl:space-x-1 ml-2 xl:ml-6 shrink">
             {navigationLinks.map((link) => (
               link.hasMegaMenu ? (
                 <div
@@ -181,7 +181,7 @@ export function ModernHeader() {
                   onMouseEnter={() => setHoveredMenu(link.label)}
                   onMouseLeave={() => setHoveredMenu(null)}
                 >
-                  <button className="flex items-center space-x-1.5 xl:space-x-2 text-foreground hover:text-primary hover:bg-primary/5 font-sans text-[15px] font-semibold tracking-wide px-2 xl:px-4 py-2 rounded-xl cursor-pointer border-0 bg-transparent transition-all duration-300">
+                  <button className="flex items-center space-x-1.5 xl:space-x-2 text-foreground hover:text-primary hover:bg-primary/5 font-sans text-[14px] font-semibold tracking-wide px-2 xl:px-3 py-2 rounded-xl cursor-pointer border-0 bg-transparent transition-all duration-300">
                     {link.icon && <link.icon className="h-4.5 w-4.5 text-muted-foreground group-hover:text-primary transition-colors" />}
                     <span>{link.label}</span>
                     {["Drones", "Services"].includes(link.label) && (
@@ -239,7 +239,7 @@ export function ModernHeader() {
                   key={link.href}
                   variant="ghost"
                   asChild
-                  className="text-foreground hover:text-primary hover:bg-primary/5 font-sans text-[15px] font-semibold tracking-wide transition-all duration-300 rounded-xl px-2.5 xl:px-4 py-2 relative group cursor-pointer"
+                  className="text-foreground hover:text-primary hover:bg-primary/5 font-sans text-[14px] font-semibold tracking-wide transition-all duration-300 rounded-xl px-2.5 xl:px-3 py-2 relative group cursor-pointer"
                 >
                   <Link href={link.href} className="flex items-center space-x-2">
                     {link.icon && <link.icon className="h-4.5 w-4.5 text-muted-foreground group-hover:text-primary transition-colors" />}
@@ -315,7 +315,7 @@ export function ModernHeader() {
                       <div className="h-10 w-10 rounded-xl bg-primary text-primary-foreground font-bold flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-200">
                         {user?.first_name ? user.first_name[0].toUpperCase() : "U"}
                       </div>
-                      <div className="hidden md:block text-left">
+                      <div className="hidden 2xl:block text-left">
                         <p className="text-sm font-semibold text-foreground">
                           {user?.first_name || "User"}
                         </p>
@@ -408,13 +408,13 @@ export function ModernHeader() {
                 <Button
                   variant="ghost"
                   asChild
-                  className="hidden md:flex hover:bg-primary/5 text-foreground hover:text-primary font-sans text-[15px] font-semibold tracking-wide rounded-xl px-4 py-2 transition-all duration-200"
+                  className="hidden md:flex hover:bg-primary/5 text-foreground hover:text-primary font-sans text-[14px] font-semibold tracking-wide rounded-xl px-4 py-2 transition-all duration-200"
                 >
                   <Link href="/login">Sign In</Link>
                 </Button>
                 <Button
                   asChild
-                  className="bg-primary hover:bg-primary/95 text-white rounded-full px-6 py-2 font-sans text-[15px] font-semibold tracking-wide transition-all duration-300 border-0"
+                  className="bg-primary hover:bg-primary/95 text-white rounded-full px-6 py-2 font-sans text-[14px] font-semibold tracking-wide transition-all duration-300 border-0"
                 >
                   <Link href="/register">Get Started</Link>
                 </Button>
