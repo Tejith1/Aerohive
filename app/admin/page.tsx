@@ -35,6 +35,8 @@ import { useEffect, useState, useRef } from "react"
 import { getProducts, Product, getCategories, Category, supabase, DronePilot } from "@/lib/supabase"
 import { toast } from "@/hooks/use-toast"
 import Link from "next/link"
+import { Switch } from "@/components/ui/switch"
+import { useSettings } from "@/contexts/settings-context"
 
 // Chart data definition
 const ANALYTICS_DATA = {
@@ -73,6 +75,23 @@ export default function AdminDashboard() {
   const [pilots, setPilots] = useState<DronePilot[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [greeting, setGreeting] = useState("Welcome back")
+  const { settings: siteSettings, updateSettings } = useSettings()
+  const [isUpdatingSettings, setIsUpdatingSettings] = useState(false)
+
+  const handleToggleSetting = async (key: string) => {
+    if (!siteSettings) return
+    setIsUpdatingSettings(true)
+    const currentVal = siteSettings[key as keyof typeof siteSettings]
+    const success = await updateSettings({ [key]: !currentVal })
+    setIsUpdatingSettings(false)
+    if (success) {
+      toast({
+        title: "Access Policy Updated",
+        description: `Successfully updated the section visibility settings.`,
+        variant: "success"
+      })
+    }
+  }
 
   // Interactive Analytics Tab State
   const [activeChartTab, setActiveChartTab] = useState<"revenue" | "flights" | "signups">("revenue")
@@ -787,6 +806,56 @@ export default function AdminDashboard() {
                     <div className="h-full bg-indigo-500 rounded-full" style={{ width: "98.4%" }} />
                   </div>
                 </div>
+              </div>
+
+              {/* Platform Visibility & Access Controls */}
+              <div className="space-y-3.5 pt-5 border-t border-neutral-150/40 dark:border-neutral-800/40">
+                <span className="text-[8px] font-mono text-neutral-400 dark:text-neutral-500 uppercase tracking-widest font-bold block flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5 text-[#e65737]" />
+                  Platform Visibility & Access Controls
+                </span>
+                
+                {siteSettings ? (
+                  <div className="space-y-4">
+                    {/* Global access lock toggle */}
+                    <div className="flex items-center justify-between p-3 rounded-2xl bg-neutral-50/50 dark:bg-neutral-950/20 border border-neutral-150/40 dark:border-neutral-800/30">
+                      <div className="space-y-0.5">
+                        <p className="text-[11px] font-bold text-neutral-850 dark:text-neutral-100 uppercase tracking-wide">Global Access Lock</p>
+                        <p className="text-[9px] text-neutral-400 dark:text-neutral-500 font-mono">Master override for all overlays</p>
+                      </div>
+                      <Switch 
+                        checked={siteSettings.hide_sections} 
+                        onCheckedChange={() => handleToggleSetting("hide_sections")} 
+                        disabled={isUpdatingSettings}
+                      />
+                    </div>
+
+                    {/* Sub-toggles grid */}
+                    <div className="grid grid-cols-1 gap-2.5 pl-2.5 border-l-2 border-neutral-200/50 dark:border-neutral-800/40">
+                      {[
+                        { key: "hide_drones", label: "Drones Catalog", desc: "/products page & details" },
+                        { key: "hide_categories", label: "Categories Catalog", desc: "/categories overview" },
+                        { key: "hide_services", label: "Drone & Repair Services", desc: "/drone-services & /repair-services" },
+                        { key: "hide_cart", label: "Shopping Cart", desc: "/cart review & checkout" },
+                        { key: "hide_training", label: "Training Programs", desc: "/training academy" }
+                      ].map((item) => (
+                        <div key={item.key} className="flex items-center justify-between py-1 opacity-90 hover:opacity-100 transition-opacity">
+                          <div className="space-y-0.5">
+                            <p className="text-[10px] font-semibold text-neutral-700 dark:text-neutral-300">{item.label}</p>
+                            <p className="text-[8px] text-neutral-400 dark:text-neutral-550 font-mono">{item.desc}</p>
+                          </div>
+                          <Switch 
+                            checked={siteSettings[item.key as keyof typeof siteSettings]} 
+                            onCheckedChange={() => handleToggleSetting(item.key)} 
+                            disabled={isUpdatingSettings || !siteSettings.hide_sections}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-[10px] font-mono text-neutral-400 animate-pulse">Syncing access policies...</p>
+                )}
               </div>
 
             </CardContent>

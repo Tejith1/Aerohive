@@ -15,12 +15,14 @@ import { notFound } from "next/navigation"
 import { useCartStore } from "@/lib/cart-store"
 import { toast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
+import { useSettings } from "@/contexts/settings-context"
 import { ComingSoonOverlay } from "@/components/ui/coming-soon-overlay"
 
 export default function ProductDetailPage() {
   const params = useParams()
   const { addItem } = useCartStore()
   const { isAdmin, isLoading: authLoading } = useAuth()
+  const { settings: siteSettings, isLoading: settingsLoading } = useSettings()
   const [product, setProduct] = useState<Product | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedImage, setSelectedImage] = useState(0)
@@ -135,7 +137,7 @@ export default function ProductDetailPage() {
       <ModernHeader />
 
       <main className="flex-1 container mx-auto px-4 py-8 relative">
-        <div className={!isAdmin && !authLoading ? "opacity-20 blur-sm pointer-events-none transition-all duration-300" : "transition-all duration-300"}>
+        <div className={siteSettings?.hide_sections && siteSettings?.hide_drones && !isAdmin && !authLoading && !settingsLoading ? "opacity-20 blur-sm pointer-events-none transition-all duration-300" : "transition-all duration-300"}>
           {/* Breadcrumb */}
           <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
             <Link href="/" className="hover:text-primary">Home</Link>
@@ -600,7 +602,7 @@ export default function ProductDetailPage() {
         </div>
 
         <ComingSoonOverlay
-          show={!isAdmin && !authLoading}
+          show={siteSettings?.hide_sections && siteSettings?.hide_drones && !isAdmin && !authLoading && !settingsLoading}
           title="Access Restricted"
           description="This section is locked for regular customers. Only administrators can access this content."
         />

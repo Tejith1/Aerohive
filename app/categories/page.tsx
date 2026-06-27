@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
 import { useAuth } from "@/contexts/auth-context"
+import { useSettings } from "@/contexts/settings-context"
 import { Lock } from "lucide-react"
 import { ComingSoonOverlay } from "@/components/ui/coming-soon-overlay"
 import { FAQSection } from "@/components/layout/faq-section"
@@ -253,8 +254,9 @@ export default function CategoriesPage() {
   const [sortBy, setSortBy] = useState("name")
   const [filteredCategories, setFilteredCategories] = useState(droneCategories)
   const { isAuthenticated, isAdmin, isLoading: authLoading } = useAuth()
+  const { settings: siteSettings, isLoading: settingsLoading } = useSettings()
 
-  const isLoading = authLoading
+  const isLoading = authLoading || settingsLoading
 
   useEffect(() => {
     let filtered = droneCategories.filter(category =>
@@ -309,7 +311,7 @@ export default function CategoriesPage() {
         </section>
  
         <div className="relative">
-          <div className={!isAdmin && !isLoading ? "opacity-20 blur-sm pointer-events-none transition-all duration-300" : "transition-all duration-300"}>
+          <div className={siteSettings?.hide_sections && siteSettings?.hide_categories && !isAdmin && !isLoading ? "opacity-20 blur-sm pointer-events-none transition-all duration-300" : "transition-all duration-300"}>
             
             {/* Search and Filter Section */}
             <section className="py-8 bg-[#fbf9f6] dark:bg-slate-950 border-b border-slate-100/50 dark:border-slate-800/50">
@@ -434,7 +436,7 @@ export default function CategoriesPage() {
 
           {/* Locked Overlay */}
           <ComingSoonOverlay
-            show={!isAdmin && !isLoading}
+            show={siteSettings?.hide_sections && siteSettings?.hide_categories && !isAdmin && !isLoading}
             title="Access Restricted"
             description="This section is locked for regular customers. Only administrators can access this content."
           />

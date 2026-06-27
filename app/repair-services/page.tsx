@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
 import { useAuth } from "@/contexts/auth-context"
+import { useSettings } from "@/contexts/settings-context"
 import { ComingSoonOverlay } from "@/components/ui/coming-soon-overlay"
 import { FAQSection } from "@/components/layout/faq-section"
 
@@ -259,7 +260,8 @@ export default function RepairServicesPage() {
   const [filteredCenters, setFilteredCenters] = useState(repairCenters)
   const [selectedCenter, setSelectedCenter] = useState<RepairCenter | null>(null)
   const { isAdmin, isLoading: authLoading } = useAuth()
-  const isLoading = authLoading
+  const { settings: siteSettings, isLoading: settingsLoading } = useSettings()
+  const isLoading = authLoading || settingsLoading
 
   useEffect(() => {
     let filtered = repairCenters.filter(center => {
@@ -402,7 +404,7 @@ export default function RepairServicesPage() {
       {/* Repair Centers Grid */}
       <section className="py-12 relative bg-background">
         <div className="container mx-auto px-4">
-          <div className={!isAdmin && !isLoading ? "opacity-20 blur-sm pointer-events-none transition-all duration-300" : "transition-all duration-300"}>
+          <div className={siteSettings?.hide_sections && siteSettings?.hide_services && !isAdmin && !isLoading ? "opacity-20 blur-sm pointer-events-none transition-all duration-300" : "transition-all duration-300"}>
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
             {filteredCenters.map((center) => (
               <Card key={center.id} className="overflow-hidden hover:shadow-xl transition-all duration-350 border border-border bg-card rounded-3xl">
@@ -559,7 +561,7 @@ export default function RepairServicesPage() {
 
           </div>
           <ComingSoonOverlay
-            show={!isAdmin && !isLoading}
+            show={siteSettings?.hide_sections && siteSettings?.hide_services && !isAdmin && !isLoading}
             title="Access Restricted"
             description="This section is locked for regular customers. Only administrators can access this content."
           />

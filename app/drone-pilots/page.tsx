@@ -560,7 +560,7 @@ export default function DronePilotsPage() {
                 >
                   {/* Top-Right Experience Badge */}
                   <div className="absolute top-6 right-6 z-10">
-                    <span className="inline-block px-3 py-1 bg-white/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800/60 text-[10px] font-bold text-muted-foreground rounded-full font-mono uppercase tracking-wider shadow-sm">
+                    <span className="inline-block px-3 py-1 bg-white/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800/60 text-[11px] font-semibold text-slate-500 dark:text-slate-400 rounded-full font-mono uppercase tracking-wider shadow-sm">
                       {pilot.experience}
                     </span>
                   </div>
@@ -581,14 +581,14 @@ export default function DronePilotsPage() {
                           <CheckCircle2 className="h-3 w-3 text-primary-foreground" />
                         </div>
                       </div>
-                      <div className="space-y-1">
+                      <div className="space-y-1 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <h3 className="text-lg font-bold text-slate-900 dark:text-white leading-snug group-hover:text-primary transition-colors duration-300 font-display">
+                          <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 leading-snug group-hover:text-primary transition-colors duration-300 font-display">
                             {pilot.full_name}
                           </h3>
                         </div>
-                        <div className="flex items-center gap-1 text-[10px] text-primary font-mono uppercase tracking-wider">
-                          <MapPin className="h-3 w-3" />
+                        <div className="flex items-center gap-1 text-[11px] font-semibold text-primary/95 font-mono uppercase tracking-wide">
+                          <MapPin className="h-3.5 w-3.5" />
                           <span>{pilot.area}, {pilot.location}</span>
                         </div>
                       </div>
@@ -597,15 +597,15 @@ export default function DronePilotsPage() {
                     {/* Stats section */}
                     <div className="grid grid-cols-2 gap-4 py-4 border-t border-b border-slate-150/40 dark:border-slate-800/40 mb-6 bg-slate-50/50 dark:bg-slate-950/40 rounded-2xl px-4">
                       <div className="space-y-0.5">
-                        <p className="text-[9px] text-muted-foreground font-semibold uppercase tracking-wider font-mono">Rating</p>
-                        <div className="flex items-center gap-1 text-slate-800 dark:text-slate-100 font-bold text-xs font-mono">
-                          <Star className="h-3.5 w-3.5 fill-primary text-primary" />
+                        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-widest font-mono">Rating</p>
+                        <div className="flex items-center gap-1 text-sm font-bold text-slate-800 dark:text-slate-200 font-mono">
+                          <Star className="h-4 w-4 fill-primary text-primary" />
                           <span>{pilot.rating || "5.0"}</span>
                         </div>
                       </div>
                       <div className="space-y-0.5">
-                        <p className="text-[9px] text-muted-foreground font-semibold uppercase tracking-wider font-mono">Missions</p>
-                        <p className="text-xs font-bold text-slate-800 dark:text-slate-100 font-mono">
+                        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-widest font-mono">Missions</p>
+                        <p className="text-sm font-bold text-slate-800 dark:text-slate-200 font-mono">
                           {pilot.completed_jobs} Completed
                         </p>
                       </div>
@@ -613,12 +613,12 @@ export default function DronePilotsPage() {
  
                     {/* Certifications / Accreditations */}
                     <div className="space-y-2 mb-4">
-                      <h4 className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider font-mono">Licenses & Certifications</h4>
+                      <h4 className="text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-widest font-mono">Licenses & Certifications</h4>
                       <div className="flex flex-wrap gap-1.5">
                         {parseArray(pilot.certifications, 'certifications').map((cert, idx) => (
                           <span 
                             key={idx} 
-                            className="inline-block text-[10px] font-mono px-2.5 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-muted-foreground rounded-xl shadow-sm"
+                            className="inline-block text-[11px] font-medium px-3 py-1 bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800/80 text-slate-600 dark:text-slate-300 rounded-xl shadow-sm font-sans"
                           >
                             {cert}
                           </span>
@@ -628,12 +628,12 @@ export default function DronePilotsPage() {
  
                     {/* Specializations */}
                     <div className="space-y-2 mb-6">
-                      <h4 className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider font-mono">Operations Focus</h4>
+                      <h4 className="text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-widest font-mono">Operations Focus</h4>
                       <div className="flex flex-wrap gap-1.5">
                         {parseArray(pilot.specializations, 'specializations').map((spec, idx) => (
                           <span 
                             key={idx} 
-                            className="inline-block text-[10px] font-mono px-2.5 py-1 bg-primary/5 border border-primary/10 text-primary rounded-xl font-medium"
+                            className="inline-block text-[11px] font-medium px-3 py-1 bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 text-primary dark:text-primary rounded-xl font-sans"
                           >
                             {spec}
                           </span>
@@ -645,14 +645,14 @@ export default function DronePilotsPage() {
                   {/* Hourly Rate & CTA Button Footer */}
                   <div className="pt-4 border-t border-slate-150/40 dark:border-slate-800/40 flex items-center justify-between mt-auto">
                     <div>
-                      <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider font-mono">Hourly Rate</p>
-                      <p className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-widest font-mono">Hourly Rate</p>
+                      <p className="text-3xl font-extrabold text-slate-900 dark:text-slate-50 font-mono tracking-tight">
                         ₹{pilot.hourly_rate}
-                        <span className="text-xs text-muted-foreground font-normal">/hr</span>
+                        <span className="text-xs text-slate-400 dark:text-slate-550 font-mono font-medium">/hr</span>
                       </p>
                     </div>
                     <Button
-                      className="bg-foreground hover:bg-primary text-background dark:bg-foreground dark:hover:bg-primary dark:text-background dark:hover:text-primary-foreground rounded-full px-5 py-2 text-xs font-semibold tracking-wide transition-all duration-300 hover:scale-[1.02] cursor-pointer shadow-sm border-0"
+                      className="bg-slate-900 hover:bg-primary text-white dark:bg-slate-50 dark:hover:bg-primary dark:text-slate-950 dark:hover:text-white rounded-full px-6 py-4.5 text-xs font-bold uppercase tracking-wider transition-all duration-300 hover:scale-[1.02] shadow-md border-0 flex items-center justify-center cursor-pointer"
                       onClick={() => handleContactClick(pilot)}
                       disabled={bookingInProgress}
                     >

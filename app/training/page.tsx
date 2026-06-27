@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
 import { useAuth } from "@/contexts/auth-context"
+import { useSettings } from "@/contexts/settings-context"
 import { ComingSoonOverlay } from "@/components/ui/coming-soon-overlay"
 import { FAQSection } from "@/components/layout/faq-section"
 
@@ -222,6 +223,8 @@ export default function TrainingPage() {
   const [filteredCourses, setFilteredCourses] = useState(trainingCourses)
   const [filteredProviders, setFilteredProviders] = useState(trainingProviders)
   const { isAdmin, isLoading: authLoading } = useAuth()
+  const { settings: siteSettings, isLoading: settingsLoading } = useSettings()
+  const isLoading = authLoading || settingsLoading
 
   useEffect(() => {
     if (activeTab === "courses") {
@@ -368,7 +371,7 @@ export default function TrainingPage() {
       {/* Content Section */}
       <section className="py-12 relative bg-background">
         <div className="container mx-auto px-4">
-          <div className={!isAdmin && !authLoading ? "opacity-20 blur-sm pointer-events-none transition-all duration-300" : "transition-all duration-300"}>
+          <div className={siteSettings?.hide_sections && siteSettings?.hide_training && !isAdmin && !isLoading ? "opacity-20 blur-sm pointer-events-none transition-all duration-300" : "transition-all duration-300"}>
             {activeTab === "courses" ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
               {filteredCourses.map((course) => {
@@ -576,7 +579,7 @@ export default function TrainingPage() {
 
           </div>
           <ComingSoonOverlay
-            show={!isAdmin && !authLoading}
+            show={siteSettings?.hide_sections && siteSettings?.hide_training && !isAdmin && !isLoading}
             title="Access Restricted"
             description="This section is locked for regular customers. Only administrators can access this content."
           />

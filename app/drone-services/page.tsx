@@ -10,6 +10,7 @@ import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
 import { calculateDistance } from "@/lib/supabase"
 import { useAuth } from "@/contexts/auth-context"
+import { useSettings } from "@/contexts/settings-context"
 import { ComingSoonOverlay } from "@/components/ui/coming-soon-overlay"
 import { FAQSection } from "@/components/layout/faq-section"
 
@@ -277,7 +278,8 @@ export default function DroneServicesPage() {
   const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null)
   const [isLocating, setIsLocating] = useState(false)
   const { isAdmin, isLoading: authLoading } = useAuth()
-  const isLoading = authLoading
+  const { settings: siteSettings, isLoading: settingsLoading } = useSettings()
+  const isLoading = authLoading || settingsLoading
 
   useEffect(() => {
     if (activeTab === "services") {
@@ -455,7 +457,7 @@ export default function DroneServicesPage() {
       <ModernHeader />
 
       <main className="flex-1 relative">
-        <div className={!isAdmin && !isLoading ? "opacity-20 blur-sm pointer-events-none transition-all duration-300 w-full" : "transition-all duration-300 w-full"}>
+        <div className={siteSettings?.hide_sections && siteSettings?.hide_services && !isAdmin && !isLoading ? "opacity-20 blur-sm pointer-events-none transition-all duration-300 w-full" : "transition-all duration-300 w-full"}>
 
       {/* Hero Section */}
       <section className="relative pt-28 lg:pt-36 pb-20 overflow-hidden text-center bg-background border-b border-border">
@@ -885,7 +887,7 @@ export default function DroneServicesPage() {
         </div>
 
         <ComingSoonOverlay
-          show={!isAdmin && !isLoading}
+          show={siteSettings?.hide_sections && siteSettings?.hide_services && !isAdmin && !isLoading}
           title="Access Restricted"
           description="This section is locked for regular customers. Only administrators can access this content."
         />

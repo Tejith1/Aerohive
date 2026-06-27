@@ -95,8 +95,8 @@ export function ModernHeader() {
         {
           title: "Key Features",
           items: [
-            { href: "/login", label: "Real-Time Telemetry", desc: "Live speed & battery analysis" },
-            { href: "/register", label: "Airspace Safety", desc: "DGCA compliant zoning guides" },
+            { href: "/drone-services", label: "Real-Time Telemetry", desc: "Live speed & battery analysis" },
+            { href: "/training", label: "Airspace Safety", desc: "DGCA compliant zoning guides" },
             { href: "/categories", label: "Autopilot Guidance", desc: "Waypoints & autonomous routes" }
           ]
         },

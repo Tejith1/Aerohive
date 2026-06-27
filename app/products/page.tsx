@@ -17,6 +17,7 @@ import { useCartStore } from "@/lib/cart-store"
 import { getProducts, Product, getCategories, Category } from "@/lib/supabase"
 import { toast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
+import { useSettings } from "@/contexts/settings-context"
 import { Lock, ArrowRight } from "lucide-react"
 import { ComingSoonOverlay } from "@/components/ui/coming-soon-overlay"
 import { FAQSection } from "@/components/layout/faq-section"
@@ -49,8 +50,9 @@ export default function ProductsPage() {
   const [showFilters, setShowFilters] = useState(false)
   const { addItem } = useCartStore()
   const { isAuthenticated, isAdmin, isLoading: authLoading } = useAuth()
+  const { settings: siteSettings, isLoading: settingsLoading } = useSettings()
 
-  const isGlobalLoading = authLoading || (isLoading && products.length === 0)
+  const isGlobalLoading = authLoading || settingsLoading || (isLoading && products.length === 0)
 
   useEffect(() => {
     loadData()
@@ -212,7 +214,7 @@ export default function ProductsPage() {
         </section>
 
         <div className="container mx-auto px-6 py-12 relative">
-          <div className={!isAdmin && !authLoading ? "opacity-20 blur-sm pointer-events-none transition-all duration-300" : "transition-all duration-300"}>
+          <div className={siteSettings?.hide_sections && siteSettings?.hide_drones && !isAdmin && !isGlobalLoading ? "opacity-20 blur-sm pointer-events-none transition-all duration-300" : "transition-all duration-300"}>
             {/* Filters and Search */}
             <div className="grid gap-6 lg:grid-cols-4 mb-8">
               {/* Filters Sidebar */}
@@ -431,7 +433,7 @@ export default function ProductsPage() {
 
           {/* Locked Overlay */}
           <ComingSoonOverlay
-            show={!isAdmin && !authLoading}
+            show={siteSettings?.hide_sections && siteSettings?.hide_drones && !isAdmin && !isGlobalLoading}
             title="Access Restricted"
             description="This section is locked for regular customers. Only administrators can access this content."
           />

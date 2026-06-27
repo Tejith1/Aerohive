@@ -11,18 +11,20 @@ import { ModernHeader } from "@/components/layout/modern-header"
 import { ModernFooter } from "@/components/layout/modern-footer"
 import { useCartStore } from "@/lib/cart-store"
 import { useAuth } from "@/contexts/auth-context"
+import { useSettings } from "@/contexts/settings-context"
 import { ComingSoonOverlay } from "@/components/ui/coming-soon-overlay"
 
 export default function CartPage() {
   const { items, getTotalPrice, getTotalItems, clearCart } = useCartStore()
   const { isAdmin, isLoading: authLoading } = useAuth()
+  const { settings: siteSettings, isLoading: settingsLoading } = useSettings()
 
   const subtotal = getTotalPrice()
   const shipping = subtotal >= 8300 ? 0 : 830
   const tax = subtotal * 0.08
   const total = subtotal + shipping + tax
 
-  const showOverlay = !isAdmin && !authLoading
+  const showOverlay = siteSettings?.hide_sections && siteSettings?.hide_cart && !isAdmin && !authLoading && !settingsLoading
 
   if (items.length === 0) {
     return (

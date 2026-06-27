@@ -6,6 +6,7 @@ import { Suspense } from "react"
 import dynamic from 'next/dynamic'
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/contexts/auth-context"
+import { SettingsProvider } from "@/contexts/settings-context"
 import { NotificationProvider } from "@/contexts/notification-context"
 import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css"
@@ -51,11 +52,13 @@ export default function RootLayout({
       <body className={`font-sans ${inter.variable} ${jetbrainsMono.variable}`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <AuthProvider>
-            <NotificationProvider>
-              <Suspense fallback={null}>{children}</Suspense>
-              <Chatbot />
-              <Toaster />
-            </NotificationProvider>
+            <SettingsProvider>
+              <NotificationProvider>
+                <Suspense fallback={null}>{children}</Suspense>
+                <Chatbot />
+                <Toaster />
+              </NotificationProvider>
+            </SettingsProvider>
           </AuthProvider>
         </ThemeProvider>
         <Analytics />
