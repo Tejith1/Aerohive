@@ -11,6 +11,9 @@ export interface SiteSettings {
   hide_services: boolean
   hide_cart: boolean
   hide_training: boolean
+  hide_pilots: boolean
+  hide_about: boolean
+  hide_contact: boolean
 }
 
 const defaultSettings: SiteSettings = {
@@ -20,6 +23,9 @@ const defaultSettings: SiteSettings = {
   hide_services: true,
   hide_cart: true,
   hide_training: true,
+  hide_pilots: true,
+  hide_about: true,
+  hide_contact: true,
 }
 
 interface SettingsContextType {

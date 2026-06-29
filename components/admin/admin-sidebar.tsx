@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Users, BarChart3, LogOut, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react"
+import { Users, BarChart3, LogOut, ArrowLeft, ChevronLeft, ChevronRight, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/contexts/auth-context"
@@ -17,6 +17,7 @@ const navigation = [
   { name: "Users", href: "/admin/users", icon: Users },
   { name: "Drone Pilots", href: "/admin/pilots", icon: DronePilotsIcon },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+  { name: "Visibility", href: "/admin/visibility", icon: Eye },
   { name: "Settings", href: "/admin/settings", icon: ServicesIcon },
   { name: "Back to Site", href: "/", icon: ArrowLeft },
 ]

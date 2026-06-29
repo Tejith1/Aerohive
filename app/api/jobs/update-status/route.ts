@@ -80,6 +80,32 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Failed to update status' }, { status: 500 })
         }
 
+        // Sync pilot's completed_jobs count in the drone_pilots table
+        if (booking.pilot_id) {
+            try {
+                const { count, error: countError } = await supabase
+                    .from('bookings')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('pilot_id', booking.pilot_id)
+                    .eq('status', 'COMPLETED')
+
+                if (!countError && count !== null) {
+                    const { error: pilotUpdateError } = await supabase
+                        .from('drone_pilots')
+                        .update({ completed_jobs: count })
+                        .eq('id', booking.pilot_id)
+                    
+                    if (pilotUpdateError) {
+                        console.error('Failed to sync pilot completed_jobs:', pilotUpdateError)
+                    } else {
+                        console.log(`Synced completed_jobs for pilot ${booking.pilot_id} to ${count}`)
+                    }
+                }
+            } catch (syncErr) {
+                console.error('Error syncing pilot completed_jobs count:', syncErr)
+            }
+        }
+
         console.log(`✅ Booking ${bookingId} status: ${currentStatus} → ${newStatus} (stored in DB as ${dbStatus})`)
 
         return NextResponse.json({

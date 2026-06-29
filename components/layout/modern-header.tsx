@@ -35,10 +35,12 @@ import {
 } from "@/components/ui/custom-icons"
 import { NotificationDropdown } from "./notification-dropdown"
 import { useTheme } from "next-themes"
+import { useSettings } from "@/contexts/settings-context"
 
 export function ModernHeader() {
   const { getTotalItems } = useCartStore()
   const { user, isAuthenticated, isAdmin, logout } = useAuth()
+  const { settings: siteSettings } = useSettings()
   const cartItemCount = getTotalItems()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -155,6 +157,43 @@ export function ModernHeader() {
     }
   ]
 
+  // Filter navigation links dynamically based on site settings
+  const filteredNavigationLinks = React.useMemo(() => {
+    const showAll = isAdmin || !siteSettings || !siteSettings.hide_sections;
+    
+    return navigationLinks
+      .filter((link) => {
+        if (showAll) return true;
+        if (link.label === "Drones" && siteSettings.hide_drones) return false;
+        if (link.label === "Categories" && siteSettings.hide_categories) return false;
+        if (link.label === "Drone Pilots" && siteSettings.hide_pilots) return false;
+        if (link.label === "Services" && siteSettings.hide_services) return false;
+        if (link.label === "About" && siteSettings.hide_about) return false;
+        if (link.label === "Contact" && siteSettings.hide_contact) return false;
+        return true;
+      })
+      .map((link) => {
+        if (showAll) return link;
+        
+        // If link has a mega menu, filter out training items if hide_training is active
+        if (link.hasMegaMenu && link.columns) {
+          const filteredColumns = link.columns.map((col) => {
+            const filteredItems = col.items.filter((item) => {
+              if (item.href.includes("/training") && siteSettings.hide_training) {
+                return false;
+              }
+              return true;
+            });
+            return { ...col, items: filteredItems };
+          }).filter(col => col.items.length > 0);
+          
+          return { ...link, columns: filteredColumns };
+        }
+        
+        return link;
+      });
+  }, [siteSettings, isAdmin, navigationLinks]);
+
   return (
     <header className={`fixed top-0 left-0 right-0 z-[999] transition-all duration-500 ${scrolled
       ? 'bg-background/90 backdrop-blur-xl shadow-sm border-b border-border py-2'
@@ -173,7 +212,7 @@ export function ModernHeader() {
 
           {/* Desktop Navigation with Claude-Style Hover Mega Menus */}
           <nav className="hidden xl:flex items-center space-x-0.5 xl:space-x-1 ml-2 xl:ml-6 shrink">
-            {navigationLinks.map((link) => (
+            {filteredNavigationLinks.map((link) => (
               link.hasMegaMenu ? (
                 <div
                   key={link.label}
@@ -267,25 +306,27 @@ export function ModernHeader() {
             </Button>
 
             {/* Cart Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              asChild
-              className="relative h-10 w-10 rounded-xl hover:bg-primary/5 text-muted-foreground hover:text-primary transition-all duration-200"
-              aria-label="Shopping Cart"
-            >
-              <Link href="/cart" className="relative">
-                <ShoppingCart className="h-5 w-5" />
-                <span className="absolute -top-1 -left-1 bg-background rounded-full p-0.5 shadow-sm border border-border flex items-center justify-center">
-                  <Lock className="h-2.5 w-2.5 text-muted-foreground/80" />
-                </span>
-                {cartItemCount > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-primary text-white border-0 animate-bounce-in shadow-sm">
-                    {cartItemCount}
-                  </Badge>
-                )}
-              </Link>
-            </Button>
+            {!(siteSettings?.hide_sections && siteSettings?.hide_cart && !isAdmin) && (
+              <Button
+                variant="ghost"
+                size="icon"
+                asChild
+                className="relative h-10 w-10 rounded-xl hover:bg-primary/5 text-muted-foreground hover:text-primary transition-all duration-200"
+                aria-label="Shopping Cart"
+              >
+                <Link href="/cart" className="relative">
+                  <ShoppingCart className="h-5 w-5" />
+                  <span className="absolute -top-1 -left-1 bg-background rounded-full p-0.5 shadow-sm border border-border flex items-center justify-center">
+                    <Lock className="h-2.5 w-2.5 text-muted-foreground/80" />
+                  </span>
+                  {cartItemCount > 0 && (
+                    <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-primary text-white border-0 animate-bounce-in shadow-sm">
+                      {cartItemCount}
+                    </Badge>
+                  )}
+                </Link>
+              </Button>
+            )}
 
             {/* Auth Section */}
             {isAuthenticated ? (
@@ -448,7 +489,7 @@ export function ModernHeader() {
             className="xl:hidden border-t border-border bg-card mt-1 rounded-b-2xl shadow-md overflow-hidden"
           >
             <nav className="p-5 space-y-2">
-              {navigationLinks.map((link) => (
+              {filteredNavigationLinks.map((link) => (
                 link.hasMegaMenu ? (
                   <div key={link.label} className="space-y-2">
                     <div className="font-semibold text-foreground px-3 py-2 text-sm uppercase tracking-wider flex items-center gap-2">

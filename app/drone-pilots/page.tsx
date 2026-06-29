@@ -610,15 +610,15 @@ export default function DronePilotsPage() {
                         </p>
                       </div>
                     </div>
- 
+
                     {/* Certifications / Accreditations */}
-                    <div className="space-y-2 mb-4">
-                      <h4 className="text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-widest font-mono">Licenses & Certifications</h4>
-                      <div className="flex flex-wrap gap-1.5">
+                    <div className="space-y-2.5 mb-5">
+                      <h4 className="text-[13px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-mono">Licenses & Certifications</h4>
+                      <div className="flex flex-wrap gap-2">
                         {parseArray(pilot.certifications, 'certifications').map((cert, idx) => (
                           <span 
                             key={idx} 
-                            className="inline-block text-[11px] font-medium px-3 py-1 bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800/80 text-slate-600 dark:text-slate-300 rounded-xl shadow-sm font-sans"
+                            className="inline-block text-xs font-semibold px-3.5 py-1.5 bg-white dark:bg-slate-900/60 border border-slate-250 dark:border-slate-750 text-slate-700 dark:text-slate-205 rounded-xl shadow-sm font-sans"
                           >
                             {cert}
                           </span>
@@ -627,13 +627,13 @@ export default function DronePilotsPage() {
                     </div>
  
                     {/* Specializations */}
-                    <div className="space-y-2 mb-6">
-                      <h4 className="text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-widest font-mono">Operations Focus</h4>
-                      <div className="flex flex-wrap gap-1.5">
+                    <div className="space-y-2.5 mb-6">
+                      <h4 className="text-[13px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-mono">Operations Focus</h4>
+                      <div className="flex flex-wrap gap-2">
                         {parseArray(pilot.specializations, 'specializations').map((spec, idx) => (
                           <span 
                             key={idx} 
-                            className="inline-block text-[11px] font-medium px-3 py-1 bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 text-primary dark:text-primary rounded-xl font-sans"
+                            className="inline-block text-xs font-semibold px-3.5 py-1.5 bg-primary/5 dark:bg-primary/10 border border-primary/25 dark:border-primary/45 text-primary dark:text-primary rounded-xl font-sans"
                           >
                             {spec}
                           </span>
