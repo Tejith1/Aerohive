@@ -569,7 +569,7 @@ export default function DroneServicesPage() {
       ]
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 transition-colors duration-300">
+    <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300">
       <ModernHeader />
 
       <main className="flex-1 relative pt-20">
@@ -583,7 +583,7 @@ export default function DroneServicesPage() {
           <section className="relative py-20 overflow-hidden text-center">
             <div className="container mx-auto px-6 relative z-10">
               <div className="max-w-3xl mx-auto space-y-6">
-                <div className="inline-flex items-center gap-2.5 bg-white dark:bg-zinc-900 border border-slate-200/60 dark:border-zinc-800/80 px-5 py-2 rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.03)] hover:scale-[1.01] transition-transform duration-300">
+                <div className="inline-flex items-center gap-2.5 bg-white dark:bg-card border border-slate-200/60 dark:border-border px-5 py-2 rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.03)] hover:scale-[1.01] transition-transform duration-300">
                   <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 fill-blue-500/10" />
                   <span className="text-[10px] font-bold tracking-[0.12em] text-slate-850 dark:text-zinc-200 uppercase font-sans">
                     Premium On-Demand Marketplace
@@ -605,10 +605,10 @@ export default function DroneServicesPage() {
                   }}>
                     Browse Operations <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
-                  <Button asChild size="lg" variant="outline" className="border border-[#e8e3d9] dark:border-slate-800 bg-[#fdfcfa]/60 dark:bg-slate-900/50 backdrop-blur-md text-slate-700 dark:text-slate-300 hover:bg-[#fbf9f6] dark:hover:bg-slate-800 rounded-full px-8 py-6 text-sm font-semibold transition-all duration-300 hover:scale-[1.02]">
+                  <Button asChild size="lg" variant="outline" className="border border-[#e8e3d9] dark:border-border bg-[#fdfcfa]/60 dark:bg-card/50 backdrop-blur-md text-slate-700 dark:text-slate-300 hover:bg-[#fbf9f6] dark:hover:bg-accent rounded-full px-8 py-6 text-sm font-semibold transition-all duration-300 hover:scale-[1.02]">
                     <Link href="/drone-services/register">Become a Provider</Link>
                   </Button>
-                  <Button asChild size="lg" variant="outline" className="border border-[#e8e3d9] dark:border-slate-800 bg-[#fdfcfa]/60 dark:bg-slate-900/50 backdrop-blur-md text-slate-700 dark:text-slate-300 hover:bg-[#fbf9f6] dark:hover:bg-slate-800 rounded-full px-8 py-6 text-sm font-semibold transition-all duration-300 hover:scale-[1.02]">
+                  <Button asChild size="lg" variant="outline" className="border border-[#e8e3d9] dark:border-border bg-[#fdfcfa]/60 dark:bg-card/50 backdrop-blur-md text-slate-700 dark:text-slate-300 hover:bg-[#fbf9f6] dark:hover:bg-accent rounded-full px-8 py-6 text-sm font-semibold transition-all duration-300 hover:scale-[1.02]">
                     <Link href="/provider-panel/login">Provider Login</Link>
                   </Button>
                 </div>
@@ -617,12 +617,12 @@ export default function DroneServicesPage() {
           </section>
 
           {/* Premium Filter Controls */}
-          <section id="listings-section" className="py-6 border-y border-[#e8e3d9]/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl sticky top-[72px] z-30">
+          <section id="listings-section" className="py-6 border-y border-[#e8e3d9]/80 dark:border-border/80 bg-white/60 dark:bg-background/40 backdrop-blur-xl sticky top-[72px] z-30">
             <div className="container mx-auto px-4">
               <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
                 
                 {/* Segmented Toggle Control */}
-                <div className="flex bg-[#fdfcfa] dark:bg-slate-950 rounded-full p-1 border border-[#e8e3d9] dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex bg-[#fdfcfa] dark:bg-[#1c2e4a] rounded-full p-1 border border-[#e8e3d9] dark:border-border shadow-sm shrink-0">
                   <button
                     onClick={() => setActiveTab("services")}
                     className={`rounded-full px-6 py-2.5 text-xs font-bold transition-all duration-300 flex items-center gap-1.5 cursor-pointer ${
@@ -654,7 +654,7 @@ export default function DroneServicesPage() {
                       placeholder={`Search ${activeTab}...`}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 rounded-full border-[#e8e3d9] dark:border-slate-800 bg-[#fdfcfa] dark:bg-slate-950 placeholder:text-slate-450 h-11 text-xs"
+                      className="pl-10 pr-4 rounded-full border-[#e8e3d9] dark:border-border bg-[#fdfcfa] dark:bg-card placeholder:text-slate-450 h-11 text-xs"
                     />
                   </div>
 
@@ -670,7 +670,7 @@ export default function DroneServicesPage() {
                       }}
                       onFocus={() => setShowLocationSuggestions(true)}
                       onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 250)}
-                      className="pl-10 pr-10 rounded-full border-[#e8e3d9] dark:border-slate-800 bg-[#fdfcfa] dark:bg-slate-950 placeholder:text-slate-450 h-11 text-xs"
+                      className="pl-10 pr-10 rounded-full border-[#e8e3d9] dark:border-border bg-[#fdfcfa] dark:bg-card placeholder:text-slate-450 h-11 text-xs"
                     />
                     <Button
                       variant="ghost"
@@ -684,7 +684,7 @@ export default function DroneServicesPage() {
                     </Button>
                     
                     {showLocationSuggestions && locationSuggestions.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 mt-2 bg-[#fdfcfa] dark:bg-slate-900 border border-[#e8e3d9] dark:border-slate-800 rounded-2xl shadow-xl z-50 max-h-60 overflow-y-auto text-left">
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-[#fdfcfa] dark:bg-card border border-[#e8e3d9] dark:border-border rounded-2xl shadow-xl z-50 max-h-60 overflow-y-auto text-left">
                         {locationSuggestions.map((sug) => {
                           const addr = sug.address || {}
                           const area = addr.suburb || addr.neighbourhood || addr.quarter || addr.city_district || addr.town || addr.village || addr.city || ""
@@ -694,7 +694,7 @@ export default function DroneServicesPage() {
                             <button
                               key={sug.place_id}
                               type="button"
-                              className="w-full text-left px-4 py-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs transition-colors border-b border-[#e8e3d9]/40 dark:border-slate-800/40 last:border-0 block"
+                              className="w-full text-left px-4 py-2.5 hover:bg-slate-100 dark:hover:bg-accent text-xs transition-colors border-b border-[#e8e3d9]/40 dark:border-border/40 last:border-0 block"
                               onClick={() => {
                                 setLocationFilter(label)
                                 if (sug.lat && sug.lon) {
@@ -716,7 +716,7 @@ export default function DroneServicesPage() {
                     <select
                       value={serviceTypeFilter}
                       onChange={(e) => setServiceTypeFilter(e.target.value)}
-                      className="border border-[#e8e3d9] dark:border-slate-800 rounded-full px-4 h-11 text-xs bg-[#fdfcfa] dark:bg-slate-950 text-slate-700 dark:text-slate-350 focus:ring-1 focus:ring-primary focus:border-primary outline-none cursor-pointer w-full sm:w-auto"
+                      className="border border-[#e8e3d9] dark:border-border rounded-full px-4 h-11 text-xs bg-[#fdfcfa] dark:bg-card text-slate-700 dark:text-slate-350 focus:ring-1 focus:ring-primary focus:border-primary outline-none cursor-pointer w-full sm:w-auto"
                     >
                       <option value="all">All Service Types</option>
                       <option value="mapping">Mapping & Surveying</option>
@@ -735,7 +735,7 @@ export default function DroneServicesPage() {
           <section className="py-12">
             <div className="container mx-auto px-4">
               {!locationFilter ? (
-                <div className="flex flex-col items-center justify-center text-center py-20 px-6 bg-[#fdfcfa]/80 dark:bg-slate-900/30 rounded-3xl border border-dashed border-[#e8e3d9] dark:border-slate-800 max-w-lg mx-auto shadow-sm">
+                <div className="flex flex-col items-center justify-center text-center py-20 px-6 bg-[#fdfcfa]/80 dark:bg-card/30 rounded-3xl border border-dashed border-[#e8e3d9] dark:border-border max-w-lg mx-auto shadow-sm">
                   <div className="p-4 bg-primary/10 rounded-2xl mb-5">
                     <MapPin className="w-9 h-9 text-primary animate-bounce" />
                   </div>
@@ -761,7 +761,7 @@ export default function DroneServicesPage() {
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                       {filteredProviders.map((provider) => (
-                        <Card key={provider.id} className="overflow-hidden hover:scale-[1.01] hover:shadow-xl transition-all duration-300 border border-[#e8e3d9] dark:border-slate-800/80 bg-[#fdfcfa] dark:bg-slate-900/60 rounded-3xl p-6 flex flex-col justify-between">
+                        <Card key={provider.id} className="overflow-hidden hover:scale-[1.01] hover:shadow-xl transition-all duration-300 border border-[#e8e3d9] dark:border-border/80 bg-[#fdfcfa] dark:bg-card/60 rounded-3xl p-6 flex flex-col justify-between">
                           <div className="space-y-4 text-center">
                             {provider.isVerified && (
                               <div className="flex justify-center">
@@ -782,19 +782,19 @@ export default function DroneServicesPage() {
                               <span className="text-xs text-slate-400">({provider.reviewCount} jobs completed)</span>
                             </div>
 
-                            <div className="inline-flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-950 border border-border/40 py-1 px-3.5 rounded-full">
+                            <div className="inline-flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-muted border border-border/40 py-1 px-3.5 rounded-full">
                               <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
                               <span>{provider.location}</span>
                             </div>
                           </div>
 
-                          <div className="space-y-4 mt-6 border-t border-[#e8e3d9]/40 dark:border-slate-800/40 pt-4">
+                          <div className="space-y-4 mt-6 border-t border-[#e8e3d9]/40 dark:border-border/40 pt-4">
                             <div className="grid grid-cols-2 gap-4 text-xs">
-                              <div className="bg-[#faf8f5] dark:bg-slate-950 p-2.5 rounded-xl border border-border/20 text-left">
+                              <div className="bg-[#faf8f5] dark:bg-muted p-2.5 rounded-xl border border-border/20 text-left">
                                 <span className="text-slate-450 dark:text-slate-500 block text-[9px] uppercase tracking-wider font-bold">Experience</span>
                                 <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">{provider.yearsExperience} years active</p>
                               </div>
-                              <div className="bg-[#faf8f5] dark:bg-slate-950 p-2.5 rounded-xl border border-border/20 text-left">
+                              <div className="bg-[#faf8f5] dark:bg-muted p-2.5 rounded-xl border border-border/20 text-left">
                                 <span className="text-slate-450 dark:text-slate-550 block text-[9px] uppercase tracking-wider font-bold">Response</span>
                                 <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">{provider.responseTime}</p>
                               </div>
@@ -804,7 +804,7 @@ export default function DroneServicesPage() {
                               <p className="text-[10px] uppercase tracking-wider text-slate-450 dark:text-slate-550 font-bold mb-1.5 text-left">Hardware Fleet Availability:</p>
                               <div className="flex flex-wrap gap-1">
                                 {provider.equipment.map((item: string, index: number) => (
-                                  <Badge key={index} variant="secondary" className="text-[9px] font-semibold bg-slate-100 dark:bg-slate-950 text-slate-650 border border-border/30">
+                                  <Badge key={index} variant="secondary" className="text-[9px] font-semibold bg-slate-100 dark:bg-muted text-slate-650 border border-border/30">
                                     {item}
                                   </Badge>
                                 ))}
@@ -818,7 +818,7 @@ export default function DroneServicesPage() {
 
                   {((activeTab === "services" && filteredServices.length === 0) ||
                     (activeTab === "providers" && filteredProviders.length === 0)) && (
-                      <div className="text-center py-16 bg-[#fdfcfa]/50 dark:bg-slate-900/20 rounded-3xl border border-border/60 max-w-sm mx-auto">
+                      <div className="text-center py-16 bg-[#fdfcfa]/50 dark:bg-card/20 rounded-3xl border border-border/60 max-w-sm mx-auto">
                         <Plane className="w-12 h-12 text-slate-400 mx-auto mb-3 animate-pulse" />
                         <h3 className="text-md font-bold tracking-tight font-display text-slate-900 dark:text-white mb-1">No local options matched</h3>
                         <p className="text-slate-500 dark:text-slate-450 text-xs px-4 mb-4">No services or operators match the searched pincode area.</p>
@@ -843,8 +843,8 @@ export default function DroneServicesPage() {
           {/* Premium Booking Dialog Backdrop */}
           {showBookingDialog && selectedService && selectedProviderForBooking && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-              <div className="bg-[#fbf9f6] dark:bg-slate-900 border border-[#e8e3d9] dark:border-slate-800 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 md:p-8 space-y-6 animate-in slide-in-from-bottom-2 duration-300 text-left">
-                <div className="flex justify-between items-start border-b border-[#e8e3d9]/60 dark:border-slate-800/60 pb-4">
+              <div className="bg-[#fbf9f6] dark:bg-card border border-[#e8e3d9] dark:border-border rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 md:p-8 space-y-6 animate-in slide-in-from-bottom-2 duration-300 text-left">
+                <div className="flex justify-between items-start border-b border-[#e8e3d9]/60 dark:border-border/60 pb-4">
                   <div>
                     <Badge variant="secondary" className="mb-2 bg-primary/10 text-primary border border-primary/20">
                       Service: {selectedService.title}
@@ -852,7 +852,7 @@ export default function DroneServicesPage() {
                     <h2 className="text-2xl font-bold tracking-tight font-display text-slate-900 dark:text-white">Request Operations</h2>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Provider: {selectedProviderForBooking.companyName} ({selectedProviderForBooking.location})</p>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => setShowBookingDialog(false)} className="rounded-full h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-450">
+                  <Button variant="ghost" size="icon" onClick={() => setShowBookingDialog(false)} className="rounded-full h-8 w-8 hover:bg-slate-100 dark:hover:bg-accent text-slate-450">
                     ✕
                   </Button>
                 </div>
@@ -865,7 +865,7 @@ export default function DroneServicesPage() {
                         required
                         value={bookingForm.name}
                         onChange={(e) => setBookingForm(prev => ({ ...prev, name: e.target.value }))}
-                        className="rounded-xl border-[#e8e3d9] dark:border-slate-800 bg-[#fdfcfa] dark:bg-slate-950"
+                        className="rounded-xl border-[#e8e3d9] dark:border-border bg-[#fdfcfa] dark:bg-card"
                       />
                     </div>
                     <div>
@@ -875,7 +875,7 @@ export default function DroneServicesPage() {
                         type="tel"
                         value={bookingForm.phone}
                         onChange={(e) => setBookingForm(prev => ({ ...prev, phone: e.target.value }))}
-                        className="rounded-xl border-[#e8e3d9] dark:border-slate-800 bg-[#fdfcfa] dark:bg-slate-950"
+                        className="rounded-xl border-[#e8e3d9] dark:border-border bg-[#fdfcfa] dark:bg-card"
                       />
                     </div>
                   </div>
@@ -893,7 +893,7 @@ export default function DroneServicesPage() {
                         }}
                         onFocus={() => setShowBookingAddressSuggestions(true)}
                         onBlur={() => setTimeout(() => setShowBookingAddressSuggestions(false), 250)}
-                        className="rounded-xl border-[#e8e3d9] dark:border-slate-800 bg-[#fdfcfa] dark:bg-slate-950 flex-grow"
+                        className="rounded-xl border-[#e8e3d9] dark:border-border bg-[#fdfcfa] dark:bg-card flex-grow"
                       />
                       <Button
                         type="button"
@@ -912,12 +912,12 @@ export default function DroneServicesPage() {
                       </Button>
                     </div>
                     {showBookingAddressSuggestions && bookingAddressSuggestions.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-[#fdfcfa] dark:bg-slate-900 border border-[#e8e3d9] dark:border-slate-800 rounded-xl shadow-xl z-50 max-h-48 overflow-y-auto text-left">
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-[#fdfcfa] dark:bg-card border border-[#e8e3d9] dark:border-border rounded-xl shadow-xl z-50 max-h-48 overflow-y-auto text-left">
                         {bookingAddressSuggestions.map((sug) => (
                           <button
                             key={sug.place_id}
                             type="button"
-                            className="w-full text-left px-4 py-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs transition-colors border-b border-[#e8e3d9]/45 dark:border-slate-800/40 last:border-0 block"
+                            className="w-full text-left px-4 py-2.5 hover:bg-slate-100 dark:hover:bg-accent text-xs transition-colors border-b border-[#e8e3d9]/45 dark:border-border/40 last:border-0 block"
                             onClick={() => {
                               setBookingForm(prev => ({ ...prev, address: sug.display_name }))
                               setShowBookingAddressSuggestions(false)
@@ -936,7 +936,7 @@ export default function DroneServicesPage() {
                       <select
                         value={bookingForm.landscapeSize}
                         onChange={(e) => setBookingForm(prev => ({ ...prev, landscapeSize: e.target.value }))}
-                        className="w-full h-10 px-3 border border-[#e8e3d9] dark:border-slate-800 bg-[#fdfcfa] dark:bg-slate-950 rounded-xl text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all cursor-pointer text-slate-700 dark:text-slate-350"
+                        className="w-full h-10 px-3 border border-[#e8e3d9] dark:border-border bg-[#fdfcfa] dark:bg-card rounded-xl text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all cursor-pointer text-slate-700 dark:text-slate-350"
                       >
                         <option value="Under 1 acre">Under 1 acre</option>
                         <option value="1-5 acres">1-5 acres</option>
@@ -951,7 +951,7 @@ export default function DroneServicesPage() {
                         type="date"
                         value={bookingForm.date}
                         onChange={(e) => setBookingForm(prev => ({ ...prev, date: e.target.value }))}
-                        className="rounded-xl border-[#e8e3d9] dark:border-slate-800 bg-[#fdfcfa] dark:bg-slate-950"
+                        className="rounded-xl border-[#e8e3d9] dark:border-border bg-[#fdfcfa] dark:bg-card"
                       />
                     </div>
                   </div>
@@ -961,7 +961,7 @@ export default function DroneServicesPage() {
                     <select
                       value={bookingForm.timeSlot}
                       onChange={(e) => setBookingForm(prev => ({ ...prev, timeSlot: e.target.value }))}
-                      className="w-full h-10 px-3 border border-[#e8e3d9] dark:border-slate-800 bg-[#fdfcfa] dark:bg-slate-950 rounded-xl text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all cursor-pointer text-slate-700 dark:text-slate-350"
+                      className="w-full h-10 px-3 border border-[#e8e3d9] dark:border-border bg-[#fdfcfa] dark:bg-card rounded-xl text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all cursor-pointer text-slate-700 dark:text-slate-350"
                     >
                       {bookingTimeSlots.map((slot: string) => (
                         <option key={slot} value={slot}>{slot}</option>
@@ -975,7 +975,7 @@ export default function DroneServicesPage() {
                       placeholder="Specify flight obstacles, structures, terrain details..."
                       value={bookingForm.notes}
                       onChange={(e) => setBookingForm(prev => ({ ...prev, notes: e.target.value }))}
-                      className="w-full h-20 px-3 py-2 border border-[#e8e3d9] dark:border-slate-800 bg-[#fdfcfa] dark:bg-slate-950 rounded-xl text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all text-slate-700 dark:text-slate-350"
+                      className="w-full h-20 px-3 py-2 border border-[#e8e3d9] dark:border-border bg-[#fdfcfa] dark:bg-card rounded-xl text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all text-slate-700 dark:text-slate-350"
                     />
                   </div>
 
@@ -999,7 +999,7 @@ export default function DroneServicesPage() {
           )}
 
           {/* Call-to-action Section */}
-          <section className="py-20 bg-slate-900 dark:bg-slate-950 text-white rounded-[40px] my-16 mx-4 relative overflow-hidden">
+          <section className="py-20 bg-slate-900 dark:bg-card text-white rounded-[40px] my-16 mx-4 relative overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.03] pointer-events-none"></div>
             <div className="container mx-auto px-6 text-center space-y-6 relative z-10">
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight font-display">Earn with Your Hardware Skills</h2>

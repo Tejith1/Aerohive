@@ -177,8 +177,8 @@ export function FeatureGridMosaic({
 }: FeatureGridMosaicProps) {
   if (!services || services.length === 0) {
     return (
-      <div className="text-center py-20 bg-white/40 dark:bg-slate-900/10 rounded-[32px] border border-dashed border-slate-200 dark:border-slate-800">
-        <p className="text-sm text-slate-500 dark:text-zinc-400">No services found matching filters.</p>
+      <div className="text-center py-20 bg-white/40 dark:bg-card/10 rounded-[32px] border border-dashed border-slate-200 dark:border-border">
+        <p className="text-sm text-slate-500 dark:text-muted-foreground">No services found matching filters.</p>
       </div>
     )
   }
@@ -198,16 +198,16 @@ export function FeatureGridMosaic({
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: (index % 2) * 0.1 }}
-              className="rounded-[36px] bg-white dark:bg-[#0c0c0c] border border-slate-200/60 dark:border-zinc-800/80 p-5 md:p-6 flex flex-col md:flex-row gap-6 shadow-[0_15px_45px_rgba(0,0,0,0.03)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] group hover:border-slate-350 dark:hover:border-zinc-700/80 transition-all duration-300"
+              className="rounded-[36px] bg-white dark:bg-card border border-slate-200/60 dark:border-border p-5 md:p-6 flex flex-col md:flex-row gap-6 shadow-[0_15px_45px_rgba(0,0,0,0.03)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] group hover:border-slate-350 dark:hover:border-border transition-all duration-300"
             >
               {/* Left Side: Graphic Panel (Matching white theme background & custom vector logo) */}
-              <div className="w-full md:w-[230px] h-[280px] md:h-auto rounded-[28px] bg-slate-50/70 dark:bg-zinc-950/40 border border-slate-100 dark:border-zinc-900/60 p-5 flex flex-col justify-between shrink-0 relative overflow-hidden select-none">
+              <div className="w-full md:w-[230px] h-[280px] md:h-auto rounded-[28px] bg-slate-50/70 dark:bg-background/40 border border-slate-100 dark:border-border/60 p-5 flex flex-col justify-between shrink-0 relative overflow-hidden select-none">
                 {/* Top Row */}
                 <div className="flex justify-between items-center z-10">
                   <span className={`text-[9px] font-bold tracking-widest uppercase px-3 py-1 rounded-full border ${tagColor.bg} ${tagColor.text} ${tagColor.border}`}>
                     {service.serviceType}
                   </span>
-                  <span className="text-slate-400 dark:text-zinc-650 group-hover:text-primary transition-colors duration-300">
+                  <span className="text-slate-400 dark:text-muted-foreground group-hover:text-primary transition-colors duration-300">
                     <Sparkles className="w-3.5 h-3.5" />
                   </span>
                 </div>
@@ -219,26 +219,26 @@ export function FeatureGridMosaic({
                   {/* Vector Logo Graphic */}
                   <CustomServiceLogo type={service.serviceType} />
                   
-                  <span className="text-[9px] text-slate-450 dark:text-zinc-500 font-bold uppercase tracking-[0.25em] mt-5">
+                  <span className="text-[9px] text-slate-450 dark:text-muted-foreground font-bold uppercase tracking-[0.25em] mt-5">
                     ✨ Operations ✨
                   </span>
                 </div>
 
                 {/* Bottom Row */}
-                <div className="border-t border-slate-200/60 dark:border-zinc-900/60 pt-3 mt-1 flex justify-between items-end z-10">
+                <div className="border-t border-slate-200/60 dark:border-border/60 pt-3 mt-1 flex justify-between items-end z-10">
                   <div>
-                    <p className="text-[8px] uppercase tracking-widest text-slate-400 dark:text-zinc-550 font-bold">Standard Payload</p>
-                    <p className="text-[10px] font-bold text-slate-800 dark:text-zinc-300 truncate max-w-[120px] mt-0.5">
+                    <p className="text-[8px] uppercase tracking-widest text-slate-400 dark:text-muted-foreground font-bold">Standard Payload</p>
+                    <p className="text-[10px] font-bold text-slate-800 dark:text-foreground truncate max-w-[120px] mt-0.5">
                       {service.equipment[0] || "Quadcopter"}
                     </p>
                   </div>
-                  <div className="text-[8px] text-slate-400 dark:text-zinc-550 font-bold uppercase tracking-widest">
+                  <div className="text-[8px] text-slate-400 dark:text-muted-foreground font-bold uppercase tracking-widest">
                     Active Fleet
                   </div>
                 </div>
 
                 {/* Subtle soft background shape */}
-                <div className="absolute -bottom-8 -right-8 w-24 h-24 rounded-full bg-slate-100 dark:bg-zinc-900/20 blur-xl pointer-events-none" />
+                <div className="absolute -bottom-8 -right-8 w-24 h-24 rounded-full bg-slate-100 dark:bg-card/20 blur-xl pointer-events-none" />
               </div>
 
               {/* Right Side: Details & Actions */}
@@ -246,7 +246,7 @@ export function FeatureGridMosaic({
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[10px] text-zinc-450 dark:text-zinc-550 font-bold uppercase tracking-widest">
+                      <span className="text-[10px] text-slate-450 dark:text-muted-foreground font-bold uppercase tracking-widest">
                         {provider ? provider.companyName : "AeroHive Operator"}
                       </span>
                       {provider && (
@@ -255,13 +255,13 @@ export function FeatureGridMosaic({
                             <ShieldCheck className="w-2.5 h-2.5" /> Verified
                           </Badge>
                         ) : (
-                          <Badge className="bg-slate-100 text-slate-500 dark:bg-zinc-800/40 dark:text-zinc-450 border border-slate-200/55 dark:border-zinc-800/40 py-0 px-2 text-[8px] rounded-full flex items-center gap-0.5 font-bold uppercase pointer-events-none scale-95 origin-left">
+                          <Badge className="bg-slate-100 text-slate-500 dark:bg-muted/40 dark:text-muted-foreground border border-slate-200/55 dark:border-border/40 py-0 px-2 text-[8px] rounded-full flex items-center gap-0.5 font-bold uppercase pointer-events-none scale-95 origin-left">
                             Not Verified
                           </Badge>
                         )
                       )}
                     </div>
-                    <div className="flex items-center gap-1 text-[10px] text-zinc-500 dark:text-zinc-450">
+                    <div className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-muted-foreground">50">
                       <Star className="w-3 h-3 text-yellow-500 fill-current" />
                       <span className="font-bold">{provider ? provider.rating : "5.0"}</span>
                     </div>
@@ -271,15 +271,15 @@ export function FeatureGridMosaic({
                     {service.title}
                   </h3>
 
-                  <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed line-clamp-3 md:line-clamp-4">
+                  <p className="text-xs text-slate-500 dark:text-muted-foreground leading-relaxed line-clamp-3 md:line-clamp-4">
                     {service.description}
                   </p>
                 </div>
 
                 {/* Footer specs & Actions */}
-                <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-zinc-900 mt-6">
+                <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-border mt-6">
                   <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-zinc-400">
-                    <div className="flex items-center gap-1 bg-slate-50 dark:bg-zinc-900/50 px-3 py-1 rounded-full border border-slate-100 dark:border-zinc-800/40">
+                    <div className="flex items-center gap-1 bg-slate-50 dark:bg-muted/50 px-3 py-1 rounded-full border border-slate-100 dark:border-border/40">
                       <Clock className="w-3.5 h-3.5 text-slate-400" />
                       <span>{service.turnaroundTime || "2-3 days"} turnaround</span>
                     </div>
@@ -292,7 +292,7 @@ export function FeatureGridMosaic({
                   <div className="flex items-center gap-3">
                     <div className="flex-1">
                       {provider && (
-                        <div className="flex items-center gap-1 text-[10px] text-slate-450 dark:text-zinc-500 truncate max-w-[160px]">
+                        <div className="flex items-center gap-1 text-[10px] text-slate-450 dark:text-muted-foreground truncate max-w-[160px]">
                           <MapPin className="w-3 h-3 text-slate-400" />
                           <span className="truncate">{provider.location}</span>
                         </div>
@@ -301,7 +301,7 @@ export function FeatureGridMosaic({
 
                     {user && service.providerId === user.id ? (
                       <Button
-                        className="bg-slate-100 dark:bg-zinc-900 text-slate-400 dark:text-zinc-500 rounded-full h-10 px-5 cursor-not-allowed border-0 font-bold text-xs"
+                        className="bg-slate-100 dark:bg-muted text-slate-400 dark:text-muted-foreground rounded-full h-10 px-5 cursor-not-allowed border-0 font-bold text-xs"
                         disabled
                       >
                         Your Service
@@ -309,7 +309,7 @@ export function FeatureGridMosaic({
                     ) : (
                       <Button
                         onClick={() => handleOpenBooking(service)}
-                        className="bg-zinc-950 hover:bg-primary text-white dark:bg-white dark:hover:bg-primary dark:text-zinc-950 dark:hover:text-white rounded-full h-10 px-6 transition-all duration-300 border-0 font-bold text-xs flex items-center gap-1.5 shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+                        className="bg-zinc-950 hover:bg-primary text-white dark:bg-white dark:hover:bg-primary dark:text-background dark:hover:text-white rounded-full h-10 px-6 transition-all duration-300 border-0 font-bold text-xs flex items-center gap-1.5 shadow-sm hover:scale-[1.02] active:scale-[0.98]"
                       >
                         Instant Book Service
                         <ChevronRight className="w-3.5 h-3.5" />
