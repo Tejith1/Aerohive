@@ -203,7 +203,6 @@ export function ModernHeader() {
                   onMouseLeave={() => setHoveredMenu(null)}
                 >
                   <button className="flex items-center space-x-1.5 xl:space-x-2 text-foreground hover:text-primary hover:bg-primary/5 font-sans text-[14px] font-semibold tracking-wide px-2 xl:px-3 py-2 rounded-xl cursor-pointer border-0 bg-transparent transition-all duration-300">
-                    {link.icon && <link.icon className="h-4.5 w-4.5 text-muted-foreground group-hover:text-primary transition-colors" />}
                     <span>{link.label}</span>
                     {["Drones", "Services"].includes(link.label) && (
                       <Lock className="h-3.5 w-3.5 text-muted-foreground/70" />
@@ -263,7 +262,6 @@ export function ModernHeader() {
                   className="text-foreground hover:text-primary hover:bg-primary/5 font-sans text-[14px] font-semibold tracking-wide transition-all duration-300 rounded-xl px-2.5 xl:px-3 py-2 relative group cursor-pointer"
                 >
                   <Link href={link.href} className="flex items-center space-x-2">
-                    {link.icon && <link.icon className="h-4.5 w-4.5 text-muted-foreground group-hover:text-primary transition-colors" />}
                     <span>{link.label}</span>
                     {link.label === "Categories" && (
                       <Lock className="h-3.5 w-3.5 text-muted-foreground/70" />
@@ -475,7 +473,6 @@ export function ModernHeader() {
                 link.hasMegaMenu ? (
                   <div key={link.label} className="space-y-2">
                     <div className="font-semibold text-foreground px-3 py-2 text-sm uppercase tracking-wider flex items-center gap-2">
-                      {link.icon && <link.icon className="h-4.5 w-4.5 text-primary" />}
                       <span>{link.label}</span>
                       {["Drones", "Services"].includes(link.label) && (
                         <Lock className="h-3.5 w-3.5 text-muted-foreground/70" />
@@ -501,7 +498,6 @@ export function ModernHeader() {
                     className="flex items-center space-x-3 py-3 px-3 text-foreground hover:text-primary font-medium transition-all rounded-xl hover:bg-primary/5"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    {link.icon && <link.icon className="h-4.5 w-4.5 text-muted-foreground" />}
                     <span>{link.label}</span>
                     {link.label === "Categories" && (
                       <Lock className="h-3.5 w-3.5 text-muted-foreground/70" />
