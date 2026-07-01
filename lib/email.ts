@@ -29,7 +29,7 @@ export interface BookingEmailDetails {
 export interface EmailRequest {
     to: string
     subject: string
-    type: 'client' | 'pilot' | 'client_declined'
+    type: 'client' | 'pilot' | 'client_declined' | 'client_otp'
     bookingDetails: BookingEmailDetails
 }
 
@@ -55,8 +55,52 @@ export function createGmailTransporter() {
 
 // ─── HTML Template ───────────────────────────────────────────────────────────
 
-export function generateEmailHtml(type: 'client' | 'pilot' | 'client_declined', d: BookingEmailDetails) {
+export function generateEmailHtml(type: 'client' | 'pilot' | 'client_declined' | 'client_otp', d: BookingEmailDetails) {
     if (!d) return ''
+
+    if (type === 'client_otp') {
+        const otpStr = String(d.otp || '').trim()
+        const otpChars = otpStr.split('')
+        const boxes = otpChars.map(char => `
+            <span style="display: inline-block; width: 44px; height: 44px; line-height: 44px; text-align: center; font-size: 22px; font-weight: 800; color: #e65737; background-color: #fdf4f2; border: 1.5px solid #f9d5cd; border-radius: 8px; margin: 0 4px; font-family: 'Helvetica Neue', Arial, sans-serif;">${char}</span>
+        `).join('')
+
+        return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>AeroHive Security OTP</title>
+</head>
+<body style="margin:0; padding:40px 0; background-color:#f0f4f5; font-family:Arial,sans-serif;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+            <td align="center">
+                <table width="100%" style="max-width:500px; background-color:#ffffff; border-radius:16px; border:1px solid #dcdfdc; box-shadow:0 4px 20px rgba(0,0,0,0.03); overflow:hidden;" cellspacing="0" cellpadding="0">
+                    <tr>
+                        <td align="center" style="background-color:#fdf4f2; padding:20px;">
+                            <h2 style="margin:0; font-size:18px; color:#e65737; font-weight:bold;">AeroHive Service Security OTP</h2>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:30px; text-align:center;">
+                            <p style="font-size:14px; color:#4a5568; line-height:1.5; margin-bottom:20px;">
+                                Use the following OTP to verify and start your drone service operation:
+                            </p>
+                            <div style="margin-bottom:20px;">
+                                ${boxes}
+                            </div>
+                            <p style="font-size:12px; color:#9aa3a6; font-style:italic; margin-top:20px;">
+                                Share this code with the operator only when they arrive at your location.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`
+    }
 
     const isPilot = type === 'pilot'
     const isDeclined = type === 'client_declined'
@@ -78,7 +122,7 @@ export function generateEmailHtml(type: 'client' | 'pilot' | 'client_declined', 
         introParagraph = 'We apologize, but your assigned pilot has declined the requested flight mission slot. We are already routing your mission request to nearby drone operators.'
     } else {
         greeting = `Dear ${d.clientName || 'Valued Client'},`
-        introParagraph = 'Welcome to Aerohive! We are thrilled to have you as part of our premium drone flight community. Your booking request has been securely placed and is waiting for pilot confirmation.'
+        introParagraph = 'Welcome to Aerohive! We are thrilled to have you as part of our premium drone flight community. Your booking request has been securely placed and is waiting for confirmation.'
     }
 
     // Build tabular metadata for the email card
@@ -161,7 +205,7 @@ export function generateEmailHtml(type: 'client' | 'pilot' | 'client_declined', 
         </tr>
         <tr>
             <td style="width: 50%; padding: 12px 15px;">
-                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Assigned Pilot</div>
+                <div style="font-size: 11px; font-weight: 700; color: #8a8a8a; text-transform: uppercase; letter-spacing: 0.05em;">Assigned Pilot/Operator</div>
                 <div style="font-size: 14px; font-weight: 600; color: #2d3748; margin-top: 3px;">${d.pilotName || 'Searching...'}</div>
             </td>
             <td style="width: 50%; padding: 12px 15px;">
@@ -250,7 +294,7 @@ export function generateEmailHtml(type: 'client' | 'pilot' | 'client_declined', 
                     ${boxes}
                 </div>
                 <div style="font-size: 12.5px; color: #64748b; line-height: 1.45;">
-                    Provide this secure verification OTP to the pilot <strong>only when they arrive</strong> at your location.
+                    Provide this secure verification OTP to the pilot/operator <strong>only when they arrive</strong> at your location.
                 </div>
             </div>
         `
@@ -369,8 +413,10 @@ export async function sendEmailDirect({ to, subject, type, bookingDetails }: Ema
         const replyTo = user || 'aerohive.help@gmail.com'
 
         // Plain-text fallback (improves spam score significantly)
-        const plainText = [
-            `AeroHive - ${type === 'pilot' ? 'New Booking Request' : type === 'client_declined' ? 'Booking Declined' : 'Booking Confirmation'}`,
+        const plainText = type === 'client_otp'
+            ? `Your AeroHive Service Security OTP is: ${bookingDetails?.otp || 'N/A'}`
+            : [
+                `AeroHive - ${type === 'pilot' ? 'New Booking Request' : type === 'client_declined' ? 'Booking Declined' : 'Booking Confirmation'}`,
             `Booking ID: ${bookingDetails?.bookingId || 'N/A'}`,
             `Service: ${bookingDetails?.serviceType || 'N/A'}`,
             `Location: ${bookingDetails?.location || 'N/A'}`,

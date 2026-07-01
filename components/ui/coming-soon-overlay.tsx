@@ -87,7 +87,7 @@ export function ComingSoonOverlay({
                 </div>
 
                 {/* Headline - Clean editorial look */}
-                <h2 className="text-2xl font-normal tracking-tight text-slate-900 dark:text-white mb-3 font-serif">
+                <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-3 font-display">
                     {title}
                 </h2>
                 

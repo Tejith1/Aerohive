@@ -295,7 +295,7 @@ export default function DronePilotRegisterPage() {
               <div className="h-16 w-16 rounded-2xl bg-green-500/10 border border-green-500/20 mx-auto mb-6 flex items-center justify-center text-green-600 dark:text-green-400">
                 <CheckCircle2 className="h-8 w-8" />
               </div>
-              <h2 className="text-2xl font-serif font-normal text-slate-900 dark:text-white mb-3">Registration Successful!</h2>
+              <h2 className="text-2xl font-bold tracking-tight font-display text-slate-900 dark:text-white mb-3">Registration Successful!</h2>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 leading-relaxed">
                 Thank you for applying. Our flight operations board will review your credentials and get back to you within 24-48 hours.
               </p>
@@ -346,7 +346,7 @@ export default function DronePilotRegisterPage() {
               <Plane className="h-3.5 w-3.5 mr-2 inline animate-pulse" />
               Pilot Verification Panel
             </Badge>
-            <h1 className="text-3xl md:text-4xl font-serif font-normal text-slate-900 dark:text-white tracking-tight mb-3">
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight font-display text-slate-900 dark:text-white mb-3">
               Apply as a Professional Operator
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">

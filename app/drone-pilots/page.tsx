@@ -453,7 +453,7 @@ export default function DronePilotsPage() {
         {/* Results Section */}
         <section className="container mx-auto px-6 pb-20">
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-xl font-serif font-normal text-slate-800 dark:text-slate-200">
+            <h2 className="text-xl font-bold tracking-tight text-foreground font-display">
               {loading ? 'Searching network...' : `${filteredPilots.length} pilot${filteredPilots.length !== 1 ? 's' : ''} found`}
             </h2>
           </div>
@@ -517,15 +517,15 @@ export default function DronePilotsPage() {
                 </svg>
               </div>
               <div className="text-center space-y-1">
-                <p className="text-base font-serif italic text-slate-800 dark:text-slate-200 tracking-wide">DGCA Telemetry Uplink Active...</p>
-                <p className="text-[10px] font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest">Synchronizing operator logbooks</p>
+                <p className="text-base font-semibold text-foreground tracking-wide font-display">DGCA Telemetry Uplink Active...</p>
+                <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Synchronizing operator logbooks</p>
               </div>
             </div>
           ) : error ? (
             <Card className="text-center py-16 border border-red-100 dark:border-red-950 bg-red-50/50 dark:bg-red-950/20 rounded-3xl">
               <CardContent>
-                <p className="text-red-600 dark:text-red-400 font-serif mb-4">{error}</p>
-                <Button onClick={fetchPilots} variant="outline" className="rounded-full border-red-200 dark:border-red-900">
+                <p className="text-destructive font-sans mb-4">{error}</p>
+                <Button onClick={fetchPilots} variant="outline" className="rounded-full border-border">
                   Try Again
                 </Button>
               </CardContent>
@@ -533,11 +533,11 @@ export default function DronePilotsPage() {
           ) : filteredPilots.length === 0 ? (
             <Card className="text-center py-16 border border-slate-100/50 dark:border-slate-800/80 shadow-[0_4px_20px_rgba(0,0,0,0.015)] bg-white dark:bg-slate-900 rounded-[28px]">
               <CardContent>
-                <div className="w-16 h-16 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
-                  <SlidersHorizontal className="h-6 w-6 text-slate-400 dark:text-slate-500 stroke-[1.5]" />
+                <div className="w-16 h-16 border border-border bg-card rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                  <SlidersHorizontal className="h-6 w-6 text-muted-foreground stroke-[1.5]" />
                 </div>
-                <h3 className="text-2xl font-serif font-normal text-slate-900 dark:text-slate-100 mb-2">No Pilots Found</h3>
-                <p className="text-slate-650 dark:text-slate-450 font-serif mb-6">Try adjusting your filters or search criteria to view active crew.</p>
+                <h3 className="text-2xl font-bold tracking-tight text-foreground mb-2 font-display">No Pilots Found</h3>
+                <p className="text-muted-foreground font-sans mb-6">Try adjusting your filters or search criteria to view active crew.</p>
                 <Button
                   onClick={() => {
                     setSelectedLocation("All Locations")
@@ -681,10 +681,10 @@ export default function DronePilotsPage() {
               <span className="text-[10px] font-bold text-primary uppercase tracking-[0.25em] font-sans">
                 Core Capabilities
               </span>
-              <h2 className="text-4xl md:text-5xl font-serif text-foreground font-normal leading-tight">
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground font-display leading-tight">
                 AeroHive Airspace Capabilities
               </h2>
-              <p className="text-lg text-muted-foreground font-light font-serif italic">
+              <p className="text-lg text-muted-foreground font-light font-sans">
                 Architected for high-fidelity civilian flight coordination and mission-critical commercial analytics.
               </p>
             </div>
@@ -698,7 +698,7 @@ export default function DronePilotsPage() {
                   <div className="h-10 w-10 bg-foreground text-background rounded-xl flex items-center justify-center">
                     <Plane className="h-5 w-5" />
                   </div>
-                  <h3 className="text-2xl font-serif font-normal text-foreground">
+                  <h3 className="text-2xl font-semibold text-foreground font-display">
                     Cinematography
                   </h3>
                   <p className="text-sm text-muted-foreground font-light leading-relaxed font-sans">
@@ -716,7 +716,7 @@ export default function DronePilotsPage() {
                   <div className="h-10 w-10 bg-primary text-primary-foreground rounded-xl flex items-center justify-center">
                     <SlidersHorizontal className="h-5 w-5" />
                   </div>
-                  <h3 className="text-2xl font-serif font-normal text-foreground">
+                  <h3 className="text-2xl font-semibold text-foreground font-display">
                     Industrial Surveying
                   </h3>
                   <p className="text-sm text-muted-foreground font-light leading-relaxed font-sans">
@@ -734,7 +734,7 @@ export default function DronePilotsPage() {
                   <div className="h-10 w-10 bg-primary text-primary-foreground rounded-xl flex items-center justify-center">
                     <TrendingUp className="h-5 w-5" />
                   </div>
-                  <h3 className="text-2xl font-serif font-normal text-foreground">
+                  <h3 className="text-2xl font-semibold text-foreground font-display">
                     Precision Mapping
                   </h3>
                   <p className="text-sm text-muted-foreground font-light leading-relaxed font-sans">
@@ -752,7 +752,7 @@ export default function DronePilotsPage() {
                   <div className="h-10 w-10 bg-primary text-primary-foreground rounded-xl flex items-center justify-center">
                     <CheckCircle2 className="h-5 w-5" />
                   </div>
-                  <h3 className="text-2xl font-serif font-normal text-foreground">
+                  <h3 className="text-2xl font-semibold text-foreground font-display">
                     Compliance Ops
                   </h3>
                   <p className="text-sm text-muted-foreground font-light leading-relaxed font-sans">

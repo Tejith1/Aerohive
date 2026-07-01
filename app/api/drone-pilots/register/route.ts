@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
           }
         }, 2, 'bucket creation')
 
-        const { data: uploadData, error: uploadError } = await withRetry(
+        const { data: uploadData, error: uploadError } = (await withRetry(
           () => supabaseAdmin.storage
             .from('pilot-documents')
             .upload(fileName, buffer, {
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
             }),
           3,
           'profile image upload'
-        )
+        )) as any
 
         if (uploadError) {
           console.error('❌ Profile image upload error:', uploadError)
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
 
         console.log('📤 Uploading certificate image:', fileName)
 
-        const { data: uploadData, error: uploadError } = await withRetry(
+        const { data: uploadData, error: uploadError } = (await withRetry(
           () => supabaseAdmin.storage
             .from('pilot-documents')
             .upload(fileName, buffer, {
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
             }),
           3,
           'certificate image upload'
-        )
+        )) as any
 
         if (uploadError) {
           console.error('❌ Certificate image upload error:', uploadError)

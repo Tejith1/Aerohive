@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/auth-context'
-import { getUserBookings } from '@/lib/supabase'
+import { getUserBookings, supabase } from '@/lib/supabase'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -22,7 +22,10 @@ import {
     UserCheck,
     ArrowLeft,
     Plane,
-    AlertTriangle
+    AlertTriangle,
+    Shield,
+    Sparkles,
+    User
 } from 'lucide-react'
 import Link from 'next/link'
 import { ModernHeader } from '@/components/layout/modern-header'
@@ -37,6 +40,7 @@ export default function OrdersPage() {
     const [bookings, setBookings] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({})
+    const [ordersTab, setOrdersTab] = useState<'pilots' | 'services'>('pilots')
 
     const toggleOrderTracker = (bookingId: string) => {
         setExpandedOrders(prev => ({
@@ -54,12 +58,76 @@ export default function OrdersPage() {
     const fetchBookings = async () => {
         try {
             setLoading(true)
-            const data = await getUserBookings(user!.id)
-            setBookings(data)
+            
+            // 1. Fetch standard pilot bookings
+            const pilotData = await getUserBookings(user!.id)
+            
+            // 2. Fetch drone service bookings
+            const { data: serviceData, error: srvError } = await supabase
+                .from('service_bookings')
+                .select(`
+                    *,
+                    service:drone_services(*),
+                    provider:service_providers(*)
+                `)
+                .eq('user_id', user!.id)
+
+            if (srvError) {
+                console.error('Error fetching service bookings:', srvError)
+            }
+
+            // 3. Map service bookings to standard booking model
+            const mappedServiceBookings = (serviceData || []).map((sb: any) => {
+                let otpVal = null
+                if (sb.location_address) {
+                    try {
+                        const addrObj = typeof sb.location_address === 'string'
+                            ? JSON.parse(sb.location_address)
+                            : sb.location_address
+                        otpVal = addrObj.otp_code || null
+                    } catch (e) {}
+                }
+                return {
+                    id: sb.id,
+                    created_at: sb.created_at,
+                    service_type: sb.service?.title || 'Drone Service',
+                    status: sb.status || 'PENDING',
+                    booking_reference: sb.provider?.name || 'AeroHive Provider',
+                    is_service: true,
+                    provider_name: sb.provider?.name || 'AeroHive Provider',
+                    total_amount: sb.actual_cost || sb.estimated_cost || 1500,
+                    scheduled_at: sb.booking_date,
+                    duration_hours: sb.duration_hours || 2.0,
+                    otp_code: otpVal,
+                    requirements: {
+                        telemetryStatus: sb.status
+                    },
+                    pilot: {
+                        full_name: sb.provider?.name || 'AeroHive Provider',
+                        phone: sb.provider?.phone
+                    }
+                }
+            })
+
+            // 4. Combine and sort
+            const combined = [
+                ...pilotData.map((b: any) => ({ 
+                    ...b, 
+                    is_service: false,
+                    booking_reference: b.pilot?.full_name || b.booking_reference
+                })),
+                ...mappedServiceBookings
+            ].sort((a: any, b: any) => {
+                const dateA = new Date(a.created_at || a.scheduled_at).getTime()
+                const dateB = new Date(b.created_at || b.scheduled_at).getTime()
+                return dateB - dateA
+            })
+
+            setBookings(combined)
             
             // Auto-expand all active/ongoing missions by default so their timeline is open
             const initialExpanded: Record<string, boolean> = {}
-            data.forEach((b: any) => {
+            combined.forEach((b: any) => {
                 const statusUpper = (b.status || '').toUpperCase()
                 if (statusUpper !== 'COMPLETED' && statusUpper !== 'DONE' && statusUpper !== 'CANCELLED' && statusUpper !== 'REJECTED' && statusUpper !== 'DECLINED') {
                     initialExpanded[b.id] = true
@@ -77,14 +145,15 @@ export default function OrdersPage() {
         switch (status?.toLowerCase()) {
             case 'completed':
             case 'done':
-                return 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                return 'bg-emerald-50 text-emerald-700 border-emerald-205 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30'
             case 'pending':
-                return 'bg-amber-50 text-amber-700 border-amber-200'
+                return 'bg-amber-50 text-amber-700 border-amber-205 dark:bg-amber-955/20 dark:text-amber-500 dark:border-amber-900/30'
             case 'cancelled':
             case 'declined':
-                return 'bg-rose-50 text-rose-700 border-rose-200'
+            case 'rejected':
+                return 'bg-rose-50 text-rose-700 border-rose-205 dark:bg-rose-955/20 dark:text-rose-455 dark:border-rose-900/30'
             default:
-                return 'bg-blue-50 text-blue-700 border-blue-200'
+                return 'bg-blue-50 text-blue-700 border-blue-205 dark:bg-blue-955/20 dark:text-blue-400 dark:border-blue-900/30'
         }
     }
 
@@ -97,6 +166,7 @@ export default function OrdersPage() {
                 return <Clock4 className="h-3.5 w-3.5 animate-pulse" />
             case 'cancelled':
             case 'declined':
+            case 'rejected':
                 return <AlertTriangle className="h-3.5 w-3.5" />
             default:
                 return <Package className="h-3.5 w-3.5" />
@@ -105,125 +175,128 @@ export default function OrdersPage() {
 
     if (!user && !isAuthenticated && !loading) {
         return (
-            <div className="min-h-screen bg-background pt-32 flex items-center justify-center container mx-auto px-4">
-                <Card className="max-w-md w-full p-8 text-center border border-border bg-card shadow-xl rounded-3xl">
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-32 flex items-center justify-center container mx-auto px-4">
+                <Card className="max-w-md w-full p-8 text-center border border-border bg-card shadow-xl rounded-2xl">
                     <div className="h-20 w-20 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
                         <Package className="h-10 w-10 text-primary" />
                     </div>
-                    <h2 className="text-2xl font-bold mb-4 text-foreground">View Your Orders</h2>
-                    <p className="text-muted-foreground mb-8 text-sm leading-relaxed">Please sign in to track your drone missions and manage your bookings.</p>
-                    <Button asChild className="w-full bg-primary hover:bg-primary/90 h-12 rounded-full text-white font-semibold transition-all border-0 shadow-lg shadow-primary/20">
-                        <Link href="/login">Sign In Now</Link>
+                    <h2 className="text-2xl font-bold tracking-tight font-display mb-3 text-foreground">View Operations</h2>
+                    <p className="text-slate-500 dark:text-slate-400 mb-8 text-xs leading-relaxed font-sans">Please sign in to track your active drone flights and manage scheduled mission timelines.</p>
+                    <Button asChild className="w-full bg-slate-900 hover:bg-primary h-12 rounded-full text-white font-semibold transition-all border-0 shadow-md">
+                        <Link href="/login">Sign In</Link>
                     </Button>
                 </Card>
             </div>
         )
     }
 
+    // Split orders
+    const pilotBookings = bookings.filter(b => !b.is_service)
+    const serviceBookings = bookings.filter(b => b.is_service)
+    const activeList = ordersTab === 'pilots' ? pilotBookings : serviceBookings
+
     return (
         <>
             <ModernHeader />
-            <div className="min-h-screen bg-background text-foreground pt-28 pb-24 transition-colors duration-300 relative">
-                {/* Ambient Grid Background */}
-                <div className="absolute inset-0 bg-grid-pattern opacity-[0.01] pointer-events-none"></div>
-                
-                {/* Glowing decor */}
-                <div className="absolute top-0 right-1/4 w-[400px] h-[400px] bg-[#e65737]/5 dark:bg-[#e65737]/3 rounded-full blur-[100px] pointer-events-none" />
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 pt-28 pb-24 transition-colors duration-300 relative">
+                {/* Ambient Glows */}
+                <div className="absolute top-0 right-1/4 w-[400px] h-[400px] bg-primary/5 dark:bg-primary/3 rounded-full blur-[100px] pointer-events-none" />
                 <div className="absolute bottom-10 left-1/4 w-[500px] h-[500px] bg-indigo-500/5 dark:bg-indigo-500/3 rounded-full blur-[120px] pointer-events-none" />
 
-                <div className="container mx-auto px-4 max-w-5xl relative z-10">
-                    {/* Custom Tracking Container & Flightpath Logo */}
-                    <div className="flex justify-center mb-6 animate-pulse">
-                      <svg className="w-16 h-16 text-blue-600 dark:text-[#e65737]" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <circle cx="50" cy="50" r="40" strokeDasharray="3 3" className="opacity-30" />
-                        <path d="M50 25L80 35v30L50 90L20 65V35Z" className="fill-blue-500/5 dark:fill-[#e65737]/5" />
-                        <path d="M50 25v65M50 25L20 35M50 25l30 10M20 65l30 10M80 65L50 75" />
-                        <path d="M10 50c30-30 50 30 80 0" className="text-blue-600 dark:text-[#e65737]" strokeDasharray="4 2" />
-                        <circle cx="50" cy="50" r="4" className="fill-blue-600 dark:fill-[#e65737]" />
-                      </svg>
-                    </div>
-
+                <div className="container mx-auto px-4 max-w-5xl relative z-10 text-left">
+                    
                     {/* Back Option */}
-                    <div className="mb-8">
+                    <div className="mb-6">
                         <Link 
                             href="/" 
-                            className="inline-flex items-center gap-2 text-[10px] font-bold text-muted-foreground hover:text-blue-600 dark:hover:text-[#e65737] transition-all uppercase tracking-widest bg-card px-4 py-2 rounded-full shadow-sm border border-border hover:border-blue-600/30 dark:hover:border-[#e65737]/30"
+                            className="inline-flex items-center gap-2 text-[10px] font-bold text-slate-550 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all uppercase tracking-widest bg-[#fdfcfa] dark:bg-slate-900 px-4 py-2 rounded-full shadow-sm border border-[#e8e3d9] dark:border-slate-800"
                         >
                             <ArrowLeft className="w-3.5 h-3.5" /> Back to Home
                         </Link>
                     </div>
 
-                    {/* Header Section */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10 bg-card/70 backdrop-blur-xl p-8 rounded-3xl border border-border shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                    {/* Header Banner Card */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 bg-[#fdfcfa]/90 dark:bg-slate-900/60 backdrop-blur-xl p-8 rounded-[32px] border border-[#e8e3d9] dark:border-slate-800 shadow-md">
                         <div className="space-y-1">
-                            <h1 className="text-3xl font-display font-semibold tracking-tight text-foreground">
+                            <h1 className="text-3xl font-bold tracking-tight font-display text-slate-900 dark:text-white">
                                 My Operations Hub
                             </h1>
-                            <p className="text-sm text-muted-foreground">Track and manage your scheduled drone missions</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Track real-time flight telemetry, status markers, and OTP keys.</p>
                         </div>
                         <div className="flex items-center gap-3 w-full sm:w-auto">
                             <Button
                                 variant="outline"
                                 onClick={fetchBookings}
-                                className="rounded-full border-border bg-card text-foreground hover:bg-muted transition-all gap-2 text-xs font-bold px-5 h-11 flex-1 sm:flex-initial"
+                                className="rounded-full border-[#e8e3d9] dark:border-slate-800 bg-[#fdfcfa] dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:bg-[#faf8f5] dark:hover:bg-slate-900 transition-all gap-2 text-xs font-bold px-5 h-11 flex-1 sm:flex-initial"
                             >
                                 <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-                                Sync
+                                Sync Hub
                             </Button>
-                            <Button asChild className="bg-blue-600 dark:bg-[#e65737] hover:bg-blue-700 dark:hover:bg-[#d44d2d] text-white rounded-full px-5 h-11 text-xs font-bold transition-all shadow-sm flex-1 sm:flex-initial border-0">
+                            <Button asChild className="bg-slate-900 hover:bg-primary text-white dark:bg-white dark:hover:bg-primary dark:text-slate-900 dark:hover:text-white rounded-full px-5 h-11 text-xs font-bold transition-all border-0 shadow-sm flex-1 sm:flex-initial cursor-pointer">
                                 <Link href="/drone-services">New Mission</Link>
                             </Button>
                         </div>
                     </div>
 
+                    {/* Segmented Tab Switcher (Drone Pilots vs Drone Services) */}
+                    <div className="flex bg-[#fdfcfa] dark:bg-slate-900/60 rounded-full p-1 border border-[#e8e3d9] dark:border-slate-800 shadow-sm w-fit mb-8">
+                        <button
+                            onClick={() => setOrdersTab("pilots")}
+                            className={`rounded-full px-6 py-2.5 text-xs font-bold transition-all duration-300 flex items-center gap-1.5 cursor-pointer ${
+                                ordersTab === "pilots" 
+                                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm" 
+                                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                            }`}
+                        >
+                            <User className="w-3.5 h-3.5" /> Drone Pilot Bookings ({pilotBookings.length})
+                        </button>
+                        <button
+                            onClick={() => setOrdersTab("services")}
+                            className={`rounded-full px-6 py-2.5 text-xs font-bold transition-all duration-300 flex items-center gap-1.5 cursor-pointer ${
+                                ordersTab === "services" 
+                                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm" 
+                                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                            }`}
+                        >
+                            <Plane className="w-3.5 h-3.5" /> Drone Service Bookings ({serviceBookings.length})
+                        </button>
+                    </div>
+
                     {loading ? (
-                        <div className="flex flex-col items-center justify-center py-20 gap-6 select-none relative overflow-hidden bg-card/45 backdrop-blur-md rounded-3xl border border-border p-12 shadow-sm">
+                        <div className="flex flex-col items-center justify-center py-20 gap-6 bg-[#fdfcfa]/50 dark:bg-slate-900/30 backdrop-blur-md rounded-[32px] border border-[#e8e3d9] dark:border-slate-800 p-12 shadow-inner">
                             <div className="relative flex items-center justify-center w-20 h-20">
-                                <div className="absolute inset-0 rounded-full border border-blue-500/10 dark:border-[#e65737]/10 animate-ping" style={{ animationDuration: '3s' }} />
-                                <div className="absolute inset-2 rounded-full border border-indigo-500/20 animate-ping" style={{ animationDuration: '2s' }} />
-                                <div className="absolute inset-4 rounded-full bg-blue-500/5 dark:bg-[#e65737]/5 border border-blue-500/15 dark:border-[#e65737]/15 flex items-center justify-center shadow-inner">
-                                    <Compass className="w-6 h-6 text-blue-600 dark:text-[#e65737] animate-spin" style={{ animationDuration: '4s' }} />
+                                <div className="absolute inset-0 rounded-full border border-primary/10 animate-ping" style={{ animationDuration: '3s' }} />
+                                <div className="absolute inset-4 rounded-full bg-primary/5 border border-primary/15 flex items-center justify-center shadow-inner">
+                                    <Compass className="w-6 h-6 text-primary animate-spin" style={{ animationDuration: '4s' }} />
                                 </div>
                             </div>
-
-                            <div className="space-y-1.5 text-center relative z-10 max-w-sm px-4">
-                                <p className="text-[9px] font-bold tracking-[0.25em] text-blue-600 dark:text-[#e65737] uppercase">
-                                    Synchronizing Flight Logs
+                            <div className="space-y-1.5 text-center max-w-sm px-4">
+                                <p className="text-[10px] font-bold tracking-[0.2em] text-primary uppercase font-sans">
+                                    Syncing Flight Registries
                                 </p>
-                                <h2 className="text-xs font-bold text-muted-foreground leading-snug">
-                                    Fetching telemetry flight orders...
+                                <h2 className="text-xs font-bold text-slate-500 dark:text-slate-450">
+                                    Retrieving active and historic bookings...
                                 </h2>
                             </div>
-
-                            <div className="w-36 bg-muted border border-border rounded-full h-1 overflow-hidden">
-                                <div className="bg-gradient-to-r from-blue-600 dark:from-[#e65737] via-indigo-500 to-blue-400 dark:to-[#FF8243] h-full rounded-full animate-[orders-bar_2.5s_infinite_ease-in-out]" />
-                            </div>
-
-                            <style dangerouslySetInnerHTML={{ __html: `
-                                @keyframes orders-bar {
-                                    0% { transform: translateX(-100%); }
-                                    100% { transform: translateX(100%); }
-                                }
-                             `}} />
                         </div>
-                    ) : bookings.length === 0 ? (
-                        <Card className="border border-dashed border-border bg-card text-center p-16 rounded-3xl shadow-sm">
-                            <CardContent className="py-8 space-y-4 max-w-sm mx-auto">
-                                <div className="h-16 w-16 bg-muted border border-border rounded-2xl flex items-center justify-center mx-auto text-muted-foreground">
+                    ) : activeList.length === 0 ? (
+                        <Card className="border border-dashed border-[#e8e3d9] dark:border-slate-800 bg-[#fdfcfa]/80 dark:bg-slate-900/50 text-center p-16 rounded-[32px] shadow-sm max-w-lg mx-auto">
+                            <CardContent className="space-y-4 max-w-sm mx-auto p-0">
+                                <div className="h-16 w-16 bg-muted border border-border rounded-xl flex items-center justify-center mx-auto text-muted-foreground">
                                     <Search className="h-7 w-7" />
                                 </div>
-                                <h3 className="text-lg font-bold text-foreground">No active operations</h3>
-                                <p className="text-muted-foreground text-xs leading-relaxed font-medium">
-                                    You haven't scheduled any drone operations yet. Launch your first aerial mission today!
+                                <h3 className="text-lg font-bold tracking-tight font-display text-slate-900 dark:text-white">No bookings in this sector</h3>
+                                <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed font-sans">
+                                    You don't have any scheduled drone {ordersTab === 'pilots' ? 'pilot hires' : 'service orders'} active. Request your flight mission today!
                                 </p>
-                                <Button asChild className="bg-blue-600 dark:bg-[#e65737] hover:bg-blue-700 dark:hover:bg-[#d44d2d] text-white rounded-full px-8 h-11 text-xs font-bold transition-all shadow-sm border-0">
+                                <Button asChild className="bg-slate-900 hover:bg-primary text-white dark:bg-white dark:hover:bg-primary dark:text-slate-900 dark:hover:text-white rounded-full px-8 h-11 text-xs font-bold transition-all border-0 shadow-sm cursor-pointer">
                                     <Link href="/drone-services">Explore Services</Link>
                                 </Button>
                             </CardContent>
                         </Card>
                     ) : (
                         <div className="space-y-6">
-                            {bookings.map((booking) => {
+                            {activeList.map((booking) => {
                                 const computedCost = booking.total_amount 
                                     ? Number(booking.total_amount)
                                     : booking.pilot?.hourly_rate
@@ -231,93 +304,107 @@ export default function OrdersPage() {
                                     : (1500 * Number(booking.duration_hours || 2));
 
                                 return (
-                                    <Card key={booking.id} className="group border border-border bg-card/90 backdrop-blur-md shadow-sm rounded-3xl overflow-hidden hover:border-blue-500/30 dark:hover:border-[#e65737]/30 transition-all duration-300">
+                                    <Card key={booking.id} className="group border border-[#e8e3d9] dark:border-slate-800/80 bg-[#fdfcfa]/90 dark:bg-slate-900/60 backdrop-blur-md shadow-md rounded-[32px] overflow-hidden hover:scale-[1.005] hover:shadow-lg transition-all duration-300">
                                         <CardContent className="p-0">
                                             <div className="flex flex-col lg:flex-row">
                                                 {/* Left Accent Color bar */}
-                                                <div className="lg:w-1.5 bg-gradient-to-b from-blue-600 dark:from-[#e65737] via-indigo-500 to-blue-400 dark:to-[#FF8243]"></div>
+                                                <div className="lg:w-1.5 bg-gradient-to-b from-primary via-[#FF8243] to-orange-400"></div>
 
                                                 {/* Main Content Area */}
                                                 <div className="flex-1 p-6 sm:p-8">
                                                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                                                         <div className="flex items-center gap-3.5">
-                                                            <div className="h-12 w-12 rounded-2xl bg-blue-500/8 dark:bg-[#e65737]/8 border border-blue-500/15 dark:border-[#e65737]/15 flex items-center justify-center flex-shrink-0">
-                                                                <Package className="h-6 w-6 text-blue-600 dark:text-[#e65737]" />
+                                                            <div className="h-12 w-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+                                                                <Package className="h-6 w-6 text-primary" />
                                                             </div>
                                                             <div>
                                                                 <div className="flex flex-wrap items-center gap-2">
-                                                                    <span className="font-bold text-lg text-foreground leading-tight">{booking.service_type}</span>
-                                                                    <Badge className={`border ${getStatusColor(getTelemetryStatus(booking))} px-2.5 py-0.5 rounded-lg flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider dark:bg-opacity-25`}>
+                                                                    <span className="font-bold tracking-tight font-display text-lg text-slate-900 dark:text-white leading-tight">{booking.service_type}</span>
+                                                                    <Badge className={`border ${getStatusColor(getTelemetryStatus(booking))} px-2.5 py-0.5 rounded-lg flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider`}>
                                                                         {getStatusIcon(getTelemetryStatus(booking))}
                                                                         {getTelemetryStatus(booking).replace('_', ' ')}
                                                                     </Badge>
                                                                 </div>
-                                                                <p className="text-[10px] text-blue-600 dark:text-[#e65737] font-bold mt-1.5 tracking-wider uppercase font-mono">Ref: {booking.booking_reference}</p>
+                                                                <p className="text-[10px] text-primary font-bold mt-1.5 tracking-wider uppercase font-mono">Ref Name: {booking.booking_reference}</p>
                                                             </div>
                                                         </div>
                                                         
                                                         {/* Cost Box */}
-                                                        <div className="bg-muted px-5 py-3 rounded-2xl border border-border text-left sm:text-right min-w-[140px]">
-                                                            <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">Est. Cost</p>
-                                                            <p className="text-xl font-bold text-emerald-600 dark:text-emerald-500">
+                                                        <div className="bg-[#faf8f5] dark:bg-slate-950 px-5 py-3 rounded-2xl border border-border/40 text-left sm:text-right min-w-[140px]">
+                                                            <p className="text-[9px] text-slate-450 dark:text-slate-500 uppercase tracking-widest font-bold">Estimated Cost</p>
+                                                            <p className="text-xl font-bold text-emerald-600 dark:text-emerald-450">
                                                                 ₹{computedCost.toLocaleString("en-IN")}
                                                             </p>
                                                         </div>
                                                     </div>
 
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 py-6 border-y border-border">
-                                                        <div className="bg-muted rounded-xl p-3.5 border border-border/40 space-y-1">
-                                                            <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">Date</p>
-                                                            <div className="flex items-center gap-2 text-foreground">
-                                                                <Calendar className="h-4 w-4 text-blue-600 dark:text-[#e65737]" />
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 py-6 border-y border-[#e8e3d9]/60 dark:border-slate-800/60">
+                                                        <div className="bg-[#faf8f5] dark:bg-slate-950 rounded-xl p-3.5 border border-border/30 space-y-1">
+                                                            <p className="text-[9px] uppercase tracking-widest text-slate-450 dark:text-slate-550 font-bold">Schedule Date</p>
+                                                            <div className="flex items-center gap-2 text-slate-750 dark:text-slate-300">
+                                                                <Calendar className="h-4 w-4 text-primary shrink-0" />
                                                                 <span className="text-xs font-semibold">{new Date(booking.scheduled_at).toLocaleDateString("en-IN", { dateStyle: "medium" })}</span>
                                                             </div>
                                                         </div>
-                                                        <div className="bg-muted rounded-xl p-3.5 border border-border/40 space-y-1">
-                                                            <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">Time</p>
-                                                            <div className="flex items-center gap-2 text-foreground">
-                                                                <Clock className="h-4 w-4 text-blue-600 dark:text-[#e65737]" />
-                                                                <span className="text-xs font-semibold">{new Date(booking.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                        <div className="bg-[#faf8f5] dark:bg-slate-950 rounded-xl p-3.5 border border-border/30 space-y-1">
+                                                            <p className="text-[9px] uppercase tracking-widest text-slate-450 dark:text-slate-550 font-bold">Start Time</p>
+                                                            <div className="flex items-center gap-2 text-slate-750 dark:text-slate-300">
+                                                                <Clock className="h-4 w-4 text-primary shrink-0" />
+                                                                <span className="text-xs font-semibold">{booking.is_service ? booking.scheduled_at.split('@')[1] || booking.scheduled_at : new Date(booking.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                                             </div>
                                                         </div>
-                                                        <div className="bg-muted rounded-xl p-3.5 border border-border/40 space-y-1">
-                                                            <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">Pilot</p>
-                                                            <div className="flex items-center gap-2 text-foreground">
-                                                                <div className="h-6 w-6 rounded-lg bg-blue-500/10 dark:bg-[#e65737]/10 border border-blue-500/20 dark:border-[#e65737]/20 flex items-center justify-center text-[10px] font-bold text-blue-600 dark:text-[#e65737] uppercase">
-                                                                    {(booking.pilot?.full_name || 'P').charAt(0)}
+                                                        <div className="bg-[#faf8f5] dark:bg-slate-950 rounded-xl p-3.5 border border-border/30 space-y-1">
+                                                            <p className="text-[9px] uppercase tracking-widest text-slate-450 dark:text-slate-550 font-bold">{booking.is_service ? 'Operator' : 'Assigned Pilot'}</p>
+                                                            <div className="flex items-center gap-2 text-slate-750 dark:text-slate-300">
+                                                                <div className="h-6 w-6 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-[10px] font-bold text-primary uppercase shrink-0">
+                                                                    {(booking.pilot?.full_name || 'O').charAt(0)}
                                                                 </div>
-                                                                <span className="text-xs font-semibold truncate max-w-[120px]">{booking.pilot?.full_name || 'Assigned Pilot'}</span>
+                                                                <span className="text-xs font-semibold truncate max-w-[120px]">{booking.pilot?.full_name || 'Assigned Operator'}</span>
                                                             </div>
                                                         </div>
-                                                        <div className="bg-muted rounded-xl p-3.5 border border-border/40 space-y-1">
-                                                            <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">OTP</p>
+                                                        <div className="bg-[#faf8f5] dark:bg-slate-950 rounded-xl p-3.5 border border-border/30 space-y-1">
+                                                            <p className="text-[9px] uppercase tracking-widest text-slate-450 dark:text-slate-550 font-bold">Security OTP Code</p>
                                                             <div className="flex items-center gap-2">
-                                                                <Badge className="bg-amber-50 dark:bg-amber-955/20 text-amber-600 dark:text-amber-500 border border-amber-200 dark:border-amber-955/30 font-mono text-xs tracking-widest px-2.5 py-0.5 rounded-lg font-bold">
-                                                                    {booking.otp_code || '****'}
-                                                                </Badge>
+                                                                {!booking.is_service ? (
+                                                                    <Badge className="bg-amber-50 dark:bg-amber-955/20 text-amber-600 dark:text-amber-500 border border-amber-200 dark:border-amber-955/30 font-mono text-xs tracking-widest px-2.5 py-0.5 rounded-lg font-bold">
+                                                                        {booking.otp_code || '****'}
+                                                                    </Badge>
+                                                                ) : getTelemetryStatus(booking) === 'ON_SITE' ? (
+                                                                    <Badge className="bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-950/30 font-mono text-xs tracking-widest px-2.5 py-0.5 rounded-lg font-bold">
+                                                                        {booking.otp_code || '****'}
+                                                                    </Badge>
+                                                                ) : ['VERIFIED', 'IN_PROGRESS', 'COMPLETED', 'DONE'].includes(getTelemetryStatus(booking)) ? (
+                                                                    <Badge className="bg-emerald-50/50 dark:bg-emerald-950/10 text-emerald-600 dark:text-emerald-500 border border-emerald-100 dark:border-emerald-950/20 text-[10px] font-bold px-2.5 py-0.5 rounded-lg">
+                                                                        ✓ Verified
+                                                                    </Badge>
+                                                                ) : (
+                                                                    <Badge className="bg-slate-100 dark:bg-slate-900/40 text-slate-500 dark:text-slate-400 border border-[#e8e3d9] dark:border-slate-800 text-[10px] font-bold px-2.5 py-0.5 rounded-lg">
+                                                                        ⏳ Pending Arrival
+                                                                    </Badge>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     </div>
 
                                                     <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
-                                                        <div className="flex items-center gap-2 text-muted-foreground text-xs font-semibold">
-                                                            <MapPin className="h-4 w-4 text-blue-600 dark:text-[#e65737]" />
-                                                            <span>Location dispatch verified</span>
+                                                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-450 text-xs font-semibold">
+                                                            <MapPin className="h-4 w-4 text-primary shrink-0" />
+                                                            <span>Operational launch coordinates active</span>
                                                         </div>
                                                         <div className="flex items-center gap-3">
                                                             <Button 
                                                                 variant="ghost" 
                                                                 onClick={() => toggleOrderTracker(booking.id)}
-                                                                className={`rounded-full transition-all font-bold text-xs h-10 px-4 ${
+                                                                className={`rounded-full transition-all font-bold text-xs h-10 px-4 cursor-pointer ${
                                                                     expandedOrders[booking.id] 
-                                                                        ? "text-rose-600 hover:text-rose-700 bg-rose-50/50 dark:bg-rose-950/15 border border-rose-100 dark:border-rose-950/30" 
-                                                                        : "text-blue-600 dark:text-[#e65737] hover:text-blue-700 dark:hover:text-[#d44d2d] bg-blue-50/50 dark:bg-[#e65737]/5 border border-blue-100 dark:border-[#e65737]/15"
+                                                                        ? "text-rose-600 hover:text-rose-700 bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30" 
+                                                                        : "text-primary hover:text-primary/90 bg-primary/10 border border-primary/20"
                                                                 }`}
                                                             >
-                                                                {expandedOrders[booking.id] ? "Close Tracker" : "Track Steps"}
+                                                                {expandedOrders[booking.id] ? "Close Steps" : "Track Steps"}
                                                             </Button>
-                                                            <Button className="bg-slate-900 hover:bg-slate-850 dark:bg-slate-800 dark:hover:bg-slate-700 text-white border border-slate-800 dark:border-slate-700 rounded-xl flex items-center gap-2 px-5 h-10 text-xs font-bold transition-all shadow-sm" asChild>
-                                                                <Link href={`/track/${(booking.order_uuid || booking.booking_reference || '').replace(/^#/, '')}`}>
+                                                            <Button className="bg-slate-900 hover:bg-primary text-white dark:bg-slate-800 dark:hover:bg-slate-750 rounded-xl flex items-center gap-2 px-5 h-10 text-xs font-bold transition-all shadow-sm border-0 cursor-pointer" asChild>
+                                                                <Link href={`/track/${booking.id}`}>
                                                                     Tracking Hub
                                                                     <ChevronRight className="h-3.5 w-3.5" />
                                                                 </Link>
@@ -325,11 +412,11 @@ export default function OrdersPage() {
                                                         </div>
                                                     </div>
 
-                                                    {/* Expandable Live Stepper Tracker Panel */}
+                                                    {/* Stepper tracker panel */}
                                                     {expandedOrders[booking.id] && (
                                                         <div className="mt-6">
                                                             <OrderLiveTracker 
-                                                                bookingReference={booking.booking_reference} 
+                                                                bookingReference={booking.id} 
                                                                 initialStatus={getTelemetryStatus(booking)}
                                                             />
                                                         </div>
@@ -339,7 +426,7 @@ export default function OrdersPage() {
                                         </CardContent>
                                     </Card>
                                 )
-                            })}
+                             })}
                         </div>
                     )}
                 </div>
@@ -414,79 +501,79 @@ function OrderLiveTracker({ bookingReference, initialStatus }: TrackerProps) {
     const normalizedStatus = status?.toUpperCase() || 'PENDING'
     const currentStepIdx = statusIndexMap[normalizedStatus] ?? 0
     const isFullyCompleted = normalizedStatus === 'COMPLETED' || normalizedStatus === 'DONE'
-    const isCancelledOrDeclined = normalizedStatus === 'CANCELLED' || normalizedStatus === 'DECLINED'
+    const isCancelledOrDeclined = normalizedStatus === 'CANCELLED' || normalizedStatus === 'DECLINED' || normalizedStatus === 'REJECTED'
 
     return (
-        <div className="border border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-slate-900/60 backdrop-blur-md p-6 sm:p-8 rounded-3xl space-y-6 mt-5 shadow-[0_4px_24px_rgba(0,0,0,0.01)]">
+        <div className="border border-[#e8e3d9] dark:border-slate-800 bg-[#fdfcfa] dark:bg-slate-900/60 backdrop-blur-md p-6 sm:p-8 rounded-3xl space-y-6 mt-5 shadow-sm text-left">
             <div className="flex items-center justify-between mb-2">
-                <h4 className="text-xs font-bold text-slate-700 dark:text-slate-350 flex items-center gap-2 uppercase tracking-widest font-mono">
+                <h4 className="text-[10px] font-bold text-slate-550 dark:text-slate-400 flex items-center gap-2 uppercase tracking-widest font-sans">
                     {isCancelledOrDeclined ? (
                         <>
-                            <span className="flex h-2.5 w-2.5 relative">
+                            <span className="flex h-2 w-2 relative">
                                 <span className="absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
                             </span>
-                            Mission Inactive
+                            Mission Terminated
                         </>
                     ) : (
                         <>
                             <span className="flex h-2 w-2 relative">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#069494] dark:bg-[#08a3a3] opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#069494] dark:bg-[#08a3a3]"></span>
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                             </span>
-                            Telemetry Stream
+                            Live Telemetry Feed
                         </>
                     )}
                 </h4>
                 {loading ? (
-                    <span className="text-[10px] text-slate-400 flex items-center gap-1.5 font-bold font-mono uppercase tracking-wider">
-                        <Loader2 className="h-3.5 w-3.5 animate-spin text-[#069494] dark:text-[#08a3a3]" />
+                    <span className="text-[9px] text-slate-450 flex items-center gap-1.5 font-bold uppercase tracking-wider">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
                         Syncing...
                     </span>
                 ) : isCancelledOrDeclined ? (
-                    <span className="text-[10px] text-rose-600 dark:text-rose-450 font-bold bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-950/30 px-2.5 py-0.5 rounded-lg flex items-center gap-1 font-mono uppercase">
-                        ● Terminated
+                    <span className="text-[9px] text-rose-600 dark:text-rose-450 font-bold bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-950/30 px-2.5 py-0.5 rounded-lg flex items-center gap-1 uppercase">
+                        ● Cancelled
                     </span>
                 ) : (
-                    <span className="text-[10px] text-emerald-600 dark:text-emerald-450 font-bold bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-950/30 px-2.5 py-0.5 rounded-lg flex items-center gap-1 font-mono uppercase">
-                        ● Live
+                    <span className="text-[9px] text-emerald-600 dark:text-emerald-450 font-bold bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-950/30 px-2.5 py-0.5 rounded-lg flex items-center gap-1 uppercase">
+                        ● Re-establishing Stream
                     </span>
                 )}
             </div>
 
             {/* Flight Details Grid */}
             {details && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800/80">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-5 rounded-2xl bg-[#faf8f5] dark:bg-slate-950 border border-border/40">
                     <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-blue-50/80 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-450 flex-shrink-0">
+                        <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary flex-shrink-0">
                             <UserCheck className="h-5 w-5" />
                         </div>
                         <div className="min-w-0">
-                            <span className="text-[9px] font-bold text-slate-400 dark:text-slate-505 block uppercase tracking-widest">Pilot</span>
-                            <span className="text-xs font-bold text-slate-805 dark:text-slate-250 block truncate">{details.pilotName || "Assigned Pilot"}</span>
+                            <span className="text-[9px] font-bold text-slate-400 dark:text-slate-550 block uppercase tracking-widest">Pilot</span>
+                            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block truncate">{details.pilotName || "Assigned Operator"}</span>
                             <span className="text-[10px] text-slate-500 dark:text-slate-450 block font-medium mt-0.5">{details.pilotPhone || "+91 99999 99999"}</span>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 flex items-center justify-center text-emerald-650 dark:text-emerald-450 flex-shrink-0">
+                        <div className="h-10 w-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 flex items-center justify-center text-emerald-650 dark:text-emerald-450 flex-shrink-0">
                             <IndianRupee className="h-5 w-5" />
                         </div>
                         <div>
-                            <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-500 block uppercase tracking-widest">Amount</span>
-                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                            <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-555 block uppercase tracking-widest">Charges</span>
+                            <span className="text-xs font-bold text-emerald-705 dark:text-emerald-400">
                                 ₹{(details.totalAmount || details.estimatedAmount || 3000).toLocaleString("en-IN")}
                             </span>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-violet-50/80 dark:bg-violet-950/20 border border-violet-100 dark:border-violet-900/30 flex items-center justify-center text-violet-600 dark:text-violet-450 flex-shrink-0">
+                        <div className="h-10 w-10 rounded-xl bg-[#faf8f5] dark:bg-slate-900 border border-border/40 flex items-center justify-center text-slate-650 dark:text-slate-350 flex-shrink-0">
                             <Calendar className="h-5 w-5" />
                         </div>
                         <div>
-                            <span className="text-[9px] font-bold text-slate-400 dark:text-slate-550 block uppercase tracking-widest">Scheduled</span>
-                            <span className="text-xs font-bold text-slate-800 dark:text-slate-250 block">
+                            <span className="text-[9px] font-bold text-slate-450 dark:text-slate-550 block uppercase tracking-widest">Scheduled</span>
+                            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
                                 {new Date(details.scheduledAt || details.scheduled_at).toLocaleDateString("en-IN", { month: "short", day: "numeric" })}
                             </span>
                             <span className="text-[10px] text-slate-500 dark:text-slate-450 block font-medium mt-0.5">
@@ -496,12 +583,12 @@ function OrderLiveTracker({ bookingReference, initialStatus }: TrackerProps) {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-blue-50/80 dark:bg-orange-950/20 border border-blue-100 dark:border-orange-900/30 flex items-center justify-center text-blue-600 dark:text-orange-400 flex-shrink-0">
+                        <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary flex-shrink-0">
                             <Compass className="h-5 w-5" />
                         </div>
                         <div className="min-w-0">
-                            <span className="text-[9px] font-bold text-slate-400 dark:text-slate-550 block uppercase tracking-widest">Service</span>
-                            <span className="text-xs font-bold text-slate-800 dark:text-slate-250 block truncate">{details.serviceType || details.service_type || "General Shoot"}</span>
+                            <span className="text-[9px] font-bold text-slate-400 dark:text-slate-550 block uppercase tracking-widest">Mission</span>
+                            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block truncate">{details.serviceType || details.service_type || "Aero Operations"}</span>
                         </div>
                     </div>
                 </div>
@@ -509,14 +596,14 @@ function OrderLiveTracker({ bookingReference, initialStatus }: TrackerProps) {
 
             {/* Stepper tracker */}
             {isCancelledOrDeclined ? (
-                <div className="bg-rose-50/50 dark:bg-rose-950/10 border border-rose-200 dark:border-rose-950/30 p-5 rounded-2xl flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
-                    <div className="h-12 w-12 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-400 flex items-center justify-center flex-shrink-0 animate-pulse">
+                <div className="bg-rose-50/50 dark:bg-rose-955/10 border border-rose-200 dark:border-rose-900/30 p-5 rounded-2xl flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+                    <div className="h-12 w-12 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-650 dark:text-rose-400 flex items-center justify-center flex-shrink-0 animate-pulse">
                         <AlertTriangle className="h-6 w-6" />
                     </div>
                     <div>
-                        <h5 className="font-extrabold text-sm text-rose-950 dark:text-rose-200 uppercase tracking-widest font-mono">Mission Aborted / Cancelled</h5>
+                        <h5 className="font-bold text-sm text-rose-900 dark:text-rose-250 uppercase tracking-widest font-sans">Mission Booking Declined / Cancelled</h5>
                         <p className="text-xs text-rose-700 dark:text-rose-400 font-medium mt-1 leading-relaxed">
-                            This operation has been cancelled. If you require assistance or wish to book a new mission, please connect with our dispatcher team.
+                            This mission ticket has been cancelled or rejected by the provider. Please explore other available crews or contact dispatch support.
                         </p>
                     </div>
                 </div>
@@ -532,7 +619,7 @@ function OrderLiveTracker({ bookingReference, initialStatus }: TrackerProps) {
                                 {idx < steps.length - 1 && (
                                     <div className={`hidden md:block absolute top-4 left-8 right-0 h-[2px] transition-all duration-500 rounded-full ${
                                         isCompleted 
-                                            ? 'bg-emerald-450 dark:bg-emerald-500' 
+                                            ? 'bg-emerald-500' 
                                             : 'bg-slate-200 dark:bg-slate-800'
                                     }`} />
                                 )}
@@ -543,8 +630,8 @@ function OrderLiveTracker({ bookingReference, initialStatus }: TrackerProps) {
                                         isCompleted 
                                             ? 'bg-emerald-500 text-white shadow-sm' 
                                             : isCurrent
-                                            ? 'bg-[#069494] dark:bg-[#08a3a3] text-white ring-4 ring-[#069494]/10 dark:ring-[#08a3a3]/10 border border-[#069494]/20 dark:border-[#08a3a3]/20 shadow-sm animate-pulse'
-                                            : 'bg-slate-100 dark:bg-slate-900 text-slate-400 dark:text-slate-600 border border-slate-205 dark:border-slate-800'
+                                            ? 'bg-primary text-white ring-4 ring-primary/10 border border-primary/20 shadow-sm animate-pulse'
+                                            : 'bg-slate-100 dark:bg-slate-900 text-slate-400 dark:text-slate-655 border border-slate-205 dark:border-slate-800'
                                     }`}>
                                         {isCompleted ? (
                                             <CheckCircle2 className="h-4 w-4" />
@@ -558,7 +645,7 @@ function OrderLiveTracker({ bookingReference, initialStatus }: TrackerProps) {
                                     {/* Labels */}
                                     <div className="space-y-1 md:flex md:flex-col md:items-center">
                                         <p className={`text-xs font-bold transition-all duration-300 ${
-                                            isCompleted ? 'text-slate-800 dark:text-slate-250' : isCurrent ? 'text-[#069494] dark:text-[#08a3a3]' : 'text-slate-400 dark:text-slate-600'
+                                            isCompleted ? 'text-slate-800 dark:text-slate-250' : isCurrent ? 'text-primary' : 'text-slate-400 dark:text-slate-600'
                                         }`}>
                                             {step.label}
                                         </p>

@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     // Use admin API to create user (with retry for network issues)
     console.log('Creating user with admin API...')
-    const { data: authData, error: authError } = await withRetry(
+    const { data: authData, error: authError } = (await withRetry(
       () => supabaseAdmin.auth.admin.createUser({
         email,
         password,
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       }),
       3,
       'user auth creation'
-    )
+    )) as any
 
     if (authError) {
       console.error('❌ Auth error:', authError)

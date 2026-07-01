@@ -123,27 +123,9 @@ export function ModernHeader() {
       icon: DronePilotsIcon
     },
     {
-      href: "#",
+      href: "/drone-services",
       label: "Services",
-      icon: ServicesIcon,
-      hasMegaMenu: true,
-      columns: [
-        {
-          title: "Drone Services",
-          items: [
-            { href: "/drone-services", label: "Air Telemetry Analysis", desc: "Deep sensor data extraction" },
-            { href: "/training", label: "Pilot Certification", desc: "DGCA test preparation course" },
-            { href: "/drone-services", label: "Enterprise Solutions", desc: "Custom hardware consultations" }
-          ]
-        },
-        {
-          title: "Maintenance",
-          items: [
-            { href: "/repair-services", label: "Hardware Diagnostics", desc: "Propeller & rotor balancing" },
-            { href: "/repair-services", label: "Sensor Calibration", desc: "IMU & compass alignment check" }
-          ]
-        }
-      ]
+      icon: ServicesIcon
     },
     {
       href: "/about",

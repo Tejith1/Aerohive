@@ -69,14 +69,14 @@ export async function withRetry<T>(
   throw lastError
 }
 
-let adminClient: ReturnType<typeof createClient> | null = null
+let adminClient: any = null
 
 /**
  * Get a Supabase admin client with extended timeouts.
  * Uses the service role key — bypasses ALL RLS.
  * SERVER-SIDE ONLY.
  */
-export function getSupabaseAdminWithRetry() {
+export function getSupabaseAdminWithRetry(): any {
   if (typeof window !== 'undefined') {
     console.error('❌ getSupabaseAdminWithRetry must only be used server-side')
     return null

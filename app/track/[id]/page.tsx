@@ -416,21 +416,24 @@ export default function TrackingPage() {
           <div className="space-y-8">
             
             {/* OTP display container */}
-            {job.otp && !['CANCELLED', 'DECLINED'].includes(job.status?.toUpperCase()) && (
+            {!['CANCELLED', 'DECLINED', 'COMPLETED', 'DONE'].includes(job.status?.toUpperCase() || '') && (
               <Card className="border-amber-200/70 dark:border-amber-950/30 bg-amber-50/50 dark:bg-amber-950/10 shadow-[0_4px_20px_rgba(0,0,0,0.01)] rounded-3xl overflow-hidden relative group">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-amber-200/10 dark:bg-amber-900/5 rounded-full blur-2xl pointer-events-none" />
                 <CardContent className="p-6 text-center space-y-4">
                   <div className="w-11 h-11 bg-amber-100/80 dark:bg-amber-955/30 rounded-xl flex items-center justify-center mx-auto text-amber-700 dark:text-amber-500 border border-amber-200/50 dark:border-amber-900/30">
                     <UserCheck className="w-5 h-5" />
-                  </div>
-                  <div className="space-y-1">
+                  </div>                  <div className="space-y-1">
                     <h3 className="text-xs font-bold text-amber-800 dark:text-amber-400 uppercase tracking-widest font-mono">Security Dispatch OTP</h3>
-                    <p className="text-[11px] text-amber-600 dark:text-amber-500 font-medium">Verify with pilot at the operation site</p>
+                    <p className="text-[11px] text-amber-600 dark:text-amber-500 font-medium">
+                      Verify with {job.is_service ? 'operator' : 'pilot'} at the operation site
+                    </p>
                   </div>
-                  <div className="bg-background border border-amber-200 dark:border-amber-950/40 rounded-2xl py-3.5 shadow-sm max-w-[200px] mx-auto">
-                    <span className="text-3xl font-mono font-black text-amber-750 dark:text-amber-400 tracking-[0.25em] pl-[0.25em]">{job.otp}</span>
+                  <div className="bg-background border border-amber-200 dark:border-amber-955/40 rounded-2xl py-3.5 shadow-sm max-w-[200px] mx-auto">
+                    <span className="text-3xl font-mono font-black text-amber-750 dark:text-amber-400 tracking-[0.25em] pl-[0.25em]">
+                      {job.otp || '****'}
+                    </span>
                   </div>
-                  <p className="text-[9px] text-amber-800/80 dark:text-amber-500/80 font-bold italic">Do not disclose this token electronically.</p>
+                  <p className="text-[9px] text-amber-800/80 dark:text-amber-500/80 font-bold italic">Share this OTP code with {job.is_service ? 'operator' : 'pilot'} only upon arrival.</p>
                 </CardContent>
               </Card>
             )}

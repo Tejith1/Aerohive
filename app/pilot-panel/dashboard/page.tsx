@@ -468,7 +468,7 @@ export default function PilotDashboardPage() {
             
             <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
               <Button
-                onClick={fetchBookings}
+                onClick={() => fetchBookings()}
                 disabled={loadingBookings}
                 className="bg-white hover:bg-slate-50 dark:bg-slate-850 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80 rounded-xl px-5 h-11 text-xs font-bold transition-all flex items-center gap-2 shadow-sm flex-1 lg:flex-initial"
               >

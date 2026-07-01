@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        const { data: pilot, error } = await supabase
+        const { data: pilotData, error } = await supabase
             .from('drone_pilots')
             .select(`
                 id,
@@ -47,6 +47,8 @@ export async function POST(request: NextRequest) {
             `)
             .eq('dgca_number', dgca_number.trim())
             .single()
+
+        const pilot = pilotData as any
 
         if (error && error.code === 'PGRST116') {
             // No rows returned = pilot not found

@@ -51,7 +51,7 @@ export function AdminSidebar() {
           </div>
           {!isCollapsed && (
             <div className="transition-opacity duration-300 opacity-100">
-              <span className="font-serif font-normal text-base text-white tracking-wide">AeroHive</span>
+              <span className="font-sans font-bold text-base text-white tracking-wide">AeroHive</span>
               <div className="text-[9px] text-[#e65737] font-bold uppercase tracking-[0.15em] font-mono mt-0.5">Console</div>
             </div>
           )}

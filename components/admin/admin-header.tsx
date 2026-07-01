@@ -26,7 +26,7 @@ export function AdminHeader({ title, description }: AdminHeaderProps) {
     <header className="border-b border-slate-200/60 dark:border-slate-900 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl sticky top-0 z-40 transition-colors duration-300">
       <div className="flex h-16 items-center justify-between px-6">
         <div>
-          <h1 className="text-lg font-serif font-normal text-slate-900 dark:text-white tracking-tight">{title}</h1>
+          <h1 className="text-lg font-bold tracking-tight font-display text-slate-900 dark:text-white">{title}</h1>
           {description && <p className="text-slate-450 dark:text-slate-500 text-[10px] uppercase font-mono font-bold tracking-wider mt-0.5">{description}</p>}
         </div>
 

@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Step 3: Collect unique client IDs — try public users table first
-        const clientIds = [...new Set(bookings.map((b: any) => b.client_id).filter(Boolean))]
+        const clientIds = [...new Set(bookings.map((b: any) => b.client_id).filter(Boolean))] as string[]
         let clientMap: Record<string, { name: string; email: string; phone?: string }> = {}
 
         if (clientIds.length > 0) {
