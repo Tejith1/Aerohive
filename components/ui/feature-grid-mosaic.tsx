@@ -245,9 +245,22 @@ export function FeatureGridMosaic({
               <div className="flex-1 flex flex-col justify-between text-left py-1">
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-zinc-450 dark:text-zinc-550 font-bold uppercase tracking-widest">
-                      {provider ? provider.companyName : "AeroHive Operator"}
-                    </span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[10px] text-zinc-450 dark:text-zinc-550 font-bold uppercase tracking-widest">
+                        {provider ? provider.companyName : "AeroHive Operator"}
+                      </span>
+                      {provider && (
+                        provider.isVerified ? (
+                          <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-450 border border-emerald-500/20 py-0 px-2 text-[8px] rounded-full flex items-center gap-0.5 font-bold uppercase pointer-events-none scale-95 origin-left">
+                            <ShieldCheck className="w-2.5 h-2.5" /> Verified
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-slate-100 text-slate-500 dark:bg-zinc-800/40 dark:text-zinc-450 border border-slate-200/55 dark:border-zinc-800/40 py-0 px-2 text-[8px] rounded-full flex items-center gap-0.5 font-bold uppercase pointer-events-none scale-95 origin-left">
+                            Not Verified
+                          </Badge>
+                        )
+                      )}
+                    </div>
                     <div className="flex items-center gap-1 text-[10px] text-zinc-500 dark:text-zinc-450">
                       <Star className="w-3 h-3 text-yellow-500 fill-current" />
                       <span className="font-bold">{provider ? provider.rating : "5.0"}</span>
