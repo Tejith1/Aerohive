@@ -261,7 +261,7 @@ export function FeatureGridMosaic({
                         )
                       )}
                     </div>
-                    <div className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-muted-foreground">50">
+                    <div className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-muted-foreground">
                       <Star className="w-3 h-3 text-yellow-500 fill-current" />
                       <span className="font-bold">{provider ? provider.rating : "5.0"}</span>
                     </div>
